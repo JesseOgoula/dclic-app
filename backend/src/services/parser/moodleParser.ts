@@ -165,7 +165,8 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
  * Returns structured participant data with group info.
  */
 export function parseParticipantsXLSX(filePath: string): ParsedParticipant[] {
-  const workbook = XLSX.readFile(filePath);
+  const buffer = fs.readFileSync(filePath);
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet);
