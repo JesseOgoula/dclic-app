@@ -455,6 +455,22 @@ class DataStore {
     const { data } = await supabase.from('reports').select('*').order('created_at', { ascending: false });
     return data as Report[] || [];
   }
+
+  // ----------------------------------------------------------
+  // Danger Zone
+  // ----------------------------------------------------------
+
+  async clearAllData(): Promise<void> {
+    await supabase.from('learners').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  }
+
+  async clearUploadHistory(): Promise<void> {
+    await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  }
 }
 
 // Singleton instance

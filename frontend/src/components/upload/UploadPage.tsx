@@ -6,6 +6,8 @@ import {
   AlertCircle,
   Loader2,
   FileText,
+  Trash2,
+  RefreshCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type UploadResult } from '@/lib/api';
@@ -29,6 +31,29 @@ export default function UploadPage() {
       console.error(err);
     }
   }, []);
+
+  const handleResetData = async () => {
+    if (window.confirm("Êtes-vous sûr de vouloir effacer TOUTES les données (apprenants, progrès, activités, historique) ? Cette action est irréversible.")) {
+      try {
+        await api.resetData();
+        fetchHistory();
+        alert("Les données ont été effacées avec succès.");
+      } catch (err) {
+        alert("Erreur lors de l'effacement : " + err);
+      }
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (window.confirm("Voulez-vous vraiment vider l'historique des imports ?")) {
+      try {
+        await api.clearHistory();
+        fetchHistory();
+      } catch (err) {
+        alert("Erreur : " + err);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchHistory();
@@ -76,12 +101,18 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Importer des données Moodle</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Uploadez vos exports CSV (progression) ou Excel (participants) depuis Moodle.
-          Seul le <strong>Groupe G1</strong> sera traité.
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-semibold">Importer des données Moodle</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Uploadez vos exports CSV (progression) ou Excel (participants) depuis Moodle.
+            Seul le <strong>Groupe G1</strong> sera traité.
+          </p>
+        </div>
+        <Button variant="destructive" size="sm" onClick={handleResetData} className="gap-2">
+          <Trash2 className="w-4 h-4" />
+          Reset Données
+        </Button>
       </div>
 
       {/* Drop zone */}
@@ -108,9 +139,12 @@ export default function UploadPage() {
         />
 
         {uploading ? (
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-12 h-12 text-primary animate-spin" />
-            <p className="text-sm font-medium text-primary">Traitement en cours...</p>
+          <div className="flex flex-col items-center gap-4 w-full max-w-[200px] mx-auto">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <div className="w-full h-2 bg-primary/20 rounded-full overflow-hidden">
+              <div className="h-full bg-primary w-full animate-pulse origin-left" style={{ animation: "progress 2s infinite ease-in-out" }}></div>
+            </div>
+            <p className="text-sm font-medium text-primary text-center">Envoi et traitement du fichier...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
@@ -205,8 +239,12 @@ export default function UploadPage() {
       {/* History */}
       {history.length > 0 && (
         <Card className="shadow-sm border-border">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Historique des imports</CardTitle>
+            <Button variant="ghost" size="sm" onClick={handleClearHistory} className="h-8 text-muted-foreground hover:text-destructive">
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Vider
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 pt-2">

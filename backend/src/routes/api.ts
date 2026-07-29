@@ -56,6 +56,24 @@ router.get('/uploads', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
+router.delete('/uploads', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    await store.clearUploadHistory();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.delete('/reset', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    await store.clearAllData();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 // ============================================================
 // Reports endpoints
 // ============================================================

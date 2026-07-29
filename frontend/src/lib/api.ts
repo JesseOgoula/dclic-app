@@ -191,4 +191,7 @@ export const api = {
   getWeeklyReports: () => request<any[]>('/reports/weekly'),
 
   getUploads: () => request<any[]>('/uploads'),
+  
+  clearHistory: () => request<void>('/uploads', { method: 'DELETE' }),
+  resetData: () => request<void>('/reset', { method: 'DELETE' }),
 };
