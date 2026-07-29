@@ -2,8 +2,8 @@
 // API Client — Typed wrapper for backend API calls
 // ============================================================
 
-// Use environment variable for production API URL, fallback to local proxy
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// Use environment variable for production API URL, fallback to Render backend
+const API_BASE = import.meta.env.VITE_API_URL || 'https://dclic-backend.onrender.com/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
