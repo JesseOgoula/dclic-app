@@ -1,189 +1,204 @@
 // ============================================================
-// In-memory data store — Will be replaced by Supabase later
-// Provides immediate functionality without DB setup
+// Supabase Data Store
 // ============================================================
 
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 import type {
   Learner, Activity, LearnerProgress, Upload, CommunicationLog,
   Evaluation, Report, Alert, DashboardStats, LearnerWithProgress, SequenceStat
 } from '../types.js';
 
-function genId(): string {
-  return crypto.randomUUID();
-}
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_KEY!;
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 class DataStore {
-  learners: Map<string, Learner> = new Map();         // keyed by email
-  activities: Map<string, Activity> = new Map();       // keyed by code
-  progress: LearnerProgress[] = [];
-  uploads: Upload[] = [];
-  communications: CommunicationLog[] = [];
-  evaluations: Evaluation[] = [];
-  reports: Report[] = [];
-  alerts: Alert[] = [];
-
-  // ----------------------------------------------------------
-  // Persistence
-  // ----------------------------------------------------------
-
-  saveToFile() {
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const dataPath = path.join(process.cwd(), 'data.json');
-      const state = {
-        learners: Array.from(this.learners.entries()),
-        activities: Array.from(this.activities.entries()),
-        progress: this.progress,
-        uploads: this.uploads,
-        communications: this.communications,
-        evaluations: this.evaluations,
-        reports: this.reports,
-        alerts: this.alerts,
-      };
-      fs.writeFileSync(dataPath, JSON.stringify(state), 'utf-8');
-    } catch (err) {
-      console.error('Failed to save state to disk', err);
-    }
-  }
-
-  loadFromFile(): boolean {
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const dataPath = path.join(process.cwd(), 'data.json');
-      if (fs.existsSync(dataPath)) {
-        const state = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-        this.learners = new Map(state.learners || []);
-        this.activities = new Map(state.activities || []);
-        this.progress = state.progress || [];
-        this.uploads = state.uploads || [];
-        this.communications = state.communications || [];
-        this.evaluations = state.evaluations || [];
-        this.reports = state.reports || [];
-        this.alerts = state.alerts || [];
-        return true;
-      }
-    } catch (err) {
-      console.error('Failed to load state from disk', err);
-    }
-    return false;
-  }
-
   // ----------------------------------------------------------
   // Learner operations
   // ----------------------------------------------------------
 
-  upsertLearner(data: Omit<Learner, 'id' | 'created_at' | 'status'>): Learner {
-    const existing = this.learners.get(data.email);
+  async upsertLearner(data: Omit<Learner, 'id' | 'created_at' | 'status'>): Promise<Learner> {
+    const { data: existing } = await supabase
+      .from('learners')
+      .select('*')
+      .eq('email', data.email.toLowerCase())
+      .single();
+
     if (existing) {
-      existing.first_name = data.first_name;
-      existing.last_name = data.last_name;
-      existing.group_id = data.group_id;
-      if (data.last_activity_at) {
-        existing.last_activity_at = data.last_activity_at;
-      }
-      return existing;
+      const updates = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        group_id: data.group_id,
+        ...(data.last_activity_at && { last_activity_at: data.last_activity_at })
+      };
+      const { data: updated } = await supabase
+        .from('learners')
+        .update(updates)
+        .eq('id', existing.id)
+        .select()
+        .single();
+      return updated as Learner;
     }
 
-    const learner: Learner = {
-      id: genId(),
-      ...data,
-      status: 'active',
-      created_at: new Date().toISOString(),
-    };
-    this.learners.set(data.email, learner);
-    return learner;
+    const { data: inserted } = await supabase
+      .from('learners')
+      .insert([{
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email.toLowerCase(),
+        group_id: data.group_id,
+        last_activity_at: data.last_activity_at,
+        status: 'active'
+      }])
+      .select()
+      .single();
+    return inserted as Learner;
   }
 
-  getLearners(): Learner[] {
-    // Only return learners that belong to the target group
-    return Array.from(this.learners.values()).filter(l => l.group_id === 'G1_MN_072026');
+  async getLearners(): Promise<Learner[]> {
+    const { data } = await supabase
+      .from('learners')
+      .select('*')
+      .eq('group_id', 'G1_MN_072026');
+    return data as Learner[] || [];
   }
 
-  getLearnerByEmail(email: string): Learner | undefined {
-    return this.learners.get(email.toLowerCase());
+  async getLearnerByEmail(email: string): Promise<Learner | undefined> {
+    const { data } = await supabase
+      .from('learners')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+    return data || undefined;
   }
 
-  getLearnerById(id: string): Learner | undefined {
-    return Array.from(this.learners.values()).find(l => l.id === id);
+  async getLearnerById(id: string): Promise<Learner | undefined> {
+    const { data } = await supabase
+      .from('learners')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return data || undefined;
   }
 
   // ----------------------------------------------------------
   // Activity operations
   // ----------------------------------------------------------
 
-  upsertActivity(data: Omit<Activity, 'id'>): Activity {
-    const existing = this.activities.get(data.code);
+  async upsertActivity(data: Omit<Activity, 'id'>): Promise<Activity> {
+    const { data: existing } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('code', data.code)
+      .single();
+
     if (existing) {
-      Object.assign(existing, data);
-      return existing;
+      const { data: updated } = await supabase
+        .from('activities')
+        .update(data)
+        .eq('id', existing.id)
+        .select()
+        .single();
+      return updated as Activity;
     }
 
-    const activity: Activity = {
-      id: genId(),
-      ...data,
-    };
-    this.activities.set(data.code, activity);
-    return activity;
+    const { data: inserted } = await supabase
+      .from('activities')
+      .insert([data])
+      .select()
+      .single();
+    return inserted as Activity;
   }
 
-  getActivities(): Activity[] {
-    return Array.from(this.activities.values())
-      .sort((a, b) => a.display_order - b.display_order);
+  async getActivities(): Promise<Activity[]> {
+    const { data } = await supabase
+      .from('activities')
+      .select('*')
+      .order('display_order', { ascending: true });
+    return data as Activity[] || [];
   }
 
-  getActivityByCode(code: string): Activity | undefined {
-    return this.activities.get(code);
+  async getActivityByCode(code: string): Promise<Activity | undefined> {
+    const { data } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('code', code)
+      .single();
+    return data || undefined;
   }
 
-  getActivityById(id: string): Activity | undefined {
-    return Array.from(this.activities.values()).find(a => a.id === id);
+  async getActivityById(id: string): Promise<Activity | undefined> {
+    const { data } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return data || undefined;
   }
 
   // ----------------------------------------------------------
   // Progress operations
   // ----------------------------------------------------------
 
-  addProgress(data: Omit<LearnerProgress, 'id' | 'created_at'>): LearnerProgress {
-    // Check for existing
-    const existing = this.progress.find(
-      p => p.learner_id === data.learner_id && p.activity_id === data.activity_id
-    );
+  async addProgress(data: Omit<LearnerProgress, 'id' | 'created_at'>): Promise<LearnerProgress> {
+    const { data: existing } = await supabase
+      .from('progress')
+      .select('*')
+      .eq('learner_id', data.learner_id)
+      .eq('activity_id', data.activity_id)
+      .single();
+
     if (existing) {
-      existing.status = data.status;
-      existing.completed_at = data.completed_at;
-      existing.grade = data.grade;
-      existing.upload_id = data.upload_id;
-      return existing;
+      const { data: updated } = await supabase
+        .from('progress')
+        .update({
+          status: data.status,
+          completed_at: data.completed_at,
+          grade: data.grade,
+          upload_id: data.upload_id
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+      return updated as LearnerProgress;
     }
 
-    const record: LearnerProgress = {
-      id: genId(),
-      ...data,
-      created_at: new Date().toISOString(),
-    };
-    this.progress.push(record);
-    return record;
+    const { data: inserted } = await supabase
+      .from('progress')
+      .insert([data])
+      .select()
+      .single();
+    return inserted as LearnerProgress;
   }
 
-  getProgressByLearner(learnerId: string): LearnerProgress[] {
-    return this.progress.filter(p => p.learner_id === learnerId);
+  async getProgressByLearner(learnerId: string): Promise<LearnerProgress[]> {
+    const { data } = await supabase
+      .from('progress')
+      .select('*')
+      .eq('learner_id', learnerId);
+    return data as LearnerProgress[] || [];
+  }
+
+  async getAllProgress(): Promise<LearnerProgress[]> {
+    const { data } = await supabase.from('progress').select('*');
+    return data as LearnerProgress[] || [];
   }
 
   // ----------------------------------------------------------
   // Dashboard stats
   // ----------------------------------------------------------
 
-  getDashboardStats(): DashboardStats {
-    const allLearners = this.getLearners();
-    const allActivities = this.getActivities();
+  async getDashboardStats(): Promise<DashboardStats> {
+    const allLearners = await this.getLearners();
+    const allActivities = await this.getActivities();
+    const allProgress = await this.getAllProgress();
     const now = new Date();
 
-    // Calculate completion rate and status for each learner
     const learnersWithProgress: LearnerWithProgress[] = allLearners.map(learner => {
-      const learnerProgress = this.getProgressByLearner(learner.id);
+      const learnerProgress = allProgress.filter(p => p.learner_id === learner.id);
       const completedActivities = learnerProgress.filter(
         p => p.status === 'completed' || p.status === 'passed'
       ).length;
@@ -192,7 +207,6 @@ class DataStore {
         ? Math.round((completedActivities / totalActivities) * 100 * 10) / 10
         : 0;
 
-      // Calculate days inactive
       const lastActivity = learnerProgress
         .filter(p => p.completed_at)
         .map(p => new Date(p.completed_at!).getTime())
@@ -200,7 +214,7 @@ class DataStore {
 
       const daysInactive = lastActivity
         ? Math.floor((now.getTime() - lastActivity) / (1000 * 60 * 60 * 24))
-        : 999; // Never active
+        : 999;
 
       return {
         ...learner,
@@ -212,13 +226,13 @@ class DataStore {
       };
     });
 
-    // Update learner statuses
     for (const lwp of learnersWithProgress) {
-      const learner = this.learners.get(lwp.email);
-      if (learner) {
-        if (lwp.days_inactive > 14) learner.status = 'dropped';
-        else if (lwp.days_inactive > 7) learner.status = 'inactive';
-        else learner.status = 'active';
+      let status = 'active';
+      if (lwp.days_inactive > 14) status = 'dropped';
+      else if (lwp.days_inactive > 7) status = 'inactive';
+      
+      if (lwp.status !== status) {
+         await supabase.from('learners').update({ status }).eq('id', lwp.id);
       }
     }
 
@@ -226,12 +240,10 @@ class DataStore {
     const inactiveLearners = learnersWithProgress.filter(l => l.days_inactive > 7 && l.days_inactive <= 14).length;
     const droppedLearners = learnersWithProgress.filter(l => l.days_inactive > 14).length;
 
-    // Completion rate
     const avgCompletion = learnersWithProgress.length > 0
       ? Math.round(learnersWithProgress.reduce((sum, l) => sum + l.completion_rate, 0) / learnersWithProgress.length * 10) / 10
       : 0;
 
-    // Sequence stats
     const sequenceStats: SequenceStat[] = [];
     const sequences = Array.from(new Set(allActivities.map(a => a.sequence)));
     
@@ -243,7 +255,7 @@ class DataStore {
       let notStartedCount = 0;
 
       for (const learner of allLearners) {
-        const learnerProgress = this.progress.filter(p => p.learner_id === learner.id);
+        const learnerProgress = allProgress.filter(p => p.learner_id === learner.id);
         
         let learnerSeqCompleted = 0;
         for (const act of seqActivities) {
@@ -272,11 +284,9 @@ class DataStore {
       });
     }
 
-    // Top performers (top 10 by completion)
     const sorted = [...learnersWithProgress].sort((a, b) => b.completion_rate - a.completion_rate);
     const topPerformers = sorted.slice(0, 10);
 
-    // At risk (inactive + low completion)
     const atRisk = learnersWithProgress
       .filter(l => l.days_inactive > 5 || l.completion_rate < 20)
       .sort((a, b) => b.days_inactive - a.days_inactive)
@@ -298,18 +308,11 @@ class DataStore {
   // Weekly Reports
   // ----------------------------------------------------------
 
-  getWeeklyReports() {
-    const validProgress = this.progress.filter(p => p.completed_at && (p.status === 'completed' || p.status === 'passed'));
+  async getWeeklyReports() {
+    const allProgress = await this.getAllProgress();
+    const validProgress = allProgress.filter(p => p.completed_at && (p.status === 'completed' || p.status === 'passed'));
     
-    const weeksMap = new Map<string, {
-      week_start: string;
-      week_end: string;
-      total_validations: number;
-      unique_learners: Set<string>;
-      validations_by_sequence: Record<string, number>;
-      validations_by_day: Record<string, number>;
-      validations_by_learner: Record<string, number>;
-    }>();
+    const weeksMap = new Map<string, any>();
 
     const getMonday = (d: Date) => {
       const day = d.getDay();
@@ -319,7 +322,7 @@ class DataStore {
 
     for (const p of validProgress) {
       const d = new Date(p.completed_at!);
-      if (isNaN(d.getTime())) continue; // Safeguard
+      if (isNaN(d.getTime())) continue;
 
       const monday = getMonday(d);
       monday.setHours(0, 0, 0, 0);
@@ -328,7 +331,7 @@ class DataStore {
       sunday.setHours(23, 59, 59, 999);
 
       const weekKey = monday.toISOString().split('T')[0];
-      const activity = this.getActivityById(p.activity_id);
+      const activity = await this.getActivityById(p.activity_id);
       if (!activity) continue;
 
       if (!weeksMap.has(weekKey)) {
@@ -359,109 +362,98 @@ class DataStore {
       w.validations_by_learner[p.learner_id] = (w.validations_by_learner[p.learner_id] || 0) + 1;
     }
     
-    return Array.from(weeksMap.values()).map(w => {
-      const topLearners = Object.entries(w.validations_by_learner)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([id, count]) => {
-          const learner = this.getLearnerById(id);
-          return {
-            name: learner ? `${learner.first_name} ${learner.last_name}` : 'Unknown',
-            count
-          };
+    const result = [];
+    for (const w of Array.from(weeksMap.values())) {
+      const topLearnersRaw = Object.entries(w.validations_by_learner).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5);
+      const topLearners = [];
+      for (const [id, count] of topLearnersRaw) {
+        const learner = await this.getLearnerById(id);
+        topLearners.push({
+          name: learner ? `${learner.first_name} ${learner.last_name}` : 'Unknown',
+          count
         });
+      }
 
-      return {
+      result.push({
         week_start: w.week_start,
         week_end: w.week_end,
         total_validations: w.total_validations,
         active_learners: w.unique_learners.size,
-        validations_by_sequence: Object.entries(w.validations_by_sequence).map(([seq, count]) => ({
-          sequence: seq,
-          count,
-        })),
-        validations_by_day: Object.entries(w.validations_by_day).map(([day, count]) => ({
-          day,
-          count
-        })),
+        validations_by_sequence: Object.entries(w.validations_by_sequence).map(([seq, count]) => ({ sequence: seq, count })),
+        validations_by_day: Object.entries(w.validations_by_day).map(([day, count]) => ({ day, count })),
         top_learners: topLearners
-      };
-    }).sort((a, b) => new Date(b.week_start).getTime() - new Date(a.week_start).getTime());
+      });
+    }
+
+    return result.sort((a, b) => new Date(b.week_start).getTime() - new Date(a.week_start).getTime());
   }
 
   // ----------------------------------------------------------
   // Upload tracking
   // ----------------------------------------------------------
 
-  addUpload(filename: string, fileType: 'csv' | 'xlsx'): Upload {
-    const upload: Upload = {
-      id: genId(),
-      filename,
-      file_type: fileType,
-      uploaded_at: new Date().toISOString(),
-      rows_processed: 0,
-      status: 'pending',
-    };
-    this.uploads.push(upload);
-    return upload;
+  async addUpload(filename: string, fileType: 'csv' | 'xlsx'): Promise<Upload> {
+    const { data } = await supabase
+      .from('uploads')
+      .insert([{ filename, file_type: fileType, status: 'pending' }])
+      .select()
+      .single();
+    return data as Upload;
   }
 
-  updateUpload(id: string, data: Partial<Upload>): void {
-    const upload = this.uploads.find(u => u.id === id);
-    if (upload) Object.assign(upload, data);
+  async updateUpload(id: string, data: Partial<Upload>): Promise<void> {
+    await supabase.from('uploads').update(data).eq('id', id);
   }
 
-  getUploads(): Upload[] {
-    return [...this.uploads].sort((a, b) => new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime());
+  async getUploads(): Promise<Upload[]> {
+    const { data } = await supabase.from('uploads').select('*').order('uploaded_at', { ascending: false });
+    return data as Upload[] || [];
   }
 
   // ----------------------------------------------------------
   // Communications
   // ----------------------------------------------------------
 
-  addCommunication(data: Omit<CommunicationLog, 'id'>): CommunicationLog {
-    const comm: CommunicationLog = { id: genId(), ...data };
-    this.communications.push(comm);
-    return comm;
+  async addCommunication(data: Omit<CommunicationLog, 'id'>): Promise<CommunicationLog> {
+    const { data: inserted } = await supabase.from('communications').insert([data]).select().single();
+    return inserted as CommunicationLog;
   }
 
-  getCommunicationsByLearner(learnerId: string): CommunicationLog[] {
-    return this.communications.filter(c => c.learner_id === learnerId);
+  async getCommunicationsByLearner(learnerId: string): Promise<CommunicationLog[]> {
+    const { data } = await supabase.from('communications').select('*').eq('learner_id', learnerId);
+    return data as CommunicationLog[] || [];
   }
 
   // ----------------------------------------------------------
   // Alerts
   // ----------------------------------------------------------
 
-  addAlert(data: Omit<Alert, 'id'>): Alert {
-    const alert: Alert = { id: genId(), ...data };
-    this.alerts.push(alert);
-    return alert;
+  async addAlert(data: Omit<Alert, 'id'>): Promise<Alert> {
+    const { data: inserted } = await supabase.from('alerts').insert([data]).select().single();
+    return inserted as Alert;
   }
 
-  getActiveAlerts(): Alert[] {
-    return this.alerts.filter(a => !a.acknowledged);
+  async getActiveAlerts(): Promise<Alert[]> {
+    const { data } = await supabase.from('alerts').select('*').eq('status', 'new');
+    return data as Alert[] || [];
   }
 
-  acknowledgeAlert(id: string): void {
-    const alert = this.alerts.find(a => a.id === id);
-    if (alert) alert.acknowledged = true;
+  async acknowledgeAlert(id: string): Promise<void> {
+    await supabase.from('alerts').update({ status: 'acknowledged' }).eq('id', id);
   }
 
   // ----------------------------------------------------------
   // Reports
   // ----------------------------------------------------------
 
-  addReport(data: Omit<Report, 'id'>): Report {
-    const report: Report = { id: genId(), ...data };
-    this.reports.push(report);
-    return report;
+  async addReport(data: Omit<Report, 'id'>): Promise<Report> {
+    const { data: inserted } = await supabase.from('reports').insert([data]).select().single();
+    return inserted as Report;
   }
 
-  getReports(): Report[] {
-    return this.reports.sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+  async getReports(): Promise<Report[]> {
+    const { data } = await supabase.from('reports').select('*').order('created_at', { ascending: false });
+    return data as Report[] || [];
   }
 }
 
