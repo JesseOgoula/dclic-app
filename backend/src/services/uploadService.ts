@@ -90,6 +90,11 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
   const errors: string[] = [];
 
   const allLearners = await store.getLearners();
+  const allActivities = await store.getActivities();
+  const allProgress = await store.getAllProgress();
+  const toInsert: any[] = [];
+  const toUpdate: any[] = [];
+
   const g1Emails = new Set(
     allLearners
       .filter(l => l.group_id === TARGET_GROUP)
@@ -134,22 +139,49 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
         const activityCode = activityMeta.find(m => m.name === act.name)?.code;
         if (!activityCode) continue;
 
-        const activity = await store.getActivityByCode(activityCode);
+        const activity = allActivities.find(a => a.code === activityCode);
         if (!activity) continue;
 
-        await store.addProgress({
-          learner_id: learner.id,
-          activity_id: activity.id,
-          status: act.status as 'completed' | 'not_completed' | 'passed',
-          completed_at: act.completed_at,
-          grade: null,
-          upload_id: uploadId,
-        });
-        progressRecords++;
+        const status = act.status as 'completed' | 'not_completed' | 'passed';
+        const existingProgress = allProgress.find(p => p.learner_id === learner.id && p.activity_id === activity.id);
+
+        if (!existingProgress) {
+          toInsert.push({
+            learner_id: learner.id,
+            activity_id: activity.id,
+            status,
+            completed_at: act.completed_at,
+            grade: null,
+            upload_id: uploadId,
+          });
+        } else if (existingProgress.status !== status || existingProgress.completed_at !== act.completed_at) {
+          toUpdate.push({
+            ...existingProgress,
+            status,
+            completed_at: act.completed_at,
+            upload_id: uploadId,
+          });
+        }
       }
     } catch (err) {
       errors.push(`Error processing row for ${row.email}: ${err}`);
     }
+  }
+
+  if (toInsert.length > 0) {
+    const chunkSize = 500;
+    for (let i = 0; i < toInsert.length; i += chunkSize) {
+      await supabase.from('progress').insert(toInsert.slice(i, i + chunkSize));
+    }
+    progressRecords += toInsert.length;
+  }
+
+  if (toUpdate.length > 0) {
+    const chunkSize = 500;
+    for (let i = 0; i < toUpdate.length; i += chunkSize) {
+      await supabase.from('progress').upsert(toUpdate.slice(i, i + chunkSize), { onConflict: 'id' });
+    }
+    progressRecords += toUpdate.length;
   }
 
   return {
