@@ -2,7 +2,8 @@
 // API Client — Typed wrapper for backend API calls
 // ============================================================
 
-const API_BASE = '/api';
+// Use environment variable for production API URL, fallback to local proxy
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
