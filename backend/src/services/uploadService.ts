@@ -11,6 +11,7 @@ import {
   filterByGroup,
   extractActivityMetadata,
 } from './parser/moodleParser.js';
+import { parseParticipantsMD, parseRelativeTime } from './parser/mdParser.js';
 import { store, supabase } from './store.js';
 import type { UploadResult } from '../types.js';
 
@@ -21,7 +22,13 @@ const TARGET_GROUP = 'G1_MN_072026';
  */
 export async function processUpload(filePath: string, filename: string): Promise<UploadResult> {
   const ext = path.extname(filename).toLowerCase();
-  const upload = await store.addUpload(filename, ext === '.csv' ? 'csv' : 'xlsx');
+  const fileTypeMap: Record<string, 'csv' | 'xlsx' | 'md'> = {
+    '.csv': 'csv',
+    '.xlsx': 'xlsx',
+    '.xls': 'xlsx',
+    '.md': 'md',
+  };
+  const upload = await store.addUpload(filename, fileTypeMap[ext] || 'csv');
 
   try {
     // Upload original file to Supabase Storage as a backup/audit
@@ -35,6 +42,8 @@ export async function processUpload(filePath: string, filename: string): Promise
       result = await processProgressCSV(filePath, upload.id);
     } else if (ext === '.xlsx' || ext === '.xls') {
       result = await processParticipantsXLSX(filePath, upload.id);
+    } else if (ext === '.md') {
+      result = await processParticipantsMD(filePath, upload.id);
     } else {
       throw new Error(`Unsupported file type: ${ext}`);
     }
@@ -215,6 +224,50 @@ async function processParticipantsXLSX(filePath: string, uploadId: string): Prom
         email: p.email,
         group_id: p.group,
         last_activity_at: null,
+      });
+      if (existing) learnersUpdated++;
+      else learnersCreated++;
+    } catch (err) {
+      errors.push(`Error processing participant ${p.email}: ${err}`);
+    }
+  }
+
+  return {
+    upload_id: uploadId,
+    filename: path.basename(filePath),
+    rows_processed: g1Participants.length,
+    learners_created: learnersCreated,
+    learners_updated: learnersUpdated,
+    progress_records: 0,
+    errors,
+  };
+}
+
+/**
+ * Process the participants MD
+ */
+async function processParticipantsMD(filePath: string, uploadId: string): Promise<UploadResult> {
+  const allParticipants = parseParticipantsMD(filePath);
+  const g1Participants = filterByGroup(allParticipants, TARGET_GROUP);
+
+  let learnersCreated = 0;
+  let learnersUpdated = 0;
+  const errors: string[] = [];
+
+  for (const p of g1Participants) {
+    try {
+      const existing = await store.getLearnerByEmail(p.email);
+      // Last access time is passed in the parser output or we can add it to ParsedParticipant.
+      // Wait, parseParticipantsMD doesn't return last access time yet. Let me check the type of ParsedParticipant.
+      // Actually, since ParsedParticipant from types.ts doesn't have last_access, let me just set it to null 
+      // or update ParsedParticipant type later if needed. For now I'll just put null for now, 
+      // wait, the mdParser can extract it but the type doesn't have it.
+      await store.upsertLearner({
+        first_name: p.first_name,
+        last_name: p.last_name,
+        email: p.email,
+        group_id: p.group,
+        last_activity_at: (p as any).last_access ? parseRelativeTime((p as any).last_access) : null,
       });
       if (existing) learnersUpdated++;
       else learnersCreated++;

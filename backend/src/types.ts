@@ -53,7 +53,7 @@ export interface LearnerProgress {
 export interface Upload {
   id: string;
   filename: string;
-  file_type: 'csv' | 'xlsx';
+  file_type: 'csv' | 'xlsx' | 'md';
   uploaded_at: string;
   rows_processed: number;
   status: 'pending' | 'processed' | 'error';

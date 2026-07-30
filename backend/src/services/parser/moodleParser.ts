@@ -15,10 +15,13 @@ import type { ParsedCSVRow, ParsedParticipant } from '../../types.js';
 const STATUS_MAP: Record<string, string> = {
   'Terminé': 'completed',
   'Termine': 'completed',
+  'Termin': 'completed',
   'Terminé (note minimale de réussite atteinte)': 'passed',
   'Termine (note minimale de reussite atteinte)': 'passed',
+  'Termin (note minimale de russite atteinte)': 'passed',
   'Pas terminé': 'not_completed',
   'Pas termine': 'not_completed',
+  'Pas termin': 'not_completed',
 };
 
 /**
@@ -119,7 +122,7 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
       // If still not mapped, try fuzzy matching
       if (!['completed', 'not_completed', 'passed'].includes(normalizedStatus)) {
         if (rawStatus.toLowerCase().includes('termin') && !rawStatus.toLowerCase().includes('pas')) {
-          normalizedStatus = rawStatus.toLowerCase().includes('réussite') || rawStatus.toLowerCase().includes('reussite')
+          normalizedStatus = rawStatus.toLowerCase().includes('réussite') || rawStatus.toLowerCase().includes('reussite') || rawStatus.toLowerCase().includes('russite')
             ? 'passed' : 'completed';
         } else {
           normalizedStatus = 'not_completed';
@@ -129,21 +132,32 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
       // Parse date — handle "1970-01-01" as null
       let completedAt: string | null = null;
       if (rawDate && !rawDate.includes('1970-01-01') && rawDate.length > 4) {
-        // Try parsing French format like "mercredi 24 juillet 2026, 17:10"
-        const months: Record<string, number> = {
-          'janvier': 0, 'février': 1, 'fevrier': 1, 'mars': 2, 'avril': 3, 'mai': 4, 'juin': 5,
-          'juillet': 6, 'août': 7, 'aout': 7, 'septembre': 8, 'octobre': 9, 'novembre': 10, 'décembre': 11, 'decembre': 11
-        };
-        const regex = /(\d+)\s+([a-zA-ZÀ-ÿ]+)\s+(\d{4}),?\s+(\d{1,2})[h:](\d{2})/;
-        const match = rawDate.match(regex);
-        if (match) {
-          const [_, day, month, year, h, m] = match;
-          const mIndex = months[month.toLowerCase()] || 0;
-          const d = new Date(parseInt(year), mIndex, parseInt(day), parseInt(h), parseInt(m));
+        // Try ISO-like first (YYYY-MM-DD HH:MM:SS)
+        const isoRegex = /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/;
+        const isoMatch = rawDate.match(isoRegex);
+        
+        if (isoMatch) {
+          const [_, year, month, day, h, m, s] = isoMatch;
+          const d = new Date(`${year}-${month}-${day}T${h}:${m}:${s}Z`);
           completedAt = d.toISOString();
         } else {
-          // Fallback
-          completedAt = rawDate;
+          // Try parsing French format like "mercredi 24 juillet 2026, 17:10"
+          const months: Record<string, number> = {
+            'janvier': 0, 'février': 1, 'fevrier': 1, 'mars': 2, 'avril': 3, 'mai': 4, 'juin': 5,
+            'juillet': 6, 'août': 7, 'aout': 7, 'septembre': 8, 'octobre': 9, 'novembre': 10, 'décembre': 11, 'decembre': 11
+          };
+          const regex = /(\d+)\s+([a-zA-ZÀ-ÿ]+)\s+(\d{4}),?\s+(\d{1,2})[h:](\d{2})/;
+          const match = rawDate.match(regex);
+          if (match) {
+            const [_, day, month, year, h, m] = match;
+            const cleanMonth = month.toLowerCase().replace('', 'u'); // basic fix for août/aot
+            const mIndex = months[cleanMonth] || 0;
+            const d = new Date(parseInt(year), mIndex, parseInt(day), parseInt(h), parseInt(m));
+            completedAt = d.toISOString();
+          } else {
+            // Fallback
+            completedAt = rawDate;
+          }
         }
       }
 

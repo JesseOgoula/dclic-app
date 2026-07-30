@@ -220,13 +220,6 @@ export default function LearnersList({ onSelectLearner, globalSearch = '' }: Lea
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className={cn(
-                          'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white',
-                          learner.status === 'active' ? 'bg-gradient-to-br from-primary to-purple-400' :
-                            learner.status === 'inactive' ? 'bg-warning' : 'bg-gray-300'
-                        )}>
-                          {learner.first_name?.[0]}{learner.last_name?.[0]}
-                        </div>
                         <div>
                           <p className="font-medium text-foreground">{learner.first_name} {learner.last_name}</p>
                         </div>

@@ -15,12 +15,12 @@ const upload = multer({
   dest: path.join(process.cwd(), 'uploads'),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (_req, file, cb) => {
-    const allowed = ['.csv', '.xlsx', '.xls'];
+    const allowed = ['.csv', '.xlsx', '.xls', '.md'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowed.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error(`File type ${ext} not supported. Use CSV or XLSX.`));
+      cb(new Error(`File type ${ext} not supported. Use CSV, XLSX, or MD.`));
     }
   },
 });
@@ -132,11 +132,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       const progress = allProgress.filter(p => p.learner_id === l.id);
       const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
       const total = activities.length;
-      const timestamps = progress
-        .filter(p => p.completed_at)
-        .map(p => new Date(p.completed_at!).getTime())
-        .filter(t => !isNaN(t));
-      const lastActivity = timestamps.length > 0 ? Math.max(...timestamps) : null;
+      const lastActivity = l.last_activity_at ? new Date(l.last_activity_at).getTime() : null;
       const daysInactive = lastActivity
         ? Math.floor((Date.now() - lastActivity) / (1000 * 60 * 60 * 24))
         : 999;
@@ -195,10 +191,7 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
 
     const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
 
-    const lastActivity = progress
-      .filter(p => p.completed_at)
-      .map(p => new Date(p.completed_at!).getTime())
-      .sort((a, b) => b - a)[0];
+    const lastActivity = learner.last_activity_at ? new Date(learner.last_activity_at).getTime() : null;
 
     const daysInactive = lastActivity
       ? Math.floor((new Date().getTime() - lastActivity) / (1000 * 60 * 60 * 24))

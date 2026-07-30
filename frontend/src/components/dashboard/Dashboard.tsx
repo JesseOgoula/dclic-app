@@ -451,9 +451,6 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
-                            {learner.first_name.charAt(0)}{learner.last_name.charAt(0)}
-                          </div>
                           <div>
                             <p className="font-medium text-sm text-foreground truncate max-w-[130px]">{learner.first_name} {learner.last_name}</p>
                             <p className="text-xs text-muted-foreground truncate max-w-[130px]">{learner.email}</p>

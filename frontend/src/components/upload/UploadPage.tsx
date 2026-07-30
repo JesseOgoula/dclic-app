@@ -8,6 +8,7 @@ import {
   FileText,
   Trash2,
   RefreshCcw,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type UploadResult } from '@/lib/api';
@@ -133,7 +134,7 @@ export default function UploadPage() {
         <input
           id="file-input"
           type="file"
-          accept=".csv,.xlsx,.xls"
+          accept=".csv,.xlsx,.xls,.md"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -156,7 +157,7 @@ export default function UploadPage() {
                 Glissez votre fichier ici ou <span className="text-primary">parcourez</span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Formats acceptés : CSV, XLSX (max 50 MB)
+                Formats acceptés : CSV, XLSX, MD (max 50 MB)
               </p>
             </div>
           </div>
@@ -225,6 +226,12 @@ export default function UploadPage() {
               title="CSV — Progression des activités"
               description="Export depuis Moodle > Course Management > Achèvement des activités (TSV, UTF-16)"
               color="primary"
+            />
+            <FormatCard
+              icon={Users}
+              title="MD — Liste des participants"
+              description="Fichier courseid.md (Markdown table avec les participants)"
+              color="secondary"
             />
             <FormatCard
               icon={FileSpreadsheet}

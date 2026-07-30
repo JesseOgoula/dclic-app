@@ -183,8 +183,28 @@ class DataStore {
   }
 
   async getAllProgress(): Promise<LearnerProgress[]> {
-    const { data } = await supabase.from('progress').select('*');
-    return data as LearnerProgress[] || [];
+    let allData: LearnerProgress[] = [];
+    let from = 0;
+    const step = 1000;
+    
+    while (true) {
+      const { data, error } = await supabase
+        .from('progress')
+        .select('*')
+        .range(from, from + step - 1);
+        
+      if (error || !data || data.length === 0) {
+        break;
+      }
+      
+      allData = allData.concat(data as LearnerProgress[]);
+      if (data.length < step) {
+        break;
+      }
+      from += step;
+    }
+    
+    return allData;
   }
 
   // ----------------------------------------------------------
@@ -207,10 +227,9 @@ class DataStore {
         ? Math.round((completedActivities / totalActivities) * 100 * 10) / 10
         : 0;
 
-      const lastActivity = learnerProgress
-        .filter(p => p.completed_at)
-        .map(p => new Date(p.completed_at!).getTime())
-        .sort((a, b) => b - a)[0];
+      const lastActivity = learner.last_activity_at
+        ? new Date(learner.last_activity_at).getTime()
+        : null;
 
       const daysInactive = lastActivity
         ? Math.floor((now.getTime() - lastActivity) / (1000 * 60 * 60 * 24))
@@ -228,17 +247,17 @@ class DataStore {
 
     for (const lwp of learnersWithProgress) {
       let status = 'active';
-      if (lwp.days_inactive > 14) status = 'dropped';
-      else if (lwp.days_inactive > 7) status = 'inactive';
+      if (lwp.days_inactive > 7) status = 'dropped';
+      else if (lwp.days_inactive >= 2) status = 'inactive';
       
       if (lwp.status !== status) {
          await supabase.from('learners').update({ status }).eq('id', lwp.id);
       }
     }
 
-    const activeLearners = learnersWithProgress.filter(l => l.days_inactive <= 7).length;
-    const inactiveLearners = learnersWithProgress.filter(l => l.days_inactive > 7 && l.days_inactive <= 14).length;
-    const droppedLearners = learnersWithProgress.filter(l => l.days_inactive > 14).length;
+    const activeLearners = learnersWithProgress.filter(l => l.days_inactive < 2).length;
+    const inactiveLearners = learnersWithProgress.filter(l => l.days_inactive >= 2 && l.days_inactive <= 7).length;
+    const droppedLearners = learnersWithProgress.filter(l => l.days_inactive > 7).length;
 
     const avgCompletion = learnersWithProgress.length > 0
       ? Math.round(learnersWithProgress.reduce((sum, l) => sum + l.completion_rate, 0) / learnersWithProgress.length * 10) / 10
@@ -288,7 +307,7 @@ class DataStore {
     const topPerformers = sorted.slice(0, 10);
 
     const atRisk = learnersWithProgress
-      .filter(l => l.days_inactive > 5 || l.completion_rate < 20)
+      .filter(l => l.days_inactive > 7)
       .sort((a, b) => b.days_inactive - a.days_inactive)
       .slice(0, 10);
 
@@ -311,6 +330,8 @@ class DataStore {
   async getWeeklyReports() {
     const allProgress = await this.getAllProgress();
     const validProgress = allProgress.filter(p => p.completed_at && (p.status === 'completed' || p.status === 'passed'));
+    const allActivities = await this.getActivities();
+    const allLearners = await this.getLearners();
     
     const weeksMap = new Map<string, any>();
 
@@ -331,7 +352,7 @@ class DataStore {
       sunday.setHours(23, 59, 59, 999);
 
       const weekKey = monday.toISOString().split('T')[0];
-      const activity = await this.getActivityById(p.activity_id);
+      const activity = allActivities.find(a => a.id === p.activity_id);
       if (!activity) continue;
 
       if (!weeksMap.has(weekKey)) {
@@ -367,7 +388,7 @@ class DataStore {
       const topLearnersRaw = Object.entries(w.validations_by_learner).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5);
       const topLearners = [];
       for (const [id, count] of topLearnersRaw) {
-        const learner = await this.getLearnerById(id);
+        const learner = allLearners.find(l => l.id === id);
         topLearners.push({
           name: learner ? `${learner.first_name} ${learner.last_name}` : 'Unknown',
           count
@@ -392,7 +413,7 @@ class DataStore {
   // Upload tracking
   // ----------------------------------------------------------
 
-  async addUpload(filename: string, fileType: 'csv' | 'xlsx'): Promise<Upload> {
+  async addUpload(filename: string, fileType: 'csv' | 'xlsx' | 'md'): Promise<Upload> {
     const { data } = await supabase
       .from('uploads')
       .insert([{ filename, file_type: fileType, status: 'pending' }])

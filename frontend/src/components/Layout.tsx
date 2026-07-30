@@ -25,7 +25,7 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'reports', label: 'Rapports', icon: BarChart },
   { id: 'learners', label: 'Apprenants', icon: Users },
-  { id: 'upload', label: 'Import données', icon: Upload },
+  { id: 'upload', label: 'Import', icon: Upload },
 ];
 
 export default function Layout({ children, currentPage, onNavigate, alertCount = 0, globalSearch = '', onSearch }: LayoutProps) {

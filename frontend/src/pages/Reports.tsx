@@ -61,15 +61,20 @@ function CustomSelect({ options, value, onChange }: { options: { value: string, 
 
 export default function Reports() {
   const [reports, setReports] = useState<any[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getWeeklyReports()
-      .then(data => {
-        setReports(data);
-        if (data.length > 0) {
-          setSelectedWeek(data[0].week_start);
+    Promise.all([
+      api.getWeeklyReports(),
+      api.getDashboardStats().catch(() => null)
+    ])
+      .then(([reportsData, statsData]) => {
+        setReports(reportsData);
+        setDashboardStats(statsData);
+        if (reportsData.length > 0) {
+          setSelectedWeek(reportsData[0].week_start);
         }
       })
       .catch(console.error)
@@ -108,10 +113,26 @@ export default function Reports() {
   const exportToMarkdown = () => {
     if (!currentReport) return;
 
+    const globalSection = dashboardStats ? `
+## 🌍 Vue Globale de la Cohorte
+- **Taux de complétion moyen :** ${dashboardStats.completion_rate}%
+- **Apprenants actifs :** ${dashboardStats.active_learners}
+- **En risque :** ${dashboardStats.inactive_learners + dashboardStats.dropped_learners} (${dashboardStats.dropped_learners} décrocheurs)
+
+### 📈 Progression par Séquence (Vue Globale)
+${dashboardStats.sequence_stats.filter((s: any) => s.sequence !== 'Autre' && s.sequence !== 'Préalable').map((s: any) => `- **${s.sequence}** : ${s.learners_completed} terminés, ${s.learners_in_progress} en cours, ${s.learners_not_started} non commencés (Moyenne : ${s.avg_completion}%)`).join('\n')}
+
+### 🥧 Répartition des Statuts
+- **Actifs :** ${dashboardStats.active_learners}
+- **Inactifs :** ${dashboardStats.inactive_learners}
+- **Décrocheurs :** ${dashboardStats.dropped_learners}
+
+` : '';
+
     const mdContent = `# Rapport Hebdomadaire - Cohorte DCLIC
 **Période :** Semaine du ${formatDate(currentReport.week_start)} au ${formatDate(currentReport.week_end)}
-
-## 📊 Indicateurs Clés
+${globalSection}
+## 📊 Indicateurs Hebdomadaires Clés
 - **Total des validations :** ${currentReport.total_validations}
 - **Apprenants actifs :** ${currentReport.active_learners}
 - **Séquence la plus active :** ${topSequence?.sequence || 'N/A'} (${topSequence?.count || 0} validations)
