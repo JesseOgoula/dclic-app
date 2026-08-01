@@ -163,6 +163,16 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
             grade: null,
             upload_id: uploadId,
           });
+          allProgress.push({
+            id: `temp-${Date.now()}-${Math.random()}`,
+            learner_id: learner.id,
+            activity_id: activity.id,
+            status,
+            completed_at: act.completed_at || null,
+            grade: null,
+            upload_id: uploadId,
+            created_at: new Date().toISOString(),
+          } as any);
         } else if (existingProgress.status !== status || existingProgress.completed_at !== act.completed_at) {
           toUpdate.push({
             ...existingProgress,

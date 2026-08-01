@@ -237,7 +237,8 @@ export function extractActivityMetadata(activityNames: string[]): Array<{
   return activityNames.map((name, index) => {
     // Extract code like "M1A", "M2B", "M10C" etc.
     const codeMatch = name.match(/M(\d+)([A-C])\./);
-    const code = codeMatch ? `M${codeMatch[1]}${codeMatch[2]}` : `ACT${index}`;
+    const baseCode = codeMatch ? `M${codeMatch[1]}${codeMatch[2]}` : `ACT`;
+    const code = `${baseCode}_${index}`;
 
     // Determine sequence from module number
     let sequence = 'Autre';
