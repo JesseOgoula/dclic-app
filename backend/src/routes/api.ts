@@ -87,6 +87,20 @@ router.get('/reports/weekly', async (_req: Request, res: Response): Promise<void
   }
 });
 
+router.get('/reports/custom', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { start, end } = req.query;
+    if (!start || !end) {
+      res.status(400).json({ error: 'Missing start or end date' });
+      return;
+    }
+    const report = await store.getCustomReport(start as string, end as string);
+    res.json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 // ============================================================
 // Dashboard endpoints
 // ============================================================

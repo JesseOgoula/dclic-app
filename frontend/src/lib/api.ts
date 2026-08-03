@@ -189,6 +189,8 @@ export const api = {
 
   // Reports
   getWeeklyReports: () => request<any[]>('/reports/weekly'),
+  getCustomReport: (startDate: string, endDate: string) => 
+    request<any>(`/reports/custom?start=${startDate}&end=${endDate}`),
 
   getUploads: () => request<any[]>('/uploads'),
   

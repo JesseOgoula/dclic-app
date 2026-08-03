@@ -65,6 +65,12 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
+  const [isCustomMode, setIsCustomMode] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [customReport, setCustomReport] = useState<any>(null);
+  const [generatingCustom, setGeneratingCustom] = useState(false);
+
   useEffect(() => {
     Promise.all([
       api.getWeeklyReports(),
@@ -82,11 +88,25 @@ export default function Reports() {
   }, []);
 
   if (loading) return <div className="p-8">Chargement des rapports...</div>;
-  if (reports.length === 0) return <div className="p-8 text-muted-foreground">Aucun historique disponible.</div>;
+  if (reports.length === 0 && !isCustomMode) return <div className="p-8 text-muted-foreground">Aucun historique disponible.</div>;
 
   const currentIndex = reports.findIndex(r => r.week_start === selectedWeek);
-  const currentReport = reports[currentIndex] || reports[0];
-  const previousReport = currentIndex < reports.length - 1 ? reports[currentIndex + 1] : null;
+  const currentReport = (isCustomMode && customReport) ? customReport : (reports[currentIndex] || reports[0]);
+  const previousReport = (!isCustomMode && currentIndex >= 0 && currentIndex < reports.length - 1) ? reports[currentIndex + 1] : null;
+
+  const handleGenerateCustom = async () => {
+    if (!customStartDate || !customEndDate) return;
+    setGeneratingCustom(true);
+    try {
+      const report = await api.getCustomReport(customStartDate, customEndDate);
+      setCustomReport(report);
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la génération du rapport personnalisé.');
+    } finally {
+      setGeneratingCustom(false);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
@@ -129,8 +149,8 @@ ${dashboardStats.sequence_stats.filter((s: any) => s.sequence !== 'Autre' && s.s
 
 ` : '';
 
-    const mdContent = `# Rapport Hebdomadaire - Cohorte DCLIC
-**Période :** Semaine du ${formatDate(currentReport.week_start)} au ${formatDate(currentReport.week_end)}
+    const mdContent = `# Rapport ${isCustomMode ? 'Personnalisé' : 'Hebdomadaire'} - Cohorte DCLIC
+**Période :** Du ${formatDate(currentReport.week_start)} au ${formatDate(currentReport.week_end)}
 ${globalSection}
 ## 📊 Indicateurs Hebdomadaires Clés
 - **Total des validations :** ${currentReport.total_validations}
@@ -156,7 +176,9 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Rapport_DCLIC_${currentReport.week_start}.md`;
+    link.download = isCustomMode 
+      ? `Rapport_DCLIC_Custom_${customStartDate}_au_${customEndDate}.md` 
+      : `Rapport_DCLIC_${currentReport.week_start}.md`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -167,21 +189,58 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Rapports Hebdomadaires</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {isCustomMode ? 'Rapport Personnalisé' : 'Rapports Hebdomadaires'}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Analyse détaillée de la cohorte du <span className="font-semibold text-foreground">{formatDate(currentReport.week_start)} au {formatDate(currentReport.week_end)}</span>
+            Analyse détaillée de la cohorte du <span className="font-semibold text-foreground">{currentReport ? formatDate(currentReport.week_start) : '-'} au {currentReport ? formatDate(currentReport.week_end) : '-'}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <CustomSelect
-            options={reports.map(r => ({
-              value: r.week_start,
-              label: `${formatDate(r.week_start)} - ${formatDate(r.week_end)}`
-            }))}
-            value={selectedWeek}
-            onChange={(val) => setSelectedWeek(val)}
+            options={[
+              { value: 'custom', label: 'Période personnalisée...' },
+              ...reports.map(r => ({
+                value: r.week_start,
+                label: `Sem. du ${formatDate(r.week_start)} au ${formatDate(r.week_end)}`
+              }))
+            ]}
+            value={isCustomMode ? 'custom' : selectedWeek}
+            onChange={(val) => {
+              if (val === 'custom') {
+                setIsCustomMode(true);
+              } else {
+                setIsCustomMode(false);
+                setSelectedWeek(val);
+              }
+            }}
           />
+
+          {isCustomMode && (
+            <div className="flex items-center gap-2">
+              <input 
+                type="date" 
+                className="h-10 px-2 rounded-md border border-input bg-background text-sm" 
+                value={customStartDate} 
+                onChange={e => setCustomStartDate(e.target.value)} 
+              />
+              <span className="text-muted-foreground text-sm">au</span>
+              <input 
+                type="date" 
+                className="h-10 px-2 rounded-md border border-input bg-background text-sm" 
+                value={customEndDate} 
+                onChange={e => setCustomEndDate(e.target.value)} 
+              />
+              <button 
+                onClick={handleGenerateCustom}
+                disabled={generatingCustom || !customStartDate || !customEndDate}
+                className="h-10 px-3 bg-accent text-accent-foreground rounded-md text-sm font-medium hover:bg-accent/90 disabled:opacity-50"
+              >
+                {generatingCustom ? '...' : 'Générer'}
+              </button>
+            </div>
+          )}
 
           <button
             onClick={exportToMarkdown}

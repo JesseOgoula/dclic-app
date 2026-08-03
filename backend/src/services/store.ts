@@ -410,6 +410,78 @@ class DataStore {
   }
 
   // ----------------------------------------------------------
+  // Custom Reports
+  // ----------------------------------------------------------
+
+  async getCustomReport(startStr: string, endStr: string) {
+    const allProgress = await this.getAllProgress();
+    const startDate = new Date(startStr);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(endStr);
+    endDate.setHours(23, 59, 59, 999);
+
+    const validProgress = allProgress.filter(p => {
+      if (!p.completed_at || (p.status !== 'completed' && p.status !== 'passed')) return false;
+      const d = new Date(p.completed_at);
+      if (isNaN(d.getTime())) return false;
+      return d >= startDate && d <= endDate;
+    });
+
+    const allActivities = await this.getActivities();
+    const allLearners = await this.getLearners();
+
+    const report = {
+      week_start: startDate.toISOString(),
+      week_end: endDate.toISOString(),
+      total_validations: 0,
+      unique_learners: new Set<string>(),
+      validations_by_sequence: {} as Record<string, number>,
+      validations_by_day: {
+        'Dimanche': 0, 'Lundi': 0, 'Mardi': 0, 'Mercredi': 0, 'Jeudi': 0, 'Vendredi': 0, 'Samedi': 0
+      } as Record<string, number>,
+      validations_by_learner: {} as Record<string, number>
+    };
+
+    for (const p of validProgress) {
+      const d = new Date(p.completed_at!);
+      const activity = allActivities.find(a => a.id === p.activity_id);
+      if (!activity) continue;
+
+      report.total_validations++;
+      report.unique_learners.add(p.learner_id);
+
+      const seq = activity.sequence || 'Autre';
+      report.validations_by_sequence[seq] = (report.validations_by_sequence[seq] || 0) + 1;
+
+      const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      const dayName = days[d.getDay()];
+      report.validations_by_day[dayName]++;
+
+      report.validations_by_learner[p.learner_id] = (report.validations_by_learner[p.learner_id] || 0) + 1;
+    }
+
+    const topLearnersRaw = Object.entries(report.validations_by_learner).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5);
+    const topLearners = [];
+    for (const [id, count] of topLearnersRaw) {
+      const learner = allLearners.find(l => l.id === id);
+      topLearners.push({
+        name: learner ? `${learner.first_name} ${learner.last_name}` : 'Unknown',
+        count
+      });
+    }
+
+    return {
+      week_start: report.week_start,
+      week_end: report.week_end,
+      total_validations: report.total_validations,
+      active_learners: report.unique_learners.size,
+      validations_by_sequence: Object.entries(report.validations_by_sequence).map(([seq, count]) => ({ sequence: seq, count })),
+      validations_by_day: Object.entries(report.validations_by_day).map(([day, count]) => ({ day, count })),
+      top_learners: topLearners
+    };
+  }
+
+  // ----------------------------------------------------------
   // Upload tracking
   // ----------------------------------------------------------
 
