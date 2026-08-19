@@ -22,6 +22,9 @@ const STATUS_MAP: Record<string, string> = {
   'Terminé (n\'a pas atteint la note minimale de réussite)': 'failed',
   'Termine (n\'a pas atteint la note minimale de reussite)': 'failed',
   'Termin (n\'a pas atteint la note minimale de russite)': 'failed',
+  'Terminé (n\u2019a pas atteint la note minimale de réussite)': 'failed',
+  'Termine (n\u2019a pas atteint la note minimale de reussite)': 'failed',
+  'Termin (n\u2019a pas atteint la note minimale de russite)': 'failed',
   'Pas terminé': 'not_completed',
   'Pas termine': 'not_completed',
   'Pas termin': 'not_completed',
@@ -115,8 +118,12 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
 
       // Normalize status (handle encoding issues)
       let normalizedStatus = rawStatus;
-      for (const [key, value] of Object.entries(STATUS_MAP)) {
-        if (rawStatus.includes(key) || rawStatus.replace(/[éèêë]/g, 'e').includes(key.replace(/[éèêë]/g, 'e'))) {
+      // Normalize curly quotes to straight quotes for matching
+      const normalizedRaw = rawStatus.replace(/[\u2018\u2019\u2032]/g, "'");
+      // Sort entries by key length descending so longer (more specific) keys match first
+      const sortedEntries = Object.entries(STATUS_MAP).sort((a, b) => b[0].length - a[0].length);
+      for (const [key, value] of sortedEntries) {
+        if (normalizedRaw.includes(key) || normalizedRaw.replace(/[éèêë]/g, 'e').includes(key.replace(/[éèêë]/g, 'e'))) {
           normalizedStatus = value;
           break;
         }
@@ -124,9 +131,14 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
 
       // If still not mapped, try fuzzy matching
       if (!['completed', 'not_completed', 'passed', 'failed'].includes(normalizedStatus)) {
-        if (rawStatus.toLowerCase().includes('termin') && !rawStatus.toLowerCase().includes('pas')) {
-          normalizedStatus = rawStatus.toLowerCase().includes('réussite') || rawStatus.toLowerCase().includes('reussite') || rawStatus.toLowerCase().includes('russite')
-            ? 'passed' : 'completed';
+        if (rawStatus.toLowerCase().includes('termin') && !rawStatus.toLowerCase().includes('pas termin')) {
+          if (rawStatus.toLowerCase().includes('pas atteint')) {
+            normalizedStatus = 'failed';
+          } else if (rawStatus.toLowerCase().includes('réussite') || rawStatus.toLowerCase().includes('reussite') || rawStatus.toLowerCase().includes('russite')) {
+            normalizedStatus = 'passed';
+          } else {
+            normalizedStatus = 'completed';
+          }
         } else {
           normalizedStatus = 'not_completed';
         }
