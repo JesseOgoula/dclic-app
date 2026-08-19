@@ -122,9 +122,9 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
   try {
     let learners = await store.getLearners();
 
-    // Filter by status
+    // Filter by regular status
     const status = req.query.status as string;
-    if (status) {
+    if (status && !['at_risk', 'blocked'].includes(status)) {
       learners = learners.filter(l => l.status === status);
     }
 
@@ -142,7 +142,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
     const activities = await store.getActivities();
     const allProgress = await store.getAllProgress();
     
-    const enriched = learners.map(l => {
+    let enriched = learners.map(l => {
       const progress = allProgress.filter(p => p.learner_id === l.id);
       const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
       const total = activities.length;
@@ -157,8 +157,16 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
         completed_activities: completed,
         total_activities: total,
         days_inactive: daysInactive,
+        has_failed_activities: progress.some(p => p.status === 'failed'),
       };
     });
+
+    // Handle special statuses (at_risk, blocked)
+    if (status === 'at_risk') {
+      enriched = enriched.filter(l => l.status === 'active' && l.days_inactive > 7);
+    } else if (status === 'blocked') {
+      enriched = enriched.filter(l => l.has_failed_activities);
+    }
 
     // Sort
     const sortBy = req.query.sortBy as string || 'last_name';

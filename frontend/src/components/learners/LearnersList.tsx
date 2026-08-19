@@ -29,13 +29,14 @@ import {
 interface LearnersListProps {
   onSelectLearner?: (id: string) => void;
   globalSearch?: string;
+  initialFilter?: string;
 }
 
-export default function LearnersList({ onSelectLearner, globalSearch = '' }: LearnersListProps) {
+export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '' }: LearnersListProps) {
   const [learners, setLearners] = useState<LearnerWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>(initialFilter);
   const [sortBy, setSortBy] = useState('last_name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
@@ -44,6 +45,10 @@ export default function LearnersList({ onSelectLearner, globalSearch = '' }: Lea
   useEffect(() => {
     loadLearners();
   }, [search, globalSearch, statusFilter, sortBy, sortDir]);
+
+  useEffect(() => {
+    setStatusFilter(initialFilter);
+  }, [initialFilter]);
 
   useEffect(() => {
     // Load stats once to get the counts for the filters
@@ -94,6 +99,8 @@ export default function LearnersList({ onSelectLearner, globalSearch = '' }: Lea
       active: { label: 'Actif', variant: 'default' as const },
       inactive: { label: 'Inactif', variant: 'secondary' as const },
       dropped: { label: 'Décroché', variant: 'destructive' as const },
+      at_risk: { label: 'Risque', variant: 'destructive' as const },
+      blocked: { label: 'Bloqué', variant: 'destructive' as const },
     }[status] || { label: status, variant: 'outline' as const };
 
     return (
@@ -144,13 +151,27 @@ export default function LearnersList({ onSelectLearner, globalSearch = '' }: Lea
             color="warning"
             count={stats?.inactive}
           />
-          <FilterButton
-            label="Décrochés"
+          <FilterPill
             icon={UserX}
+            label="Décrochés"
             active={statusFilter === 'dropped'}
             onClick={() => setStatusFilter('dropped')}
             color="destructive"
             count={stats?.dropped}
+          />
+          <FilterPill
+            icon={Filter}
+            label="En risque"
+            active={statusFilter === 'at_risk'}
+            onClick={() => setStatusFilter('at_risk')}
+            color="warning"
+          />
+          <FilterPill
+            icon={Filter}
+            label="Bloqués"
+            active={statusFilter === 'blocked'}
+            onClick={() => setStatusFilter('blocked')}
+            color="destructive"
           />
         </div>
       </div>

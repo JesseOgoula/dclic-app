@@ -12,9 +12,17 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
+  const [learnersFilter, setLearnersFilter] = useState<string>('');
 
   function handleNavigate(page: Page) {
     setCurrentPage(page);
+    setSelectedLearnerId(null);
+    setLearnersFilter('');
+  }
+
+  function handleViewAllLearners(filter: string) {
+    setLearnersFilter(filter);
+    setCurrentPage('learners');
     setSelectedLearnerId(null);
   }
 
@@ -42,6 +50,7 @@ function App() {
         <Dashboard 
           onSelectLearner={handleSelectLearner}
           globalSearch={globalSearch}
+          onViewAll={handleViewAllLearners}
         />
       )}
       {currentPage === 'reports' && <Reports />}
@@ -49,6 +58,7 @@ function App() {
         <LearnersList 
           onSelectLearner={handleSelectLearner}
           globalSearch={globalSearch}
+          initialFilter={learnersFilter}
         />
       )}
       {currentPage === 'learners' && selectedLearnerId && (

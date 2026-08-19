@@ -42,11 +42,12 @@ const BAR_GRADIENT = ['#db2777', '#f472b6', '#fbcfe8', '#fdf2f8', '#ffffff'];
 // dynamicDeadlines moved inside component
 
 interface DashboardProps {
-  onSelectLearner?: (email: string) => void;
+  onSelectLearner?: (id: string) => void;
   globalSearch?: string;
+  onViewAll?: (filter: string) => void;
 }
 
-export default function Dashboard({ onSelectLearner, globalSearch = '' }: DashboardProps) {
+export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAll }: DashboardProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -481,6 +482,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
               </Table>
             )}
           </CardContent>
+          {filteredAtRisk.length > 5 && onViewAll && (
+            <div className="p-4 border-t border-border flex justify-center bg-muted/10">
+              <Button variant="outline" size="sm" onClick={() => onViewAll('at_risk')}>
+                Voir plus
+              </Button>
+            </div>
+          )}
         </Card>
 
         {/* Blocked learners */}
@@ -528,6 +536,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
               </Table>
             )}
           </CardContent>
+          {filteredBlocked.length > 5 && onViewAll && (
+            <div className="p-4 border-t border-border flex justify-center bg-muted/10">
+              <Button variant="outline" size="sm" onClick={() => onViewAll('blocked')}>
+                Voir plus
+              </Button>
+            </div>
+          )}
         </Card>
       </div>
     </div>
