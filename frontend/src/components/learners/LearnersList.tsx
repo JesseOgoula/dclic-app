@@ -151,7 +151,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             color="warning"
             count={stats?.inactive}
           />
-          <FilterPill
+          <FilterButton
             icon={UserX}
             label="Décrochés"
             active={statusFilter === 'dropped'}
@@ -159,14 +159,14 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             color="destructive"
             count={stats?.dropped}
           />
-          <FilterPill
+          <FilterButton
             icon={Filter}
             label="En risque"
             active={statusFilter === 'at_risk'}
             onClick={() => setStatusFilter('at_risk')}
             color="warning"
           />
-          <FilterPill
+          <FilterButton
             icon={Filter}
             label="Bloqués"
             active={statusFilter === 'blocked'}

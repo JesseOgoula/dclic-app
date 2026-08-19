@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 const PIE_COLORS = ['#db2777', '#0ea5e9', '#f43f5e', '#64748b'];
 const BAR_GRADIENT = ['#db2777', '#f472b6', '#fbcfe8', '#fdf2f8', '#ffffff'];
