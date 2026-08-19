@@ -138,6 +138,7 @@ export default function Reports() {
 - **Taux de complétion moyen :** ${dashboardStats.completion_rate}%
 - **Apprenants actifs :** ${dashboardStats.active_learners}
 - **En risque :** ${dashboardStats.inactive_learners + dashboardStats.dropped_learners} (${dashboardStats.dropped_learners} décrocheurs)
+- **Bloqués :** ${dashboardStats.blocked_learners?.length || 0} (note minimale non atteinte)
 
 ### 📈 Progression par Séquence (Vue Globale)
 ${dashboardStats.sequence_stats.filter((s: any) => s.sequence !== 'Autre' && s.sequence !== 'Préalable').map((s: any) => `- **${s.sequence}** : ${s.learners_completed} terminés, ${s.learners_in_progress} en cours, ${s.learners_not_started} non commencés (Moyenne : ${s.avg_completion}%)`).join('\n')}
@@ -146,6 +147,7 @@ ${dashboardStats.sequence_stats.filter((s: any) => s.sequence !== 'Autre' && s.s
 - **Actifs :** ${dashboardStats.active_learners}
 - **Inactifs :** ${dashboardStats.inactive_learners}
 - **Décrocheurs :** ${dashboardStats.dropped_learners}
+- **Bloqués :** ${dashboardStats.blocked_learners?.length || 0}
 
 ` : '';
 
@@ -251,6 +253,27 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
           </button>
         </div>
       </div>
+
+      {dashboardStats && (
+        <div className="bg-muted/30 p-4 rounded-lg border border-border flex flex-wrap gap-8 text-sm items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Complétion moyenne:</span>
+            <span className="font-bold text-foreground">{dashboardStats.completion_rate}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Actifs:</span>
+            <span className="font-bold text-foreground">{dashboardStats.active_learners}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Inactifs/Décrochés:</span>
+            <span className="font-bold text-warning">{dashboardStats.inactive_learners} / {dashboardStats.dropped_learners}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Bloqués:</span>
+            <span className="font-bold text-destructive">{dashboardStats.blocked_learners?.length || 0}</span>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1 */}
