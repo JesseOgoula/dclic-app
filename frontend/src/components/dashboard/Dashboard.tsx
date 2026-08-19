@@ -68,10 +68,10 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
         let end = new Date(2026, 0, 1);
 
         if (s.sequence.includes('Séquence 1')) {
-          dates = '27 juil - 31 juil';
+          dates = '27 juil - 3 août';
           seqShort = 'Séquence 1';
           start = new Date(2026, 6, 27); // 27 Juillet
-          end = new Date(2026, 6, 31, 23, 59, 59);
+          end = new Date(2026, 7, 3, 23, 59, 59); // 3 Août
         } else if (s.sequence.includes('Séquence 2')) {
           dates = '3 août - 7 août';
           seqShort = 'Séquence 2';
@@ -83,10 +83,10 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
           start = new Date(2026, 7, 10);
           end = new Date(2026, 7, 21, 23, 59, 59);
         } else if (s.sequence.includes('Séquence 4')) {
-          dates = '17 août - 29 août';
+          dates = '24 août - 4 sept';
           seqShort = 'Séquence 4';
-          start = new Date(2026, 7, 17);
-          end = new Date(2026, 7, 29, 23, 59, 59);
+          start = new Date(2026, 7, 24); // 24 Août
+          end = new Date(2026, 8, 4, 23, 59, 59); // 4 Septembre
         } else if (s.sequence.includes('Séquence 5')) {
           dates = '7 sept - 11 sept';
           seqShort = 'Séquence 5';
@@ -170,6 +170,10 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
     `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
   );
 
+  const filteredBlocked = stats.blocked_learners.filter(l =>
+    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
+  );
+
   return (
     <div className="space-y-4">
       {/* KPI Cards */}
@@ -186,8 +190,8 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
           title="Taux de complétion"
           value={`${stats.completion_rate}%`}
           icon={TrendingUp}
-          badgeText="Moyenne"
-          badgeVariant="outline"
+          badgeText={stats.completion_evolution !== undefined ? `${stats.completion_evolution > 0 ? '+' : ''}${stats.completion_evolution}% vs dernier upload` : "Moyenne"}
+          badgeVariant={stats.completion_evolution !== undefined ? (stats.completion_evolution > 0 ? 'default' : stats.completion_evolution < 0 ? 'destructive' : 'secondary') : "outline"}
           delay={2}
         />
         <KPICard
@@ -356,7 +360,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
       </div>
 
       {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Top performers */}
         <Card className="shadow-sm border-border overflow-hidden">
           <CardHeader className="bg-muted/30 pb-3 border-b border-border">
@@ -469,6 +473,53 @@ export default function Dashboard({ onSelectLearner, globalSearch = '' }: Dashbo
                       <TableCell>
                         <Badge variant="destructive" className="font-medium whitespace-nowrap">
                           {learner.status === 'dropped' ? 'Décroché' : 'Risque'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Blocked learners */}
+        <Card className="shadow-sm border-border overflow-hidden">
+          <CardHeader className="bg-muted/30 pb-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <UserX className="w-5 h-5 text-destructive" />
+              <CardTitle className="text-base font-semibold">Apprenants bloqués</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {filteredBlocked.length === 0 ? (
+              <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant bloqué</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Apprenant</TableHead>
+                    <TableHead>Statut</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredBlocked.slice(0, 5).map((learner) => (
+                    <TableRow
+                      key={learner.id}
+                      className="cursor-pointer hover:bg-muted/20"
+                      onClick={() => onSelectLearner?.(learner.id)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <p className="font-medium text-sm text-foreground truncate max-w-[150px]">{learner.first_name} {learner.last_name}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">{learner.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive" className="font-medium whitespace-nowrap">
+                          Note minimale non atteinte
                         </Badge>
                       </TableCell>
                     </TableRow>

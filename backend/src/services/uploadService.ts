@@ -48,9 +48,12 @@ export async function processUpload(filePath: string, filename: string): Promise
       throw new Error(`Unsupported file type: ${ext}`);
     }
 
+    const stats = await store.getDashboardStats();
+
     await store.updateUpload(upload.id, {
       rows_processed: result.rows_processed,
       status: 'processed',
+      completion_rate: stats.completion_rate,
     });
 
     return result;

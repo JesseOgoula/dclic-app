@@ -311,15 +311,28 @@ class DataStore {
       .sort((a, b) => b.days_inactive - a.days_inactive)
       .slice(0, 10);
 
+    const blockedLearners = learnersWithProgress
+      .filter(l => l.progress.some(p => p.status === 'failed'))
+      .sort((a, b) => a.last_name.localeCompare(b.last_name));
+
+    const uploads = await this.getUploads();
+    const uploadsWithRate = uploads.filter(u => u.completion_rate !== undefined && u.completion_rate !== null);
+    let completionEvolution = undefined;
+    if (uploadsWithRate.length >= 2) {
+      completionEvolution = Math.round((uploadsWithRate[0].completion_rate! - uploadsWithRate[1].completion_rate!) * 10) / 10;
+    }
+
     return {
       total_learners: allLearners.length,
       active_learners: activeLearners,
       inactive_learners: inactiveLearners,
       dropped_learners: droppedLearners,
       completion_rate: avgCompletion,
+      completion_evolution: completionEvolution,
       sequence_stats: sequenceStats,
       top_performers: topPerformers,
       at_risk: atRisk,
+      blocked_learners: blockedLearners,
     };
   }
 

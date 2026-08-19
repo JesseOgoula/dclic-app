@@ -43,7 +43,7 @@ export interface LearnerProgress {
   id: string;
   learner_id: string;
   activity_id: string;
-  status: 'completed' | 'not_completed' | 'passed';
+  status: 'completed' | 'not_completed' | 'passed' | 'failed';
   completed_at: string | null;
   grade: number | null;
   upload_id: string | null;
@@ -57,6 +57,7 @@ export interface Upload {
   uploaded_at: string;
   rows_processed: number;
   status: 'pending' | 'processed' | 'error';
+  completion_rate?: number;
 }
 
 export interface CommunicationLog {
@@ -116,9 +117,11 @@ export interface DashboardStats {
   inactive_learners: number;
   dropped_learners: number;
   completion_rate: number;
+  completion_evolution?: number;
   sequence_stats: SequenceStat[];
   top_performers: LearnerWithProgress[];
   at_risk: LearnerWithProgress[];
+  blocked_learners: LearnerWithProgress[];
 }
 
 export interface SequenceStat {

@@ -33,9 +33,11 @@ export interface DashboardStats {
   inactive_learners: number;
   dropped_learners: number;
   completion_rate: number;
+  completion_evolution?: number;
   sequence_stats: SequenceStat[];
   top_performers: LearnerWithProgress[];
   at_risk: LearnerWithProgress[];
+  blocked_learners: LearnerWithProgress[];
 }
 
 export interface SequenceStat {

@@ -19,6 +19,9 @@ const STATUS_MAP: Record<string, string> = {
   'Terminé (note minimale de réussite atteinte)': 'passed',
   'Termine (note minimale de reussite atteinte)': 'passed',
   'Termin (note minimale de russite atteinte)': 'passed',
+  'Terminé (n\'a pas atteint la note minimale de réussite)': 'failed',
+  'Termine (n\'a pas atteint la note minimale de reussite)': 'failed',
+  'Termin (n\'a pas atteint la note minimale de russite)': 'failed',
   'Pas terminé': 'not_completed',
   'Pas termine': 'not_completed',
   'Pas termin': 'not_completed',
@@ -120,7 +123,7 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
       }
 
       // If still not mapped, try fuzzy matching
-      if (!['completed', 'not_completed', 'passed'].includes(normalizedStatus)) {
+      if (!['completed', 'not_completed', 'passed', 'failed'].includes(normalizedStatus)) {
         if (rawStatus.toLowerCase().includes('termin') && !rawStatus.toLowerCase().includes('pas')) {
           normalizedStatus = rawStatus.toLowerCase().includes('réussite') || rawStatus.toLowerCase().includes('reussite') || rawStatus.toLowerCase().includes('russite')
             ? 'passed' : 'completed';
