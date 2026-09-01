@@ -245,19 +245,38 @@ class DataStore {
       };
     });
 
+    // Classification des statuts : la complétion prime sur l'inactivité.
+    // Un apprenant ayant terminé ne sera jamais classé "décrocheur".
     for (const lwp of learnersWithProgress) {
-      let status = 'active';
-      if (lwp.days_inactive > 7) status = 'dropped';
-      else if (lwp.days_inactive >= 2) status = 'inactive';
+      let status: string;
+      if (lwp.completion_rate >= 100) {
+        status = 'completed';
+      } else if (lwp.completion_rate >= 93.5) {
+        status = 'completed_phase1';
+      } else if (lwp.days_inactive > 7) {
+        status = 'dropped';
+      } else if (lwp.days_inactive >= 2) {
+        status = 'inactive';
+      } else {
+        status = 'active';
+      }
+
+      // Mettre à jour le statut dans l'objet en mémoire et en base si changé
+      const oldStatus = lwp.status;
+      lwp.status = status as any;
       
-      if (lwp.status !== status) {
+      if (oldStatus !== status) {
          await supabase.from('learners').update({ status }).eq('id', lwp.id);
       }
     }
 
-    const activeLearners = learnersWithProgress.filter(l => l.days_inactive < 2).length;
-    const inactiveLearners = learnersWithProgress.filter(l => l.days_inactive >= 2 && l.days_inactive <= 7).length;
-    const droppedLearners = learnersWithProgress.filter(l => l.days_inactive > 7).length;
+    const completedPhase1Learners = learnersWithProgress.filter(l => l.status === 'completed_phase1');
+    const completedLearners = learnersWithProgress.filter(l => l.status === 'completed');
+    // Les apprenants ayant terminé (phase1 ou session) ne comptent pas dans active/inactive/dropped
+    const nonCompletedLearners = learnersWithProgress.filter(l => l.status !== 'completed_phase1' && l.status !== 'completed');
+    const activeLearners = nonCompletedLearners.filter(l => l.days_inactive < 2).length;
+    const inactiveLearners = nonCompletedLearners.filter(l => l.days_inactive >= 2 && l.days_inactive <= 7).length;
+    const droppedLearners = nonCompletedLearners.filter(l => l.days_inactive > 7).length;
 
     const avgCompletion = learnersWithProgress.length > 0
       ? Math.round(learnersWithProgress.reduce((sum, l) => sum + l.completion_rate, 0) / learnersWithProgress.length * 10) / 10
@@ -314,8 +333,9 @@ class DataStore {
       .sort((a, b) => b.completion_rate - a.completion_rate);
     const topPerformers = sorted.slice(0, 10);
 
+    // Exclure les apprenants ayant terminé (phase 1 ou session) de la liste "en risque"
     const atRisk = learnersWithProgress
-      .filter(l => l.days_inactive > 7)
+      .filter(l => l.days_inactive > 7 && l.status !== 'completed_phase1' && l.status !== 'completed')
       .sort((a, b) => b.days_inactive - a.days_inactive)
       .slice(0, 10);
 
@@ -335,12 +355,16 @@ class DataStore {
       active_learners: activeLearners,
       inactive_learners: inactiveLearners,
       dropped_learners: droppedLearners,
+      completed_phase1_learners: completedPhase1Learners.length,
+      completed_learners: completedLearners.length,
       completion_rate: avgCompletion,
       completion_evolution: completionEvolution,
       sequence_stats: sequenceStats,
       top_performers: topPerformers,
       at_risk: atRisk,
       blocked_learners: blockedLearners,
+      completed_phase1_list: completedPhase1Learners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
+      completed_list: completedLearners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
     };
   }
 

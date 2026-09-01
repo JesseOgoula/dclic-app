@@ -161,7 +161,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       };
     });
 
-    // Handle special statuses (at_risk, blocked)
+    // Handle special statuses (at_risk, blocked, completed_phase1, completed)
     if (status === 'at_risk') {
       enriched = enriched.filter(l => l.status === 'active' && l.days_inactive > 7);
     } else if (status === 'blocked') {

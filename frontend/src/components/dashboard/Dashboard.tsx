@@ -8,6 +8,7 @@ import {
   Award,
   Clock,
   Calendar,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   BarChart,
@@ -162,6 +163,8 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
     { name: 'Actifs', value: stats.active_learners, color: PIE_COLORS[0] },
     { name: 'Inactifs', value: stats.inactive_learners, color: PIE_COLORS[1] },
     { name: 'Décrocheurs', value: stats.dropped_learners, color: PIE_COLORS[2] },
+    { name: 'Phase 1 terminée', value: stats.completed_phase1_learners, color: '#10b981' },
+    { name: 'Session terminée', value: stats.completed_learners, color: '#f59e0b' },
   ].filter(d => d.value > 0);
 
   const searchLower = globalSearch.toLowerCase();
@@ -173,6 +176,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
   );
 
   const filteredBlocked = stats.blocked_learners.filter(l =>
+    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
+  );
+
+  const filteredCompletedPhase1 = stats.completed_phase1_list.filter(l =>
+    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
+  );
+  const filteredCompleted = stats.completed_list.filter(l =>
     `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
   );
 
@@ -546,6 +556,133 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           )}
         </Card>
       </div>
+
+      {/* Completed learners section */}
+      {(filteredCompletedPhase1.length > 0 || filteredCompleted.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Phase 1 terminée */}
+          <Card className="shadow-sm border-border overflow-hidden">
+            <CardHeader className="bg-emerald-50/50 dark:bg-emerald-950/20 pb-3 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <CardTitle className="text-base font-semibold">Phase 1 terminée</CardTitle>
+                </div>
+                <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                  {stats.completed_phase1_learners} apprenant{stats.completed_phase1_learners > 1 ? 's' : ''}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">5 séquences complétées (≥ 93,5%) — en attente du Projet Pro</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              {filteredCompletedPhase1.length === 0 ? (
+                <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Apprenant</TableHead>
+                      <TableHead>Progression</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCompletedPhase1.slice(0, 10).map((learner) => (
+                      <TableRow
+                        key={learner.id}
+                        className="cursor-pointer hover:bg-muted/20"
+                        onClick={() => onSelectLearner?.(learner.id)}
+                      >
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-sm text-foreground truncate max-w-[180px]">{learner.first_name} {learner.last_name}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{learner.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${learner.completion_rate}%` }} />
+                            </div>
+                            <span className="text-xs font-bold text-emerald-600">{learner.completion_rate}%</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              {filteredCompletedPhase1.length > 10 && onViewAll && (
+                <div className="p-3 border-t border-border flex justify-center bg-muted/10">
+                  <Button variant="outline" size="sm" onClick={() => onViewAll('completed_phase1')}>
+                    Voir les {stats.completed_phase1_learners} apprenants
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Session terminée */}
+          <Card className="shadow-sm border-border overflow-hidden">
+            <CardHeader className="bg-amber-50/50 dark:bg-amber-950/20 pb-3 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-600" />
+                  <CardTitle className="text-base font-semibold">Session terminée</CardTitle>
+                </div>
+                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">
+                  {stats.completed_learners} apprenant{stats.completed_learners > 1 ? 's' : ''}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Formation 100% complétée — Projet Pro inclus</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              {filteredCompleted.length === 0 ? (
+                <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant — le Projet Pro n'est pas encore ouvert</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Apprenant</TableHead>
+                      <TableHead>Progression</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCompleted.slice(0, 10).map((learner) => (
+                      <TableRow
+                        key={learner.id}
+                        className="cursor-pointer hover:bg-muted/20"
+                        onClick={() => onSelectLearner?.(learner.id)}
+                      >
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-sm text-foreground truncate max-w-[180px]">{learner.first_name} {learner.last_name}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{learner.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-amber-500" style={{ width: '100%' }} />
+                            </div>
+                            <span className="text-xs font-bold text-amber-600">100%</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              {filteredCompleted.length > 10 && onViewAll && (
+                <div className="p-3 border-t border-border flex justify-center bg-muted/10">
+                  <Button variant="outline" size="sm" onClick={() => onViewAll('completed')}>
+                    Voir les {stats.completed_learners} apprenants
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

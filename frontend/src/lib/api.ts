@@ -32,12 +32,16 @@ export interface DashboardStats {
   active_learners: number;
   inactive_learners: number;
   dropped_learners: number;
+  completed_phase1_learners: number;
+  completed_learners: number;
   completion_rate: number;
   completion_evolution?: number;
   sequence_stats: SequenceStat[];
   top_performers: LearnerWithProgress[];
   at_risk: LearnerWithProgress[];
   blocked_learners: LearnerWithProgress[];
+  completed_phase1_list: LearnerWithProgress[];
+  completed_list: LearnerWithProgress[];
 }
 
 export interface SequenceStat {
@@ -55,7 +59,7 @@ export interface Learner {
   last_name: string;
   email: string;
   group_id: string;
-  status: 'active' | 'inactive' | 'dropped';
+  status: 'active' | 'inactive' | 'dropped' | 'completed_phase1' | 'completed';
   last_activity_at: string | null;
   created_at: string;
 }

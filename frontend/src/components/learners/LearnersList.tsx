@@ -10,6 +10,7 @@ import {
   UserX,
   UserCheck,
   Users as UsersIcon,
+  CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type LearnerWithProgress } from '@/lib/api';
@@ -40,7 +41,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
   const [sortBy, setSortBy] = useState('last_name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const [stats, setStats] = useState<{ active: number, inactive: number, dropped: number, total: number } | null>(null);
+  const [stats, setStats] = useState<{ active: number, inactive: number, dropped: number, completed_phase1: number, completed: number, total: number } | null>(null);
 
   useEffect(() => {
     loadLearners();
@@ -57,7 +58,9 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
         total: data.total_learners,
         active: data.active_learners,
         inactive: data.inactive_learners,
-        dropped: data.dropped_learners
+        dropped: data.dropped_learners,
+        completed_phase1: data.completed_phase1_learners,
+        completed: data.completed_learners,
       });
     }).catch(console.error);
   }, []);
@@ -101,10 +104,21 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
       dropped: { label: 'Décroché', variant: 'destructive' as const },
       at_risk: { label: 'Risque', variant: 'destructive' as const },
       blocked: { label: 'Bloqué', variant: 'destructive' as const },
+      completed_phase1: { label: 'Phase 1 terminée', variant: 'outline' as const },
+      completed: { label: 'Session terminée', variant: 'outline' as const },
     }[status] || { label: status, variant: 'outline' as const };
 
+    const isCompleted = status === 'completed_phase1' || status === 'completed';
+
     return (
-      <Badge variant={config.variant} className="font-medium">
+      <Badge
+        variant={config.variant}
+        className={cn(
+          'font-medium',
+          status === 'completed_phase1' && 'bg-emerald-100 text-emerald-700 border-emerald-200',
+          status === 'completed' && 'bg-amber-100 text-amber-700 border-amber-200',
+        )}
+      >
         {config.label}
       </Badge>
     );
@@ -172,6 +186,22 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             active={statusFilter === 'blocked'}
             onClick={() => setStatusFilter('blocked')}
             color="destructive"
+          />
+          <FilterButton
+            icon={CheckCircle2}
+            label="Phase 1"
+            active={statusFilter === 'completed_phase1'}
+            onClick={() => setStatusFilter('completed_phase1')}
+            color="success"
+            count={stats?.completed_phase1}
+          />
+          <FilterButton
+            icon={Award}
+            label="Terminé"
+            active={statusFilter === 'completed'}
+            onClick={() => setStatusFilter('completed')}
+            color="warning"
+            count={stats?.completed}
           />
         </div>
       </div>
