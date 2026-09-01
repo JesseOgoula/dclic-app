@@ -303,7 +303,15 @@ class DataStore {
       });
     }
 
-    const sorted = [...learnersWithProgress].sort((a, b) => b.completion_rate - a.completion_rate);
+    // Avant l'ouverture du Projet Pro (14 sept 2026), les apprenants ayant
+    // atteint ≥ 93.5 % ont terminé les 5 séquences — on les exclut du
+    // classement Top Performers jusqu'à la réouverture du projet.
+    const PROJET_PRO_START = new Date(2026, 8, 14); // 14 Septembre 2026
+    const isBeforeProjetPro = now < PROJET_PRO_START;
+
+    const sorted = [...learnersWithProgress]
+      .filter(l => !(isBeforeProjetPro && l.completion_rate >= 93.5))
+      .sort((a, b) => b.completion_rate - a.completion_rate);
     const topPerformers = sorted.slice(0, 10);
 
     const atRisk = learnersWithProgress
