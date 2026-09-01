@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
-import { Calendar, Users, Target, Trophy, TrendingUp, TrendingDown, Activity, ChevronDown, Download } from 'lucide-react';
+import { Calendar, Users, Target, Trophy, TrendingUp, TrendingDown, Activity, ChevronDown, Download, CheckCircle2 } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4'];
 
@@ -133,37 +133,127 @@ export default function Reports() {
   const exportToMarkdown = () => {
     if (!currentReport) return;
 
-    const globalSection = dashboardStats ? `
-## 🌍 Vue Globale de la Cohorte
-- **Taux de complétion moyen :** ${dashboardStats.completion_rate}%
-- **Apprenants actifs :** ${dashboardStats.active_learners}
-- **En risque :** ${dashboardStats.inactive_learners + dashboardStats.dropped_learners} (${dashboardStats.dropped_learners} décrocheurs)
-- **Bloqués :** ${dashboardStats.blocked_learners?.length || 0} (note minimale non atteinte)
+    // --- Section Vue Globale ---
+    let globalSection = '';
+    if (dashboardStats) {
+      const totalLearners = dashboardStats.total_learners || 0;
+      const phase1Count = dashboardStats.completed_phase1_learners || 0;
+      const completedCount = dashboardStats.completed_learners || 0;
+      const blockedCount = dashboardStats.blocked_learners?.length || 0;
+      const droppedCount = dashboardStats.dropped_learners || 0;
+      const inactiveCount = dashboardStats.inactive_learners || 0;
+      const activeCount = dashboardStats.active_learners || 0;
+      const enRisque = inactiveCount + droppedCount;
 
-### 📈 Progression par Séquence (Vue Globale)
+      // Liste des apprenants Phase 1 terminée
+      const phase1List = dashboardStats.completed_phase1_list && dashboardStats.completed_phase1_list.length > 0
+        ? dashboardStats.completed_phase1_list.map((l: any) => `  - ${l.first_name} ${l.last_name} (${l.email})`).join('\n')
+        : '  - Aucun';
+
+      // Liste des apprenants Session terminée
+      const completedList = dashboardStats.completed_list && dashboardStats.completed_list.length > 0
+        ? dashboardStats.completed_list.map((l: any) => `  - ${l.first_name} ${l.last_name} (${l.email})`).join('\n')
+        : '  - Aucun';
+
+      // Liste des apprenants bloqués avec modules
+      const blockedList = dashboardStats.blocked_learners && dashboardStats.blocked_learners.length > 0
+        ? dashboardStats.blocked_learners.map((l: any) => {
+            const modules = l.failed_modules && l.failed_modules.length > 0 ? l.failed_modules.join(', ') : 'Non identifié';
+            return `  - ${l.first_name} ${l.last_name} — Modules échoués : ${modules}`;
+          }).join('\n')
+        : '  - Aucun';
+
+      // Top Performers
+      const topPerformersList = dashboardStats.top_performers && dashboardStats.top_performers.length > 0
+        ? dashboardStats.top_performers.slice(0, 5).map((l: any, i: number) => `  ${i + 1}. ${l.first_name} ${l.last_name} — ${l.completion_rate}%`).join('\n')
+        : '  - Aucun';
+
+      // Apprenants en risque (at_risk)
+      const atRiskList = dashboardStats.at_risk && dashboardStats.at_risk.length > 0
+        ? dashboardStats.at_risk.slice(0, 10).map((l: any) => `  - ${l.first_name} ${l.last_name} — ${l.days_inactive} jours d'inactivité`).join('\n')
+        : '  - Aucun';
+
+      // --- Recommandations automatiques ---
+      const recommendations: string[] = [];
+      const dropoutRate = totalLearners > 0 ? Math.round((droppedCount / totalLearners) * 100) : 0;
+      
+      if (dropoutRate > 20) {
+        recommendations.push(`⚠️ **Alerte décrochage** : ${dropoutRate}% de la cohorte est en situation de décrochage (${droppedCount}/${totalLearners}). Une campagne de relance ciblée est recommandée.`);
+      } else if (dropoutRate > 10) {
+        recommendations.push(`📋 **Vigilance décrochage** : ${dropoutRate}% de la cohorte est en décrochage. Continuer les relances individuelles.`);
+      }
+
+      if (blockedCount > 0) {
+        recommendations.push(`🔒 **${blockedCount} apprenant${blockedCount > 1 ? 's' : ''} bloqué${blockedCount > 1 ? 's' : ''}** : Des relances et un accompagnement personnalisé sur les activités évaluées sont nécessaires.`);
+      }
+
+      if (inactiveCount > 5) {
+        recommendations.push(`📧 **${inactiveCount} apprenants inactifs** : Planifier des relances par mail/WhatsApp pour les ramener sur la plateforme.`);
+      }
+
+      if (phase1Count > 0) {
+        recommendations.push(`🎉 **${phase1Count} apprenant${phase1Count > 1 ? 's ont' : ' a'} terminé la Phase 1** : Envoyer un message de félicitations et les préparer pour le Projet Pro.`);
+      }
+
+      if (completedCount > 0) {
+        recommendations.push(`🏆 **${completedCount} apprenant${completedCount > 1 ? 's ont' : ' a'} terminé la session** : Préparer les certificats et la clôture.`);
+      }
+
+      if (recommendations.length === 0) {
+        recommendations.push('✅ Pas d\'alerte particulière. La cohorte suit un rythme normal.');
+      }
+
+      globalSection = `
+## 🌍 Vue Globale de la Cohorte
+
+| Indicateur | Valeur |
+|---|---|
+| Taux de complétion moyen | **${dashboardStats.completion_rate}%** |
+| Apprenants actifs | **${activeCount}** |
+| Inactifs | **${inactiveCount}** |
+| Décrocheurs | **${droppedCount}** |
+| En risque (inactifs + décrocheurs) | **${enRisque}** |
+| Phase 1 terminée (≥ 93,5%) | **${phase1Count}** |
+| Session terminée (100%) | **${completedCount}** |
+| Bloqués (note minimale non atteinte) | **${blockedCount}** |
+
+### 📈 Progression par Séquence
 ${dashboardStats.sequence_stats.filter((s: any) => s.sequence !== 'Autre' && s.sequence !== 'Préalable').map((s: any) => `- **${s.sequence}** : ${s.learners_completed} terminés, ${s.learners_in_progress} en cours, ${s.learners_not_started} non commencés (Moyenne : ${s.avg_completion}%)`).join('\n')}
 
-### 🥧 Répartition des Statuts
-- **Actifs :** ${dashboardStats.active_learners}
-- **Inactifs :** ${dashboardStats.inactive_learners}
-- **Décrocheurs :** ${dashboardStats.dropped_learners}
-- **Bloqués :** ${dashboardStats.blocked_learners?.length || 0}
+### ✅ Apprenants ayant terminé la Phase 1 (${phase1Count})
+${phase1List}
 
-` : '';
+### 🏆 Apprenants ayant terminé la Session (${completedCount})
+${completedList}
+
+### 🔒 Apprenants Bloqués (${blockedCount})
+${blockedList}
+
+### 🏅 Top 5 Performers
+${topPerformersList}
+
+### ⚠️ Apprenants en Risque de Décrochage
+${atRiskList}
+
+### 💡 Recommandations
+${recommendations.map(r => `- ${r}`).join('\n')}
+
+`;
+    }
 
     const mdContent = `# Rapport ${isCustomMode ? 'Personnalisé' : 'Hebdomadaire'} - Cohorte DCLIC
 **Période :** Du ${formatDate(currentReport.week_start)} au ${formatDate(currentReport.week_end)}
 ${globalSection}
 ## 📊 Indicateurs Hebdomadaires Clés
 - **Total des validations :** ${currentReport.total_validations}
-- **Apprenants actifs :** ${currentReport.active_learners}
+- **Apprenants actifs cette semaine :** ${currentReport.active_learners}
 - **Séquence la plus active :** ${topSequence?.sequence || 'N/A'} (${topSequence?.count || 0} validations)
 - **Jour le plus actif :** ${topDay?.day || 'N/A'} (${topDay?.count || 0} validations)
 
 ## 📚 Validations par Séquence
 ${currentReport.validations_by_sequence.map((s: any) => `- **${s.sequence}** : ${s.count} validations`).join('\n')}
 
-## 🏆 Top Apprenants (Validations)
+## 🏆 Top Apprenants de la Semaine (Validations)
 ${currentReport.top_learners && currentReport.top_learners.length > 0 
   ? currentReport.top_learners.map((l: any, i: number) => `${i + 1}. **${l.name}** : ${l.count} validations`).join('\n')
   : "- Aucune donnée"}
@@ -255,22 +345,38 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
       </div>
 
       {dashboardStats && (
-        <div className="bg-muted/30 p-4 rounded-lg border border-border flex flex-wrap gap-8 text-sm items-center">
+        <div className="bg-muted/30 p-4 rounded-lg border border-border flex flex-wrap gap-x-8 gap-y-3 text-sm items-center">
           <div className="flex items-center gap-2">
+            <TrendingUp size={14} className="text-muted-foreground" />
             <span className="text-muted-foreground">Complétion moyenne:</span>
             <span className="font-bold text-foreground">{dashboardStats.completion_rate}%</span>
           </div>
           <div className="flex items-center gap-2">
+            <Users size={14} className="text-muted-foreground" />
             <span className="text-muted-foreground">Actifs:</span>
             <span className="font-bold text-foreground">{dashboardStats.active_learners}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Inactifs/Décrochés:</span>
-            <span className="font-bold text-warning">{dashboardStats.inactive_learners} / {dashboardStats.dropped_learners}</span>
+            <span className="text-muted-foreground">Inactifs:</span>
+            <span className="font-bold text-foreground">{dashboardStats.inactive_learners}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Décrocheurs:</span>
+            <span className="font-bold text-destructive">{dashboardStats.dropped_learners}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Bloqués:</span>
             <span className="font-bold text-destructive">{dashboardStats.blocked_learners?.length || 0}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={14} className="text-muted-foreground" />
+            <span className="text-muted-foreground">Phase 1 terminée:</span>
+            <span className="font-bold text-foreground">{dashboardStats.completed_phase1_learners || 0}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Trophy size={14} className="text-muted-foreground" />
+            <span className="text-muted-foreground">Session terminée:</span>
+            <span className="font-bold text-foreground">{dashboardStats.completed_learners || 0}</span>
           </div>
         </div>
       )}

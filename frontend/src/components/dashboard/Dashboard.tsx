@@ -210,7 +210,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           title="Apprenants actifs"
           value={stats.active_learners}
           icon={UserCheck}
-          badgeText={`${Math.round((stats.active_learners / stats.total_learners) * 100)}%`}
+          badgeText={`${Math.round((stats.active_learners / stats.total_learners) * 100)}% de la cohorte`}
           badgeVariant="default"
           delay={3}
         />
@@ -218,7 +218,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           title="En risque"
           value={stats.inactive_learners + stats.dropped_learners}
           icon={AlertTriangle}
-          badgeText={`${stats.dropped_learners} décrocheurs`}
+          badgeText={`${stats.inactive_learners} inactifs · ${stats.dropped_learners} décrocheurs`}
           badgeVariant="destructive"
           delay={4}
         />
