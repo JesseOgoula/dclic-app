@@ -163,8 +163,8 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
     { name: 'Actifs', value: stats.active_learners, color: PIE_COLORS[0] },
     { name: 'Inactifs', value: stats.inactive_learners, color: PIE_COLORS[1] },
     { name: 'Décrocheurs', value: stats.dropped_learners, color: PIE_COLORS[2] },
-    { name: 'Phase 1 terminée', value: stats.completed_phase1_learners, color: '#10b981' },
-    { name: 'Session terminée', value: stats.completed_learners, color: '#f59e0b' },
+    { name: 'Phase 1 terminée', value: stats.completed_phase1_learners, color: PIE_COLORS[3] || '#64748b' },
+    { name: 'Session terminée', value: stats.completed_learners, color: PIE_COLORS[0] || '#db2777' },
   ].filter(d => d.value > 0);
 
   const searchLower = globalSearch.toLowerCase();
@@ -562,13 +562,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Phase 1 terminée */}
           <Card className="shadow-sm border-border overflow-hidden">
-            <CardHeader className="bg-emerald-50/50 dark:bg-emerald-950/20 pb-3 border-b border-border">
+            <CardHeader className="bg-muted/30 pb-3 border-b border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
                   <CardTitle className="text-base font-semibold">Phase 1 terminée</CardTitle>
                 </div>
-                <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                <Badge variant="outline">
                   {stats.completed_phase1_learners} apprenant{stats.completed_phase1_learners > 1 ? 's' : ''}
                 </Badge>
               </div>
@@ -582,11 +582,10 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                   <TableHeader>
                     <TableRow>
                       <TableHead>Apprenant</TableHead>
-                      <TableHead>Progression</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCompletedPhase1.slice(0, 10).map((learner) => (
+                    {filteredCompletedPhase1.slice(0, 5).map((learner) => (
                       <TableRow
                         key={learner.id}
                         className="cursor-pointer hover:bg-muted/20"
@@ -598,20 +597,12 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                             <p className="text-xs text-muted-foreground truncate max-w-[180px]">{learner.email}</p>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${learner.completion_rate}%` }} />
-                            </div>
-                            <span className="text-xs font-bold text-emerald-600">{learner.completion_rate}%</span>
-                          </div>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               )}
-              {filteredCompletedPhase1.length > 10 && onViewAll && (
+              {filteredCompletedPhase1.length > 5 && onViewAll && (
                 <div className="p-3 border-t border-border flex justify-center bg-muted/10">
                   <Button variant="outline" size="sm" onClick={() => onViewAll('completed_phase1')}>
                     Voir les {stats.completed_phase1_learners} apprenants
@@ -623,13 +614,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
 
           {/* Session terminée */}
           <Card className="shadow-sm border-border overflow-hidden">
-            <CardHeader className="bg-amber-50/50 dark:bg-amber-950/20 pb-3 border-b border-border">
+            <CardHeader className="bg-muted/30 pb-3 border-b border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-amber-600" />
+                  <Award className="w-5 h-5 text-primary" />
                   <CardTitle className="text-base font-semibold">Session terminée</CardTitle>
                 </div>
-                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">
+                <Badge variant="outline">
                   {stats.completed_learners} apprenant{stats.completed_learners > 1 ? 's' : ''}
                 </Badge>
               </div>
@@ -643,11 +634,10 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                   <TableHeader>
                     <TableRow>
                       <TableHead>Apprenant</TableHead>
-                      <TableHead>Progression</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCompleted.slice(0, 10).map((learner) => (
+                    {filteredCompleted.slice(0, 5).map((learner) => (
                       <TableRow
                         key={learner.id}
                         className="cursor-pointer hover:bg-muted/20"
@@ -659,20 +649,12 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                             <p className="text-xs text-muted-foreground truncate max-w-[180px]">{learner.email}</p>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-amber-500" style={{ width: '100%' }} />
-                            </div>
-                            <span className="text-xs font-bold text-amber-600">100%</span>
-                          </div>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               )}
-              {filteredCompleted.length > 10 && onViewAll && (
+              {filteredCompleted.length > 5 && onViewAll && (
                 <div className="p-3 border-t border-border flex justify-center bg-muted/10">
                   <Button variant="outline" size="sm" onClick={() => onViewAll('completed')}>
                     Voir les {stats.completed_learners} apprenants

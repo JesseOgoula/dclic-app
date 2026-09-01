@@ -113,11 +113,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
     return (
       <Badge
         variant={config.variant}
-        className={cn(
-          'font-medium',
-          status === 'completed_phase1' && 'bg-emerald-100 text-emerald-700 border-emerald-200',
-          status === 'completed' && 'bg-amber-100 text-amber-700 border-amber-200',
-        )}
+        className="font-medium"
       >
         {config.label}
       </Badge>
@@ -175,13 +171,6 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
           />
           <FilterButton
             icon={Filter}
-            label="En risque"
-            active={statusFilter === 'at_risk'}
-            onClick={() => setStatusFilter('at_risk')}
-            color="warning"
-          />
-          <FilterButton
-            icon={Filter}
             label="Bloqués"
             active={statusFilter === 'blocked'}
             onClick={() => setStatusFilter('blocked')}
@@ -192,7 +181,6 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             label="Phase 1"
             active={statusFilter === 'completed_phase1'}
             onClick={() => setStatusFilter('completed_phase1')}
-            color="success"
             count={stats?.completed_phase1}
           />
           <FilterButton
@@ -200,7 +188,6 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             label="Terminé"
             active={statusFilter === 'completed'}
             onClick={() => setStatusFilter('completed')}
-            color="warning"
             count={stats?.completed}
           />
         </div>
