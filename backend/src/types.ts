@@ -143,6 +143,7 @@ export interface LearnerWithProgress extends Learner {
   total_activities: number;
   days_inactive: number;
   progress: LearnerProgress[];
+  failed_modules?: string[];
 }
 
 // ============================================================

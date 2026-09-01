@@ -341,6 +341,14 @@ class DataStore {
 
     const blockedLearners = learnersWithProgress
       .filter(l => l.progress.some(p => p.status === 'failed'))
+      .map(l => {
+        const failedProg = l.progress.filter(p => p.status === 'failed');
+        const failedModules = failedProg.map(fp => {
+          const act = allActivities.find(a => a.id === fp.activity_id);
+          return act ? act.code : 'Inconnu';
+        });
+        return { ...l, failed_modules: failedModules };
+      })
       .sort((a, b) => a.last_name.localeCompare(b.last_name));
 
     const uploads = await this.getUploads();

@@ -538,7 +538,9 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                       </TableCell>
                       <TableCell>
                         <Badge variant="destructive" className="font-medium whitespace-nowrap">
-                          Note minimale non atteinte
+                          {learner.failed_modules && learner.failed_modules.length > 0
+                            ? `Bloqué (${learner.failed_modules.join(', ')})`
+                            : 'Note minimale non atteinte'}
                         </Badge>
                       </TableCell>
                     </TableRow>

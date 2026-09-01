@@ -69,6 +69,7 @@ export interface LearnerWithProgress extends Learner {
   completed_activities: number;
   total_activities: number;
   days_inactive: number;
+  failed_modules?: string[];
 }
 
 export interface LearnerDetail extends LearnerWithProgress {

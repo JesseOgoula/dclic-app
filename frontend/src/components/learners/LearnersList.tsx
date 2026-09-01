@@ -41,7 +41,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
   const [sortBy, setSortBy] = useState('last_name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const [stats, setStats] = useState<{ active: number, inactive: number, dropped: number, completed_phase1: number, completed: number, total: number } | null>(null);
+  const [stats, setStats] = useState<{ active: number, inactive: number, dropped: number, blocked: number, completed_phase1: number, completed: number, total: number } | null>(null);
 
   useEffect(() => {
     loadLearners();
@@ -59,6 +59,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
         active: data.active_learners,
         inactive: data.inactive_learners,
         dropped: data.dropped_learners,
+        blocked: data.blocked_learners.length,
         completed_phase1: data.completed_phase1_learners,
         completed: data.completed_learners,
       });
@@ -67,7 +68,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
   async function loadLearners() {
     try {
-      setLoading(true);
+      if (learners.length === 0) setLoading(true);
       const effectiveSearch = search || globalSearch || undefined;
       const data = await api.getLearners({
         search: effectiveSearch,
@@ -175,6 +176,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             active={statusFilter === 'blocked'}
             onClick={() => setStatusFilter('blocked')}
             color="destructive"
+            count={stats?.blocked}
           />
           <FilterButton
             icon={CheckCircle2}
@@ -227,8 +229,8 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                 <TableHead>Statut</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {loading ? (
+            <TableBody className={cn("transition-opacity duration-300", loading && learners.length > 0 ? "opacity-50" : "")}>
+              {loading && learners.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
