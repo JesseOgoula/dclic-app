@@ -43,6 +43,7 @@ function App() {
     <Layout 
       currentPage={currentPage} 
       onNavigate={handleNavigate}
+      onSelectLearner={handleSelectLearner}
       globalSearch={globalSearch}
       onSearch={handleGlobalSearch}
     >
@@ -64,7 +65,7 @@ function App() {
       {currentPage === 'learners' && selectedLearnerId && (
         <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} />
       )}
-      {currentPage === 'upload' && <UploadPage />}
+      {currentPage === 'upload' && <UploadPage onNavigate={handleNavigate} />}
     </Layout>
   );
 }

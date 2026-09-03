@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Search,
   ChevronUp,
   ChevronDown,
-  Eye,
-  MessageSquare,
   Award,
   Filter,
   UserX,
   UserCheck,
   Users as UsersIcon,
   CheckCircle2,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type LearnerWithProgress } from '@/lib/api';
@@ -43,9 +42,23 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
   const [stats, setStats] = useState<{ active: number, inactive: number, dropped: number, blocked: number, completed_phase1: number, completed: number, total: number } | null>(null);
 
-  useEffect(() => {
-    loadLearners();
-  }, [search, globalSearch, statusFilter, sortBy, sortDir]);
+  const loadLearners = useCallback(async () => {
+    try {
+      if (learners.length === 0) setLoading(true);
+      const effectiveSearch = search || globalSearch || undefined;
+      const data = await api.getLearners({
+        search: effectiveSearch,
+        status: statusFilter || undefined,
+        sortBy,
+        sortDir,
+      });
+      setLearners(data);
+    } catch (err) {
+      console.error('Failed to load learners:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, globalSearch, statusFilter, sortBy, sortDir, learners.length]);
 
   useEffect(() => {
     setStatusFilter(initialFilter);
@@ -66,23 +79,9 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
     }).catch(console.error);
   }, []);
 
-  async function loadLearners() {
-    try {
-      if (learners.length === 0) setLoading(true);
-      const effectiveSearch = search || globalSearch || undefined;
-      const data = await api.getLearners({
-        search: effectiveSearch,
-        status: statusFilter || undefined,
-        sortBy,
-        sortDir,
-      });
-      setLearners(data);
-    } catch (err) {
-      console.error('Failed to load learners:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    loadLearners();
+  }, [loadLearners]);
 
   function toggleSort(field: string) {
     if (sortBy === field) {
@@ -99,7 +98,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
   };
 
   const statusBadge = (status: string) => {
-    const config = {
+    const config = ({
       active: { label: 'Actif', variant: 'default' as const },
       inactive: { label: 'Inactif', variant: 'secondary' as const },
       dropped: { label: 'Décroché', variant: 'destructive' as const },
@@ -107,9 +106,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
       blocked: { label: 'Bloqué', variant: 'destructive' as const },
       completed_phase1: { label: 'Phase 1 terminée', variant: 'outline' as const },
       completed: { label: 'Session terminée', variant: 'outline' as const },
-    }[status] || { label: status, variant: 'outline' as const };
-
-    const isCompleted = status === 'completed_phase1' || status === 'completed';
+    } as Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>)[status] || { label: status, variant: 'outline' as const };
 
     return (
       <Badge
@@ -193,6 +190,41 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             count={stats?.completed}
           />
         </div>
+
+        {/* Export CSV button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (learners.length === 0) return;
+            const headers = ['Nom', 'Prénom', 'Email', 'Groupe', 'Statut', 'Complétion (%)', 'Activités complétées', 'Total activités', 'Jours inactif'];
+            const rows = learners.map(l => [
+              `"${l.last_name}"`,
+              `"${l.first_name}"`,
+              `"${l.email}"`,
+              `"${l.group_id}"`,
+              `"${l.status}"`,
+              l.completion_rate,
+              l.completed_activities,
+              l.total_activities,
+              l.days_inactive > 900 ? 'Jamais' : l.days_inactive,
+            ]);
+            const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Apprenants_${statusFilter || 'tous'}_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }}
+          className="ml-auto gap-2 bg-white"
+        >
+          <Download size={14} />
+          Export CSV
+        </Button>
       </div>
 
       {/* Table */}
@@ -324,6 +356,12 @@ function FilterButton({
   color?: string;
   count?: number;
 }) {
+  const activeColorClasses: Record<string, string> = {
+    success: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    warning: 'bg-amber-500 text-white hover:bg-amber-600',
+    destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+  };
+
   return (
     <Button
       variant={active ? "default" : "ghost"}
@@ -331,13 +369,14 @@ function FilterButton({
       onClick={onClick}
       className={cn(
         'gap-1.5 h-8',
+        active && color && activeColorClasses[color],
         !active && 'text-muted-foreground'
       )}
     >
       <Icon size={14} />
       {label}
       {count !== undefined && (
-        <Badge variant={active ? "secondary" : "outline"} className="ml-1 px-1.5 py-0">
+        <Badge variant={active ? "secondary" : "outline"} className="ml-1 px-1.5 py-0 text-[10px]">
           {count}
         </Badge>
       )}

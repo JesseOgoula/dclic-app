@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -8,7 +8,14 @@ import {
   ChevronLeft,
   Bell,
   Search,
+  AlertTriangle,
+  UserX,
+  X,
+  ExternalLink,
 } from 'lucide-react';
+import { api, type Alert } from '@/lib/api';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
 
@@ -16,6 +23,7 @@ interface LayoutProps {
   children: React.ReactNode;
   currentPage: Page;
   onNavigate: (page: Page) => void;
+  onSelectLearner?: (id: string) => void;
   alertCount?: number;
   globalSearch?: string;
   onSearch?: (value: string) => void;
@@ -28,8 +36,79 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'upload', label: 'Import', icon: Upload },
 ];
 
-export default function Layout({ children, currentPage, onNavigate, alertCount = 0, globalSearch = '', onSearch }: LayoutProps) {
+export default function Layout({
+  children,
+  currentPage,
+  onNavigate,
+  onSelectLearner,
+  globalSearch = '',
+  onSearch,
+}: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const alertsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Load active alerts or generate from dashboard at-risk data
+    async function fetchAlerts() {
+      try {
+        const data = await api.getAlerts();
+        if (data && data.length > 0) {
+          setAlerts(data);
+        } else {
+          // Fallback: check dashboard stats for at-risk/blocked learners
+          const stats = await api.getDashboardStats();
+          const generated: Alert[] = [];
+          
+          stats.blocked_learners.slice(0, 5).forEach((b) => {
+            generated.push({
+              id: `blocked-${b.id}`,
+              learner_id: b.id,
+              learner_name: `${b.first_name} ${b.last_name}`,
+              type: 'blocked',
+              message: `Bloqué sur : ${b.failed_modules?.join(', ') || 'activité'}`,
+              acknowledged: false,
+              triggered_at: new Date().toISOString(),
+            });
+          });
+
+          stats.at_risk.slice(0, 5).forEach((r) => {
+            generated.push({
+              id: `risk-${r.id}`,
+              learner_id: r.id,
+              learner_name: `${r.first_name} ${r.last_name}`,
+              type: 'dropout_risk',
+              message: `${r.days_inactive > 900 ? 'Jamais connecté' : `${r.days_inactive} jours d'inactivité`}`,
+              acknowledged: false,
+              triggered_at: new Date().toISOString(),
+            });
+          });
+
+          setAlerts(generated);
+        }
+      } catch (err) {
+        console.warn('Could not load alerts:', err);
+      }
+    }
+
+    fetchAlerts();
+  }, [currentPage]);
+
+  // Click outside listener for alerts dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (alertsRef.current && !alertsRef.current.contains(event.target as Node)) {
+        setAlertsOpen(false);
+      }
+    }
+    if (alertsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [alertsOpen]);
+
+  const activeAlertCount = alerts.filter((a) => !a.acknowledged).length;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -127,18 +206,103 @@ export default function Layout({ children, currentPage, onNavigate, alertCount =
               />
             </div>
 
-            {/* Alerts bell */}
-            <button
-              className="relative p-2 rounded-full hover:bg-white hover:shadow-sm border border-transparent hover:border-border transition-all bg-white shadow-sm"
-              title="Alertes"
-            >
-              <Bell size={18} className="text-foreground" />
-              {alertCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {alertCount > 99 ? '99+' : alertCount}
-                </span>
+            {/* Alerts bell & Popover */}
+            <div className="relative" ref={alertsRef}>
+              <button
+                onClick={() => setAlertsOpen(!alertsOpen)}
+                className="relative p-2 rounded-full hover:bg-white hover:shadow-sm border border-transparent hover:border-border transition-all bg-white shadow-sm cursor-pointer"
+                title="Alertes"
+              >
+                <Bell size={18} className="text-foreground" />
+                {activeAlertCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {activeAlertCount > 99 ? '99+' : activeAlertCount}
+                  </span>
+                )}
+              </button>
+
+              {alertsOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-xl border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
+                  <div className="p-3.5 bg-muted/40 border-b border-border flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-foreground">Alertes et Risques</span>
+                      <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
+                        {activeAlertCount}
+                      </Badge>
+                    </div>
+                    <button
+                      onClick={() => setAlertsOpen(false)}
+                      className="text-muted-foreground hover:text-foreground p-1 rounded-md cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  <div className="max-h-[320px] overflow-y-auto divide-y divide-border">
+                    {alerts.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-muted-foreground">
+                        Aucune alerte active
+                      </div>
+                    ) : (
+                      alerts.map((alert) => (
+                        <div
+                          key={alert.id}
+                          className={cn(
+                            "p-3 flex items-start justify-between gap-3 hover:bg-muted/20 transition-colors",
+                            alert.acknowledged ? "opacity-60" : ""
+                          )}
+                        >
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            <div className="p-1 rounded bg-destructive/10 text-destructive mt-0.5 shrink-0">
+                              {alert.type === 'blocked' ? <UserX size={14} /> : <AlertTriangle size={14} />}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-xs text-foreground truncate">
+                                {alert.learner_name || 'Apprenant'}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
+                                {alert.message}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            {onSelectLearner && (
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                onClick={() => {
+                                  onSelectLearner(alert.learner_id);
+                                  setAlertsOpen(false);
+                                }}
+                                className="h-7 w-7 p-0"
+                                title="Voir profil"
+                              >
+                                <ExternalLink size={12} />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="p-2 border-t border-border bg-muted/20 text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        onNavigate('learners');
+                        setAlertsOpen(false);
+                      }}
+                      className="text-xs text-primary font-medium w-full h-8"
+                    >
+                      Voir tous les apprenants en risque
+                    </Button>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Date range */}
             <div className="px-4 py-2 rounded-full bg-white border border-border shadow-sm text-sm font-medium text-foreground flex items-center gap-2">

@@ -1,6 +1,7 @@
 {
   "name": "dclic-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "DCLIC Monitoring Backend — API + AI Agent",
   "main": "dist/index.js",
   "scripts": {

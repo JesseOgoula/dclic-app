@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { ArrowLeft, Mail, AlertCircle, CheckCircle2, Clock, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Mail, AlertCircle, CheckCircle2, Clock, ChevronDown, ChevronRight, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,14 +12,14 @@ interface LearnerDetailProps {
   onBack: () => void;
 }
 
-const SequenceAccordion = ({ seq, activities }: { seq: string; activities: any[] }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const SequenceAccordion = ({ seq, activities, defaultOpen = false }: { seq: string; activities: any[]; defaultOpen?: boolean }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <div className="mb-4 last:mb-0 border border-border rounded-xl overflow-hidden bg-card">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-3">
           <div className="h-6 w-1 bg-primary rounded-full"></div>
@@ -32,12 +32,12 @@ const SequenceAccordion = ({ seq, activities }: { seq: string; activities: any[]
       </button>
 
       {isOpen && (
-        <div className="p-4 pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-3 bg-background/50">
+        <div className="p-4 pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-3 bg-background/50 animate-fade-in">
           {activities.map((act: any, j: number) => (
             <div key={j} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
               <div className={cn(
                 "mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                (act.status === 'completed' || act.status === 'passed') ? "bg-green-100 text-green-700" :
+                (act.status === 'completed' || act.status === 'passed') ? "bg-emerald-100 text-emerald-700" :
                   act.status === 'failed' ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
               )}>
                 {act.status === 'completed' || act.status === 'passed' ? (
@@ -105,29 +105,42 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
     }
   }, [id]);
 
-  if (loading) return <div className="p-8">Chargement...</div>;
-  if (!learner) return <div className="p-8 text-red-500">Apprenant non trouvé.</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Chargement...</div>;
+  if (!learner) return <div className="p-8 text-center text-destructive">Apprenant non trouvé.</div>;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onBack}
-          className="h-10 w-10 shrink-0"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            {learner.first_name} {learner.last_name}
-          </h1>
-          <p className="text-slate-500 flex items-center gap-2 mt-1">
-            <Mail className="h-4 w-4" /> {learner.email}
-            <span className="mx-2">•</span>
-            Groupe {learner.group_id}
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onBack}
+            className="h-10 w-10 shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              {learner.first_name} {learner.last_name}
+            </h1>
+            <p className="text-muted-foreground flex items-center gap-2 mt-1 text-sm">
+              <Mail className="h-4 w-4" /> {learner.email}
+              <span className="mx-1">•</span>
+              Groupe {learner.group_id}
+            </p>
+          </div>
+        </div>
+
+        {/* Quick action button */}
+        <div className="flex items-center gap-2">
+          <a
+            href={`mailto:${learner.email}?subject=Suivi formation DCLIC&body=Bonjour ${learner.first_name},`}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-muted text-foreground transition-colors shadow-sm"
+          >
+            <Mail className="h-4 w-4 text-primary" />
+            Contacter par email
+          </a>
         </div>
       </div>
 
@@ -138,7 +151,7 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Statut</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1.5">Statut</p>
               {learner.status === 'active' && (
                 <Badge variant="default">Actif</Badge>
               )}
@@ -148,23 +161,33 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
               {learner.status === 'dropped' && (
                 <Badge variant="destructive">Décroché</Badge>
               )}
+              {learner.status === 'completed_phase1' && (
+                <Badge variant="outline" className="border-primary text-primary font-semibold gap-1">
+                  <CheckCircle2 size={12} /> Phase 1 terminée (≥ 93,5%)
+                </Badge>
+              )}
+              {learner.status === 'completed' && (
+                <Badge variant="default" className="bg-emerald-600 text-white font-semibold gap-1">
+                  <Award size={12} /> Session terminée (100%)
+                </Badge>
+              )}
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Progression Globale</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Progression Globale</p>
               <div className="flex items-center gap-3">
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full ${learner.completion_rate < 30 ? 'bg-rose-500' : 'bg-primary'}`}
+                    className={cn('h-full transition-all duration-500', learner.completion_rate < 30 ? 'bg-destructive' : 'bg-primary')}
                     style={{ width: `${learner.completion_rate}%` }}
                   />
                 </div>
-                <span className="text-sm font-bold">{learner.completion_rate}%</span>
+                <span className="text-sm font-bold text-foreground">{learner.completion_rate}%</span>
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Activités Complétées</p>
-              <p className="text-2xl font-bold text-slate-900">
-                {learner.completed_activities} <span className="text-sm font-normal text-slate-500">/ {learner.total_activities}</span>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Activités Complétées</p>
+              <p className="text-2xl font-bold text-foreground">
+                {learner.completed_activities} <span className="text-sm font-normal text-muted-foreground">/ {learner.total_activities}</span>
               </p>
             </div>
             {learner.last_activity_at && (
@@ -208,7 +231,7 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
                           dataKey="date" 
                           tick={{ fontSize: 11, fill: '#6b7280' }}
                           tickFormatter={(v: string) => {
-                            const [y, m, d] = v.split('-');
+                            const [, m, d] = v.split('-');
                             return `${d}/${m}`;
                           }}
                           axisLine={false}
@@ -247,6 +270,7 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
                   key={i}
                   seq={seq}
                   activities={learner.activities.filter((a: any) => a.sequence === seq)}
+                  defaultOpen={i === 0}
                 />
               ))}
             </div>

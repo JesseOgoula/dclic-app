@@ -119,9 +119,10 @@ export interface CommunicationLog {
 export interface Alert {
   id: string;
   learner_id: string;
-  learner_name: string;
+  learner_name?: string;
   type: string;
   message: string;
+  status?: string;
   acknowledged: boolean;
   triggered_at: string;
 }

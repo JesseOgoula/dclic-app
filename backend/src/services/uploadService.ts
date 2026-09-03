@@ -31,10 +31,14 @@ export async function processUpload(filePath: string, filename: string): Promise
   const upload = await store.addUpload(filename, fileTypeMap[ext] || 'csv');
 
   try {
-    // Upload original file to Supabase Storage as a backup/audit
-    const fileContent = fs.readFileSync(filePath);
-    const storagePath = `${Date.now()}_${filename}`;
-    await supabase.storage.from('uploads').upload(storagePath, fileContent);
+    // Attempt to upload original file to Supabase Storage as a backup/audit (non-blocking if bucket unconfigured)
+    try {
+      const fileContent = fs.readFileSync(filePath);
+      const storagePath = `${Date.now()}_${filename}`;
+      await supabase.storage.from('uploads').upload(storagePath, fileContent);
+    } catch (storageErr) {
+      console.warn('Storage upload skipped or failed (non-critical):', storageErr);
+    }
 
     let result: UploadResult;
 
@@ -270,17 +274,12 @@ async function processParticipantsMD(filePath: string, uploadId: string): Promis
   for (const p of g1Participants) {
     try {
       const existing = await store.getLearnerByEmail(p.email);
-      // Last access time is passed in the parser output or we can add it to ParsedParticipant.
-      // Wait, parseParticipantsMD doesn't return last access time yet. Let me check the type of ParsedParticipant.
-      // Actually, since ParsedParticipant from types.ts doesn't have last_access, let me just set it to null 
-      // or update ParsedParticipant type later if needed. For now I'll just put null for now, 
-      // wait, the mdParser can extract it but the type doesn't have it.
       await store.upsertLearner({
         first_name: p.first_name,
         last_name: p.last_name,
         email: p.email,
         group_id: p.group,
-        last_activity_at: (p as any).last_access ? parseRelativeTime((p as any).last_access) : null,
+        last_activity_at: p.last_access ? parseRelativeTime(p.last_access) : null,
       });
       if (existing) learnersUpdated++;
       else learnersCreated++;

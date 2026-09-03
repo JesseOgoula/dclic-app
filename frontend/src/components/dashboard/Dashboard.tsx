@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   TrendingUp,
   Award,
-  Clock,
   Calendar,
   CheckCircle2,
 } from 'lucide-react';
@@ -21,8 +20,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Area,
-  AreaChart,
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { api, type DashboardStats } from '@/lib/api';
@@ -39,7 +36,6 @@ import {
 import { Button } from '@/components/ui/button';
 
 const PIE_COLORS = ['#db2777', '#0ea5e9', '#f43f5e', '#64748b'];
-const BAR_GRADIENT = ['#db2777', '#f472b6', '#fbcfe8', '#fdf2f8', '#ffffff'];
 
 // dynamicDeadlines moved inside component
 

@@ -158,20 +158,23 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
         } else {
           // Try parsing French format like "mercredi 24 juillet 2026, 17:10"
           const months: Record<string, number> = {
-            'janvier': 0, 'février': 1, 'fevrier': 1, 'mars': 2, 'avril': 3, 'mai': 4, 'juin': 5,
-            'juillet': 6, 'août': 7, 'aout': 7, 'septembre': 8, 'octobre': 9, 'novembre': 10, 'décembre': 11, 'decembre': 11
+            'janvier': 0, 'fevrier': 1, 'mars': 2, 'avril': 3, 'mai': 4, 'juin': 5,
+            'juillet': 6, 'aout': 7, 'septembre': 8, 'octobre': 9, 'novembre': 10, 'decembre': 11
           };
           const regex = /(\d+)\s+([a-zA-ZÀ-ÿ]+)\s+(\d{4}),?\s+(\d{1,2})[h:](\d{2})/;
           const match = rawDate.match(regex);
           if (match) {
             const [_, day, month, year, h, m] = match;
-            const cleanMonth = month.toLowerCase().replace('', 'u'); // basic fix for août/aot
-            const mIndex = months[cleanMonth] || 0;
-            const d = new Date(parseInt(year), mIndex, parseInt(day), parseInt(h), parseInt(m));
+            const cleanMonth = month.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-z]/g, '');
+            const mIndex = months[cleanMonth] !== undefined ? months[cleanMonth] : 0;
+            const d = new Date(Date.UTC(parseInt(year), mIndex, parseInt(day), parseInt(h), parseInt(m)));
             completedAt = d.toISOString();
           } else {
-            // Fallback
-            completedAt = rawDate;
+            // Try standard Date parse fallback
+            const parsedD = new Date(rawDate);
+            completedAt = !isNaN(parsedD.getTime()) ? parsedD.toISOString() : null;
           }
         }
       }

@@ -103,6 +103,7 @@ export interface Alert {
   learner_id: string;
   type: 'inactivity' | 'deadline' | 'dropout_risk';
   message: string;
+  status?: 'new' | 'acknowledged';
   acknowledged: boolean;
   triggered_at: string;
 }
@@ -165,6 +166,7 @@ export interface ParsedParticipant {
   last_name: string;
   email: string;
   group: string;
+  last_access?: string;
 }
 
 export interface UploadResult {

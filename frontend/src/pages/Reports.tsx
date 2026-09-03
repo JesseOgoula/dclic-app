@@ -2,10 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { api } from '../lib/api';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
-import { Calendar, Users, Target, Trophy, TrendingUp, TrendingDown, Activity, ChevronDown, Download, CheckCircle2 } from 'lucide-react';
-
-const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4'];
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { Calendar, Users, Target, Trophy, TrendingUp, Activity, ChevronDown, Download, CheckCircle2 } from 'lucide-react';
 
 function CustomSelect({ options, value, onChange }: { options: { value: string, label: string }[], value: string | null, onChange: (val: string) => void }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -91,7 +89,7 @@ export default function Reports() {
   if (reports.length === 0 && !isCustomMode) return <div className="p-8 text-muted-foreground">Aucun historique disponible.</div>;
 
   const currentIndex = reports.findIndex(r => r.week_start === selectedWeek);
-  const currentReport = (isCustomMode && customReport) ? customReport : (reports[currentIndex] || reports[0]);
+  const currentReport = isCustomMode ? customReport : (reports[currentIndex] || reports[0]);
   const previousReport = (!isCustomMode && currentIndex >= 0 && currentIndex < reports.length - 1) ? reports[currentIndex + 1] : null;
 
   const handleGenerateCustom = async () => {
@@ -119,11 +117,11 @@ export default function Reports() {
     return { diff, percent };
   };
 
-  const valTrend = calculateTrend(currentReport.total_validations, previousReport?.total_validations);
-  const learnTrend = calculateTrend(currentReport.active_learners, previousReport?.active_learners);
+  const valTrend = currentReport ? calculateTrend(currentReport.total_validations, previousReport?.total_validations) : null;
+  const learnTrend = currentReport ? calculateTrend(currentReport.active_learners, previousReport?.active_learners) : null;
 
-  const topSequence = [...currentReport.validations_by_sequence].sort((a, b) => b.count - a.count)[0];
-  const topDay = [...currentReport.validations_by_day].sort((a, b) => b.count - a.count)[0];
+  const topSequence = currentReport?.validations_by_sequence ? [...currentReport.validations_by_sequence].sort((a: any, b: any) => b.count - a.count)[0] : null;
+  const topDay = currentReport?.validations_by_day ? [...currentReport.validations_by_day].sort((a: any, b: any) => b.count - a.count)[0] : null;
 
   const weekOptions = reports.map(r => ({
     value: r.week_start,
@@ -293,10 +291,7 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
           <CustomSelect
             options={[
               { value: 'custom', label: 'Période personnalisée...' },
-              ...reports.map(r => ({
-                value: r.week_start,
-                label: `Sem. du ${formatDate(r.week_start)} au ${formatDate(r.week_end)}`
-              }))
+              ...weekOptions
             ]}
             value={isCustomMode ? 'custom' : selectedWeek}
             onChange={(val) => {
@@ -344,7 +339,19 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
         </div>
       </div>
 
-      {dashboardStats && (
+      {isCustomMode && !customReport && (
+        <Card className="shadow-sm border-border p-8 text-center bg-muted/20 my-6">
+          <div className="max-w-md mx-auto space-y-3">
+            <Calendar className="w-10 h-10 text-primary mx-auto opacity-70" />
+            <h3 className="font-semibold text-base text-foreground">Génération de rapport personnalisé</h3>
+            <p className="text-xs text-muted-foreground">
+              Veuillez sélectionner une date de début et une date de fin ci-dessus, puis cliquez sur "Générer" pour charger les statistiques de la période.
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {currentReport && dashboardStats && (
         <div className="bg-muted/30 p-4 rounded-lg border border-border flex flex-wrap gap-x-8 gap-y-3 text-sm items-center">
           <div className="flex items-center gap-2">
             <TrendingUp size={14} className="text-muted-foreground" />
@@ -533,6 +540,61 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
           </CardContent>
         </Card>
       </div>
+
+      {/* Top Performers of the week */}
+      {currentReport && currentReport.top_learners && currentReport.top_learners.length > 0 && (
+        <Card className="shadow-sm border-border">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              <CardTitle className="text-base font-semibold">
+                Top Apprenants de la Semaine
+              </CardTitle>
+            </div>
+            <span className="text-xs text-muted-foreground font-medium">
+              Classé par validations réalisées sur la période
+            </span>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {currentReport.top_learners.slice(0, 5).map((learner: any, idx: number) => {
+                const rankBadges = [
+                  { bg: 'bg-amber-100 border-amber-300 text-amber-900', label: '🥇 1er' },
+                  { bg: 'bg-slate-100 border-slate-300 text-slate-900', label: '🥈 2e' },
+                  { bg: 'bg-amber-50 border-amber-200 text-amber-800', label: '🥉 3e' },
+                  { bg: 'bg-muted border-border text-foreground', label: '4e' },
+                  { bg: 'bg-muted border-border text-foreground', label: '5e' },
+                ];
+                const badge = rankBadges[idx] || rankBadges[3];
+
+                return (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-xl border border-border bg-card shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={cn('px-2 py-0.5 rounded-full text-xs font-bold border', badge.bg)}>
+                        {badge.label}
+                      </span>
+                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        +{learner.validations} act.
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-foreground truncate" title={learner.name}>
+                        {learner.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {learner.validations} validation{learner.validations > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

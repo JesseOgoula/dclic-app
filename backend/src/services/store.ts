@@ -62,7 +62,7 @@ class DataStore {
     const { data } = await supabase
       .from('learners')
       .select('*')
-      .eq('group_id', 'G1_MN_072026');
+      .or('group_id.eq.G1_MN_072026,group_id.eq.UNKNOWN');
     return data as Learner[] || [];
   }
 
@@ -580,12 +580,15 @@ class DataStore {
   }
 
   async getActiveAlerts(): Promise<Alert[]> {
-    const { data } = await supabase.from('alerts').select('*').eq('status', 'new');
-    return data as Alert[] || [];
+    const { data } = await supabase.from('alerts').select('*').or('status.eq.new,acknowledged.eq.false');
+    return (data as Alert[] || []).map(a => ({
+      ...a,
+      acknowledged: a.acknowledged ?? (a.status === 'acknowledged')
+    }));
   }
 
   async acknowledgeAlert(id: string): Promise<void> {
-    await supabase.from('alerts').update({ status: 'acknowledged' }).eq('id', id);
+    await supabase.from('alerts').update({ status: 'acknowledged', acknowledged: true }).eq('id', id);
   }
 
   // ----------------------------------------------------------
@@ -607,6 +610,8 @@ class DataStore {
   // ----------------------------------------------------------
 
   async clearAllData(): Promise<void> {
+    await supabase.from('progress').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('communications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('learners').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');

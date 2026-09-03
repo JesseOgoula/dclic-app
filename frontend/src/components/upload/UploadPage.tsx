@@ -16,7 +16,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export default function UploadPage() {
+interface UploadPageProps {
+  onNavigate?: (page: 'dashboard' | 'learners' | 'upload' | 'reports') => void;
+}
+
+export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
@@ -60,6 +64,22 @@ export default function UploadPage() {
     fetchHistory();
   }, [fetchHistory]);
 
+  const uploadFile = useCallback(async (file: File) => {
+    setUploading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const data = await api.uploadFile(file);
+      setResult(data);
+      fetchHistory(); // Refresh history after upload
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  }, [fetchHistory]);
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -77,28 +97,12 @@ export default function UploadPage() {
 
     const file = e.dataTransfer.files?.[0];
     if (file) await uploadFile(file);
-  }, []);
+  }, [uploadFile]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) await uploadFile(file);
-  }, []);
-
-  async function uploadFile(file: File) {
-    setUploading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      const data = await api.uploadFile(file);
-      setResult(data);
-      fetchHistory(); // Refresh history after upload
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
-  }
+  }, [uploadFile]);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -195,7 +199,7 @@ export default function UploadPage() {
             )}
             
             <div className="mt-6 flex justify-end">
-              <Button onClick={() => window.location.href = '/'} variant="default">
+              <Button onClick={() => onNavigate ? onNavigate('dashboard') : (window.location.href = '/')} variant="default">
                 Aller au Dashboard
               </Button>
             </div>
@@ -225,19 +229,19 @@ export default function UploadPage() {
               icon={FileText}
               title="CSV — Progression des activités"
               description="Export depuis Moodle > Course Management > Achèvement des activités (TSV, UTF-16)"
-              color="primary"
+              variant="primary"
             />
             <FormatCard
               icon={Users}
               title="MD — Liste des participants"
               description="Fichier courseid.md (Markdown table avec les participants)"
-              color="secondary"
+              variant="secondary"
             />
             <FormatCard
               icon={FileSpreadsheet}
               title="XLSX — Liste des participants"
               description="Export depuis Moodle > Participants (colonnes: Prénom, Nom, Email, Groupes)"
-              color="success"
+              variant="success"
             />
           </div>
         </CardContent>
@@ -303,17 +307,23 @@ function FormatCard({
   icon: Icon,
   title,
   description,
-  color,
+  variant = 'primary',
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
-  color: string;
+  variant?: 'primary' | 'secondary' | 'success';
 }) {
+  const styleMap = {
+    primary: 'bg-primary/10 text-primary',
+    secondary: 'bg-muted text-foreground',
+    success: 'bg-emerald-500/10 text-emerald-600',
+  };
+
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
-      <div className={cn('p-2 rounded-lg', `bg-${color}/10`)}>
-        <Icon size={18} className={`text-${color}`} />
+      <div className={cn('p-2 rounded-lg', styleMap[variant] || styleMap.primary)}>
+        <Icon size={18} />
       </div>
       <div>
         <p className="text-sm font-medium">{title}</p>
