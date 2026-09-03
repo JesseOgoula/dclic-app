@@ -47,7 +47,18 @@ export default function Layout({
   const [collapsed, setCollapsed] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [unreadAlertCount, setUnreadAlertCount] = useState<number>(0);
   const alertsRef = useRef<HTMLDivElement>(null);
+
+  const calculateUnread = (items: Alert[]) => {
+    try {
+      const seenIds = new Set<string>(JSON.parse(localStorage.getItem('dclic_seen_alert_ids') || '[]'));
+      const unread = items.filter(a => !a.acknowledged && !seenIds.has(a.id));
+      setUnreadAlertCount(unread.length);
+    } catch {
+      setUnreadAlertCount(items.filter(a => !a.acknowledged).length);
+    }
+  };
 
   useEffect(() => {
     // Load active alerts or generate from dashboard at-risk data
@@ -56,6 +67,7 @@ export default function Layout({
         const data = await api.getAlerts();
         if (data && data.length > 0) {
           setAlerts(data);
+          calculateUnread(data);
         } else {
           // Fallback: check dashboard stats for at-risk/blocked learners
           const stats = await api.getDashboardStats();
@@ -86,6 +98,7 @@ export default function Layout({
           });
 
           setAlerts(generated);
+          calculateUnread(generated);
         }
       } catch (err) {
         console.warn('Could not load alerts:', err);
@@ -108,7 +121,22 @@ export default function Layout({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [alertsOpen]);
 
-  const activeAlertCount = alerts.filter((a) => !a.acknowledged).length;
+  const handleToggleAlerts = () => {
+    const nextState = !alertsOpen;
+    setAlertsOpen(nextState);
+    if (nextState) {
+      // When drawer is opened, mark current alerts as seen so badge disappears
+      try {
+        const currentIds = alerts.map(a => a.id);
+        const existingSeen = new Set<string>(JSON.parse(localStorage.getItem('dclic_seen_alert_ids') || '[]'));
+        currentIds.forEach(id => existingSeen.add(id));
+        localStorage.setItem('dclic_seen_alert_ids', JSON.stringify(Array.from(existingSeen)));
+      } catch (e) {
+        console.warn('Could not persist seen alerts:', e);
+      }
+      setUnreadAlertCount(0);
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -209,14 +237,14 @@ export default function Layout({
             {/* Alerts bell & Popover */}
             <div className="relative" ref={alertsRef}>
               <button
-                onClick={() => setAlertsOpen(!alertsOpen)}
+                onClick={handleToggleAlerts}
                 className="relative p-2 rounded-full hover:bg-white hover:shadow-sm border border-transparent hover:border-border transition-all bg-white shadow-sm cursor-pointer"
                 title="Alertes"
               >
                 <Bell size={18} className="text-foreground" />
-                {activeAlertCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {activeAlertCount > 99 ? '99+' : activeAlertCount}
+                {unreadAlertCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {unreadAlertCount > 99 ? '99+' : unreadAlertCount}
                   </span>
                 )}
               </button>
@@ -226,8 +254,8 @@ export default function Layout({
                   <div className="p-3.5 bg-muted/40 border-b border-border flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm text-foreground">Alertes et Risques</span>
-                      <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
-                        {activeAlertCount}
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
+                        {alerts.length}
                       </Badge>
                     </div>
                     <button

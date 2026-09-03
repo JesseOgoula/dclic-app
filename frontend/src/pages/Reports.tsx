@@ -251,11 +251,6 @@ ${globalSection}
 ## 📚 Validations par Séquence
 ${currentReport.validations_by_sequence.map((s: any) => `- **${s.sequence}** : ${s.count} validations`).join('\n')}
 
-## 🏆 Top Apprenants de la Semaine (Validations)
-${currentReport.top_learners && currentReport.top_learners.length > 0 
-  ? currentReport.top_learners.map((l: any, i: number) => `${i + 1}. **${l.name}** : ${l.count} validations`).join('\n')
-  : "- Aucune donnée"}
-
 ## 📅 Activité Quotidienne
 ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} validations`).join('\n')}
 
@@ -540,61 +535,6 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
           </CardContent>
         </Card>
       </div>
-
-      {/* Top Performers of the week */}
-      {currentReport && currentReport.top_learners && currentReport.top_learners.length > 0 && (
-        <Card className="shadow-sm border-border">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-base font-semibold">
-                Top Apprenants de la Semaine
-              </CardTitle>
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">
-              Classé par validations réalisées sur la période
-            </span>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {currentReport.top_learners.slice(0, 5).map((learner: any, idx: number) => {
-                const rankBadges = [
-                  { bg: 'bg-amber-100 border-amber-300 text-amber-900', label: '🥇 1er' },
-                  { bg: 'bg-slate-100 border-slate-300 text-slate-900', label: '🥈 2e' },
-                  { bg: 'bg-amber-50 border-amber-200 text-amber-800', label: '🥉 3e' },
-                  { bg: 'bg-muted border-border text-foreground', label: '4e' },
-                  { bg: 'bg-muted border-border text-foreground', label: '5e' },
-                ];
-                const badge = rankBadges[idx] || rankBadges[3];
-
-                return (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-xl border border-border bg-card shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={cn('px-2 py-0.5 rounded-full text-xs font-bold border', badge.bg)}>
-                        {badge.label}
-                      </span>
-                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        +{learner.validations} act.
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-foreground truncate" title={learner.name}>
-                        {learner.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {learner.validations} validation{learner.validations > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
