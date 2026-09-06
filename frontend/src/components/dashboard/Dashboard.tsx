@@ -570,7 +570,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                   {stats.completed_phase1_learners} apprenant{stats.completed_phase1_learners > 1 ? 's' : ''}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">5 séquences complétées (≥ 93,5%) — en attente du Projet Pro</p>
+              <p className="text-xs text-muted-foreground mt-1">5 séquences complétées — en attente du Projet Pro</p>
             </CardHeader>
             <CardContent className="p-0">
               {filteredCompletedPhase1.length === 0 ? (

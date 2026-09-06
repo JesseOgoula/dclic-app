@@ -15,6 +15,18 @@ const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+export function computeLearnerStatus(
+  completionRate: number,
+  daysInactive: number,
+  isPhase1Completed: boolean
+): 'completed' | 'completed_phase1' | 'dropped' | 'inactive' | 'active' {
+  if (completionRate >= 100) return 'completed';
+  if (isPhase1Completed) return 'completed_phase1';
+  if (daysInactive > 7) return 'dropped';
+  if (daysInactive >= 2) return 'inactive';
+  return 'active';
+}
+
 class DataStore {
   // ----------------------------------------------------------
   // Learner operations
@@ -247,19 +259,22 @@ class DataStore {
 
     // Classification des statuts : la complétion prime sur l'inactivité.
     // Un apprenant ayant terminé ne sera jamais classé "décrocheur".
+    const seq5Activities = allActivities.filter(a => a.sequence.includes('Séquence 5'));
+    const phase1Activities = allActivities.filter(a => a.sequence.startsWith('Séquence '));
+
     for (const lwp of learnersWithProgress) {
-      let status: string;
-      if (lwp.completion_rate >= 100) {
-        status = 'completed';
-      } else if (lwp.completion_rate >= 93.5) {
-        status = 'completed_phase1';
-      } else if (lwp.days_inactive > 7) {
-        status = 'dropped';
-      } else if (lwp.days_inactive >= 2) {
-        status = 'inactive';
-      } else {
-        status = 'active';
-      }
+      const learnerSeq5Completed = seq5Activities.filter(act =>
+        lwp.progress.some(p => p.activity_id === act.id && (p.status === 'completed' || p.status === 'passed'))
+      ).length;
+      const hasCompletedSeq5 = seq5Activities.length > 0 && learnerSeq5Completed === seq5Activities.length;
+
+      const learnerPhase1Completed = phase1Activities.filter(act =>
+        lwp.progress.some(p => p.activity_id === act.id && (p.status === 'completed' || p.status === 'passed'))
+      ).length;
+      const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
+
+      const isPhase1Completed = hasCompletedSeq5 || hasCompletedAllPhase1;
+      const status = computeLearnerStatus(lwp.completion_rate, lwp.days_inactive, isPhase1Completed);
 
       // Mettre à jour le statut dans l'objet en mémoire et en base si changé
       const oldStatus = lwp.status;
@@ -323,13 +338,13 @@ class DataStore {
     }
 
     // Avant l'ouverture du Projet Pro (14 sept 2026), les apprenants ayant
-    // atteint ≥ 93.5 % ont terminé les 5 séquences — on les exclut du
-    // classement Top Performers jusqu'à la réouverture du projet.
+    // terminé les 5 séquences (Phase 1) sont exclus du classement Top Performers
+    // jusqu'à la réouverture du projet (pour valoriser ceux qui progressent encore).
     const PROJET_PRO_START = new Date(2026, 8, 14); // 14 Septembre 2026
     const isBeforeProjetPro = now < PROJET_PRO_START;
 
     const sorted = [...learnersWithProgress]
-      .filter(l => !(isBeforeProjetPro && l.completion_rate >= 93.5))
+      .filter(l => !(isBeforeProjetPro && (l.status === 'completed_phase1' || l.status === 'completed')))
       .sort((a, b) => b.completion_rate - a.completion_rate);
     const topPerformers = sorted.slice(0, 10);
 

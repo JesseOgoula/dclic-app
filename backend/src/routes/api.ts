@@ -6,7 +6,7 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { processUpload } from '../services/uploadService.js';
-import { store, supabase } from '../services/store.js';
+import { store, supabase, computeLearnerStatus } from '../services/store.js';
 
 const router = Router();
 
@@ -122,12 +122,6 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
   try {
     let learners = await store.getLearners();
 
-    // Filter by regular status
-    const status = req.query.status as string;
-    if (status && !['at_risk', 'blocked'].includes(status)) {
-      learners = learners.filter(l => l.status === status);
-    }
-
     // Search by name or email
     const search = (req.query.search as string || '').toLowerCase();
     if (search) {
@@ -141,6 +135,8 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
     // Enrich with progress
     const activities = await store.getActivities();
     const allProgress = await store.getAllProgress();
+    const seq5Activities = activities.filter(a => a.sequence.includes('Séquence 5'));
+    const phase1Activities = activities.filter(a => a.sequence.startsWith('Séquence '));
     
     let enriched = learners.map(l => {
       const progress = allProgress.filter(p => p.learner_id === l.id);
@@ -150,10 +146,25 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       const daysInactive = lastActivity
         ? Math.floor((Date.now() - lastActivity) / (1000 * 60 * 60 * 24))
         : 999;
+      const completionRate = total > 0 ? Math.round((completed / total) * 100 * 10) / 10 : 0;
+
+      const learnerSeq5Completed = seq5Activities.filter(act =>
+        progress.some(p => p.activity_id === act.id && (p.status === 'completed' || p.status === 'passed'))
+      ).length;
+      const hasCompletedSeq5 = seq5Activities.length > 0 && learnerSeq5Completed === seq5Activities.length;
+
+      const learnerPhase1Completed = phase1Activities.filter(act =>
+        progress.some(p => p.activity_id === act.id && (p.status === 'completed' || p.status === 'passed'))
+      ).length;
+      const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
+
+      const isPhase1Completed = hasCompletedSeq5 || hasCompletedAllPhase1;
+      const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed);
 
       return {
         ...l,
-        completion_rate: total > 0 ? Math.round((completed / total) * 100 * 10) / 10 : 0,
+        status: computedStatus,
+        completion_rate: completionRate,
         completed_activities: completed,
         total_activities: total,
         days_inactive: daysInactive,
@@ -161,11 +172,16 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       };
     });
 
-    // Handle special statuses (at_risk, blocked, completed_phase1, completed)
-    if (status === 'at_risk') {
-      enriched = enriched.filter(l => l.status === 'active' && l.days_inactive > 7);
-    } else if (status === 'blocked') {
-      enriched = enriched.filter(l => l.has_failed_activities);
+    // Handle special and standard statuses
+    const status = req.query.status as string;
+    if (status) {
+      if (status === 'at_risk') {
+        enriched = enriched.filter(l => l.status === 'active' && l.days_inactive > 7);
+      } else if (status === 'blocked') {
+        enriched = enriched.filter(l => l.has_failed_activities);
+      } else {
+        enriched = enriched.filter(l => l.status === status);
+      }
     }
 
     // Sort
@@ -219,13 +235,31 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
       ? Math.floor((new Date().getTime() - lastActivity) / (1000 * 60 * 60 * 24))
       : 999;
 
+    const completionRate = activities.length > 0
+      ? Math.round((completed / activities.length) * 100 * 10) / 10
+      : 0;
+
+    const seq5Activities = activities.filter(a => a.sequence.includes('Séquence 5'));
+    const phase1Activities = activities.filter(a => a.sequence.startsWith('Séquence '));
+    const learnerSeq5Completed = seq5Activities.filter(act =>
+      progress.some(p => p.activity_id === act.id && (p.status === 'completed' || p.status === 'passed'))
+    ).length;
+    const hasCompletedSeq5 = seq5Activities.length > 0 && learnerSeq5Completed === seq5Activities.length;
+
+    const learnerPhase1Completed = phase1Activities.filter(act =>
+      progress.some(p => p.activity_id === act.id && (p.status === 'completed' || p.status === 'passed'))
+    ).length;
+    const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
+
+    const isPhase1Completed = hasCompletedSeq5 || hasCompletedAllPhase1;
+    const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed);
+
     res.json({
       success: true,
       data: {
         ...learner,
-        completion_rate: activities.length > 0
-          ? Math.round((completed / activities.length) * 100 * 10) / 10
-          : 0,
+        status: computedStatus,
+        completion_rate: completionRate,
         completed_activities: completed,
         total_activities: activities.length,
         days_inactive: daysInactive,

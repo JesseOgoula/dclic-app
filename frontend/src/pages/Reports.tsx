@@ -211,7 +211,7 @@ export default function Reports() {
 | Inactifs | **${inactiveCount}** |
 | Décrocheurs | **${droppedCount}** |
 | En risque (inactifs + décrocheurs) | **${enRisque}** |
-| Phase 1 terminée (≥ 93,5%) | **${phase1Count}** |
+| Phase 1 terminée | **${phase1Count}** |
 | Session terminée (100%) | **${completedCount}** |
 | Bloqués (note minimale non atteinte) | **${blockedCount}** |
 

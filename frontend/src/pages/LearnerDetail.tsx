@@ -163,7 +163,7 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
               )}
               {learner.status === 'completed_phase1' && (
                 <Badge variant="outline" className="border-primary text-primary font-semibold gap-1">
-                  <CheckCircle2 size={12} /> Phase 1 terminée (≥ 93,5%)
+                  <CheckCircle2 size={12} /> Phase 1 terminée
                 </Badge>
               )}
               {learner.status === 'completed' && (
