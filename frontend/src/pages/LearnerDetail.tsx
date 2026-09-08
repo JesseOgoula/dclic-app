@@ -10,10 +10,6 @@ import {
   ChevronDown,
   ChevronRight,
   Award,
-  ExternalLink,
-  Copy,
-  Check,
-  GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,20 +39,20 @@ const SequenceAccordion = ({
   return (
     <div className={cn(
       "mb-4 last:mb-0 border rounded-xl overflow-hidden bg-card transition-colors",
-      hasUnvalidatedInSeq ? "border-amber-300" : "border-border"
+      hasUnvalidatedInSeq ? "border-destructive/30" : "border-border"
     )}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-3">
-          <div className={cn("h-6 w-1 rounded-full", hasUnvalidatedInSeq ? "bg-amber-500" : "bg-primary")}></div>
+          <div className={cn("h-6 w-1 rounded-full", hasUnvalidatedInSeq ? "bg-destructive" : "bg-primary")}></div>
           <h3 className="font-bold text-base text-foreground">{seq}</h3>
           <Badge variant="outline" className="ml-2 bg-background">
             {activities.length} activité(s)
           </Badge>
           {hasUnvalidatedInSeq && (
-            <Badge variant="destructive" className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] gap-1 ml-1">
+            <Badge variant="destructive" className="text-[10px] gap-1 ml-1">
               <AlertTriangle className="h-3 w-3" /> Devoir à rattraper
             </Badge>
           )}
@@ -69,47 +65,40 @@ const SequenceAccordion = ({
           {activities.map((act: any, j: number) => {
             const isUnvalidated = unvalidatedIds.has(act.id);
             const isCompleted = act.status === 'completed' || act.status === 'passed';
+            const isLettre = act.name.toLowerCase().includes("lettre d");
+
             return (
               <div
                 key={j}
                 className={cn(
-                  "flex items-start gap-3 p-3 rounded-xl border transition-shadow shadow-sm",
+                  "flex items-start gap-3 p-3 rounded-xl border transition-colors shadow-xs",
                   isUnvalidated
-                    ? "border-amber-400 bg-amber-50/70 shadow-amber-100"
-                    : "border-border bg-card hover:shadow-md"
+                    ? "border-destructive/30 bg-destructive/5"
+                    : "border-border bg-card"
                 )}
               >
-                <div className={cn(
-                  "mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                  isUnvalidated
-                    ? "bg-amber-200/80 text-amber-800"
-                    : isCompleted
-                      ? "bg-emerald-100 text-emerald-700"
-                      : act.status === 'failed'
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-muted text-muted-foreground"
-                )}>
+                <div className="shrink-0 mt-0.5">
                   {isUnvalidated ? (
-                    <AlertTriangle className="h-4.5 w-4.5 text-amber-700" />
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
                   ) : isCompleted ? (
-                    <CheckCircle2 className="h-5 w-5" />
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   ) : act.status === 'failed' ? (
-                    <AlertCircle className="h-5 w-5" />
+                    <AlertCircle className="h-5 w-5 text-destructive" />
                   ) : (
-                    <Clock className="h-5 w-5" />
+                    <Clock className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn("font-semibold text-sm truncate", isUnvalidated ? "text-amber-950 font-bold" : "text-foreground")} title={act.name}>
+                  <p className={cn("font-semibold text-sm truncate", isUnvalidated ? "text-destructive font-bold" : "text-foreground")} title={act.name}>
                     {act.name}
                   </p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                    <Badge variant="outline" className={cn("font-medium text-[10px]", isUnvalidated ? "border-amber-300 text-amber-800 bg-amber-100/50" : "text-muted-foreground")}>
+                    <Badge variant="outline" className="font-medium text-[10px] text-muted-foreground">
                       {act.type}
                     </Badge>
                     {isUnvalidated && (
-                      <Badge variant="destructive" className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-semibold">
-                        Devoir non validé (Note &lt; 10)
+                      <Badge variant="destructive" className="text-[10px] font-semibold">
+                        {isLettre ? "Lettre non déposée (Dépôt obligatoire)" : "Devoir non validé (Note < 10)"}
                       </Badge>
                     )}
                     {act.completed_at && (
@@ -154,7 +143,6 @@ const formatTimeAgo = (isoString: string | null) => {
 export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
   const [learner, setLearner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -169,7 +157,6 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
   if (!learner) return <div className="p-8 text-center text-destructive">Apprenant non trouvé.</div>;
 
   const unvalidatedIds = new Set<string>((learner.unvalidated_assignments || []).map((u: any) => u.activity_id as string));
-  const portalUrl = `${window.location.origin}${window.location.pathname}?email=${encodeURIComponent(learner.email)}`;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -179,7 +166,7 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
             variant="outline"
             size="icon"
             onClick={onBack}
-            className="h-10 w-10 shrink-0"
+            className="h-10 w-10 shrink-0 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -197,18 +184,9 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
 
         {/* Quick action buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 bg-card text-foreground"
-            onClick={() => window.open(portalUrl, '_blank')}
-          >
-            <GraduationCap className="h-4 w-4 text-primary" />
-            Espace Apprenant
-          </Button>
           <a
             href={`mailto:${learner.email}?subject=Suivi formation DCLIC&body=Bonjour ${learner.first_name},`}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-muted text-foreground transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-muted text-foreground transition-colors shadow-xs"
           >
             <Mail className="h-4 w-4 text-primary" />
             Contacter par email
@@ -218,51 +196,27 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
 
       {/* Unvalidated assignments warning banner */}
       {learner.has_unvalidated_assignments && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-5 shadow-sm text-amber-950 animate-fade-in">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-amber-200/70 text-amber-800 rounded-lg shrink-0 mt-0.5 sm:mt-0">
-                <AlertTriangle className="h-6 w-6 text-amber-700" />
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-amber-950 flex items-center gap-2">
-                  Attention : {learner.unvalidated_assignments?.length || 0} devoir(s) en attente de validation / rattrapage
-                </h3>
-                <p className="text-sm text-amber-800 mt-1 max-w-3xl">
-                  Cet apprenant a continué à avancer dans les modules suivants, mais les devoirs obligatoires ci-dessous n'ont pas atteint la note minimale (10/20) requise pour valider sa progression.
-                </p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {learner.unvalidated_assignments?.map((u: any, idx: number) => (
-                    <Badge key={idx} variant="destructive" className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs py-1 px-2.5 shadow-sm">
+        <div className="rounded-xl border border-destructive/30 bg-card p-5 shadow-xs text-foreground animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h3 className="font-bold text-base text-destructive flex items-center gap-2">
+                Attention : {learner.unvalidated_assignments?.length || 0} devoir(s) en attente de validation / rattrapage
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
+                Cet apprenant a continué à avancer dans les modules suivants, mais présente des devoirs obligatoires non validés (note minimale de 10/20 non atteinte) ou une lettre d'engagement non déposée.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {learner.unvalidated_assignments?.map((u: any, idx: number) => {
+                  const isLettre = u.name.toLowerCase().includes("lettre d");
+                  return (
+                    <Badge key={idx} variant="destructive" className="font-medium text-xs py-1 px-2.5">
                       {u.name} — <span className="opacity-90 font-normal ml-1">{u.sequence}</span>
+                      <span className="font-semibold ml-1">({isLettre ? "Dépôt manquant" : "Note < 10"})</span>
                     </Badge>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 shadow-sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(portalUrl);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-              >
-                {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Lien copié !' : 'Copier lien portail'}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-amber-600 hover:bg-amber-700 text-white gap-1.5 shadow-sm"
-                onClick={() => window.open(portalUrl, '_blank')}
-              >
-                <ExternalLink className="h-4 w-4" />
-                Ouvrir portail
-              </Button>
             </div>
           </div>
         </div>

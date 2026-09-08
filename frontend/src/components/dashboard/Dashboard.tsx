@@ -227,18 +227,6 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
             {bannerCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
             {bannerCopied ? 'Lien copié !' : 'Copier le lien apprenants'}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs gap-1.5 cursor-pointer"
-            onClick={() => {
-              const url = `${window.location.origin}${window.location.pathname}?portal=true`;
-              window.open(url, '_blank');
-            }}
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            Tester l'accès
-          </Button>
         </div>
       </div>
 
@@ -602,13 +590,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                                 key={idx} 
                                 variant="destructive" 
                                 className="text-[10px] px-1.5 py-0 font-medium"
-                                title={fm}
+                                title={/lettre/i.test(fm) ? "Lettre d'engagement non déposée" : fm}
                               >
                                 {getShortModuleCode(fm)}
                               </Badge>
                             ))
                           ) : (
-                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 font-medium">Note &lt; 10</Badge>
+                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 font-medium">À régulariser</Badge>
                           )}
                         </div>
                       </TableCell>

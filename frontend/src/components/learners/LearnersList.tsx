@@ -305,7 +305,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                         {learner.unvalidated_assignments && learner.unvalidated_assignments.length > 0 && (
                           <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5" title={learner.unvalidated_assignments.map(u => u.name).join(', ')}>
                             <AlertTriangle className="w-3 h-3 text-destructive shrink-0" />
-                            <span>À rattraper : {learner.unvalidated_assignments.map(u => u.code || u.name.split('.')[0].trim() || u.name).join(', ')}</span>
+                            <span>À régulariser : {learner.unvalidated_assignments.map(u => u.name.toLowerCase().includes("lettre d") ? "Lettre" : (u.code?.startsWith("ACT") ? (u.name.split('.')[0].trim() || u.name) : (u.code || u.name.split('.')[0].trim()))).join(', ')}</span>
                           </p>
                         )}
                       </div>

@@ -140,10 +140,10 @@ export const LearnerPortal: React.FC = () => {
                   </div>
                 )}
 
-                <div className="p-3 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground space-y-1">
+                <div className="text-center text-xs text-muted-foreground space-y-1.5 pt-2">
                   <p className="font-semibold text-foreground">Information importante :</p>
-                  <p>
-                    Pour que vos devoirs soient validés dans votre parcours, une note minimale de 10/20 est requise.
+                  <p className="leading-relaxed">
+                    Pour valider entièrement la Phase 1 et s'assurer que tout votre dossier est bien complet, vous devez atteindre une progression globale minimale de <strong>93,5%</strong>, avoir déposé votre lettre d'engagement et obtenu une note d'au moins 10/20 aux devoirs obligatoires.
                   </p>
                 </div>
               </CardContent>
@@ -272,7 +272,7 @@ export const LearnerPortal: React.FC = () => {
                       portalData.has_unvalidated_assignments ? "text-destructive" : "text-emerald-600"
                     )}>
                       {portalData.has_unvalidated_assignments
-                        ? 'Note minimale de 10 requise'
+                        ? 'Validation ou dépôt requis'
                         : 'Aucun devoir en retard'}
                     </span>
                   </div>
@@ -285,40 +285,43 @@ export const LearnerPortal: React.FC = () => {
                       <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                       <div>
                         <h3 className="font-bold text-sm sm:text-base text-destructive">
-                          Attention : {portalData.unvalidated_assignments.length} devoir(s) obligatoire(s) non validé(s)
+                          Attention : {portalData.unvalidated_assignments.length} élément(s) obligatoire(s) non validé(s)
                         </h3>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
-                          Bien que vous ayez pu continuer dans les séquences suivantes, les devoirs obligatoires ci-dessous n'ont pas atteint la note minimale de <strong>10/20</strong> requise. Sans la validation de ces devoirs, la formation ne pourra être considérée comme achevée.
+                          Bien que vous ayez pu avancer dans les séquences suivantes, les devoirs obligatoires ci-dessous n'ont pas atteint la note minimale de <strong>10/20</strong> requise ou votre lettre d'engagement n'a pas été déposée. Sans la régularisation de ces éléments, la formation ne pourra être considérée comme achevée.
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-2 space-y-2">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {portalData.unvalidated_assignments.map((unval, i) => (
-                          <div
-                            key={i}
-                            className="p-3 rounded-lg border border-destructive/20 bg-background text-xs space-y-1"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-bold text-foreground truncate">
-                                {unval.name}
-                              </span>
-                              <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">
-                                Note &lt; 10
-                              </Badge>
+                        {portalData.unvalidated_assignments.map((unval, i) => {
+                          const isLettre = unval.name.toLowerCase().includes("lettre d");
+                          return (
+                            <div
+                              key={i}
+                              className="p-3 rounded-lg border border-destructive/20 bg-background text-xs space-y-1"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-foreground truncate">
+                                  {unval.name}
+                                </span>
+                                <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">
+                                  {isLettre ? "Dépôt manquant" : "Note < 10"}
+                                </Badge>
+                              </div>
+                              <p className="text-muted-foreground text-[11px]">
+                                {unval.sequence}
+                                {unval.completed_at && ` · Déposé le ${new Date(unval.completed_at).toLocaleDateString('fr-FR')}`}
+                              </p>
                             </div>
-                            <p className="text-muted-foreground text-[11px]">
-                              {unval.sequence}
-                              {unval.completed_at && ` · Déposé le ${new Date(unval.completed_at).toLocaleDateString('fr-FR')}`}
-                            </p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                       <div className="p-3 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground mt-3">
                         <span className="font-semibold text-foreground">Action à entreprendre : </span>
-                        Rendez-vous sur la plateforme Moodle, consultez les remarques et annotations de votre évaluateur, puis déposez à nouveau votre devoir corrigé.
+                        Rendez-vous sur la plateforme Moodle pour déposer votre lettre d'engagement ou consulter les remarques de votre évaluateur afin de redéposer votre devoir corrigé.
                       </div>
                     </div>
                   </div>
@@ -459,7 +462,7 @@ export const LearnerPortal: React.FC = () => {
 
                                   {isTrou ? (
                                     <span className="text-[11px] font-bold text-destructive">
-                                      Non validé (Note &lt; 10)
+                                      {act.name.toLowerCase().includes("lettre d") ? "Lettre non déposée" : "Non validé (Note < 10)"}
                                     </span>
                                   ) : isDone ? (
                                     <span className="text-[11px] text-emerald-600 font-medium">
