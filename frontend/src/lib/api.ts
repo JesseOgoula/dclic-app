@@ -5,16 +5,32 @@
 // Use environment variable for production API URL, fallback to Render backend
 const API_BASE = import.meta.env.VITE_API_URL || 'https://dclic-backend.onrender.com/api';
 
+const TOKEN_KEY = 'dclic_admin_token';
+
+export const authStorage = {
+  getToken: () => localStorage.getItem(TOKEN_KEY),
+  setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
+  removeToken: () => localStorage.removeItem(TOKEN_KEY),
+  isAuthenticated: () => !!localStorage.getItem(TOKEN_KEY),
+};
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = authStorage.getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options?.headers as Record<string, string>),
+  };
+
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!res.ok) {
+    if (res.status === 401 && !path.includes('/auth/')) {
+      authStorage.removeToken();
+    }
     const error = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(error.error || error.details || `API Error: ${res.status}`);
   }
@@ -227,8 +243,12 @@ export const api = {
     const formData = new FormData();
     formData.append('file', file);
 
+    const token = authStorage.getToken();
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
     const res = await fetch(`${API_BASE}/upload`, {
       method: 'POST',
+      headers,
       body: formData,
     });
 
@@ -240,6 +260,16 @@ export const api = {
     const data = await res.json();
     return data.data;
   },
+
+  // Auth
+  login: (password: string) =>
+    request<{ token: string }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
+  checkAuth: () => request<{ authenticated: boolean }>('/auth/check'),
+  logout: () => authStorage.removeToken(),
+  isAuthenticated: () => authStorage.isAuthenticated(),
 
   // Reports
   getWeeklyReports: () => request<any[]>('/reports/weekly'),

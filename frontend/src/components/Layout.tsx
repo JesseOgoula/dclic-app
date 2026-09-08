@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Share2,
   Check,
+  LogOut,
 } from 'lucide-react';
 import { api, type Alert } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ interface LayoutProps {
   alertCount?: number;
   globalSearch?: string;
   onSearch?: (value: string) => void;
+  onLogout?: () => void;
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
@@ -45,6 +47,7 @@ export default function Layout({
   onSelectLearner,
   globalSearch = '',
   onSearch,
+  onLogout,
 }: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -359,6 +362,20 @@ export default function Layout({
               </span>
               27 Jul — 25 Sep 2026
             </div>
+
+            {/* Logout button */}
+            {onLogout && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLogout}
+                className="h-9 px-3 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs gap-1.5 cursor-pointer"
+                title="Quitter le mode coordinateur"
+              >
+                <LogOut size={15} />
+                <span className="hidden md:inline">Déconnexion</span>
+              </Button>
+            )}
           </div>
         </header>
 

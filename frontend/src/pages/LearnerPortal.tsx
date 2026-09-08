@@ -9,7 +9,8 @@ import {
   Mail,
   Award,
   LogOut,
-  UserCheck
+  UserCheck,
+  Lock
 } from 'lucide-react';
 import { api, type LearnerPortalData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-export const LearnerPortal: React.FC = () => {
+export interface LearnerPortalProps {
+  onOpenCoordinatorLogin?: () => void;
+}
+
+export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorLogin }) => {
   const [emailInput, setEmailInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -491,8 +496,21 @@ export const LearnerPortal: React.FC = () => {
       </main>
 
       {/* Clean Footer */}
-      <footer className="border-t border-border bg-card py-4 text-center text-xs text-muted-foreground mt-auto">
-        <p>Plateforme de formation DCLIC · Suivi pédagogique individuel</p>
+      <footer className="border-t border-border bg-card py-4 text-xs text-muted-foreground mt-auto">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+          <p>Plateforme de formation DCLIC · Suivi pédagogique individuel</p>
+          {onOpenCoordinatorLogin && (
+            <button
+              type="button"
+              onClick={onOpenCoordinatorLogin}
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              title="Espace réservé à l'équipe pédagogique"
+            >
+              <Lock className="h-3 w-3" />
+              <span>Accès Coordinateur</span>
+            </button>
+          )}
+        </div>
       </footer>
     </div>
   );

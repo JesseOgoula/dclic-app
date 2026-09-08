@@ -7,8 +7,61 @@ import multer from 'multer';
 import path from 'path';
 import { processUpload } from '../services/uploadService.js';
 import { store, supabase, computeLearnerStatus } from '../services/store.js';
+import { requireAdminAuth, generateAdminToken, checkAdminPassword, verifyAdminToken } from '../services/auth.js';
 
 const router = Router();
+
+// ============================================================
+// Public Authentication & Learner Portal Endpoints
+// ============================================================
+
+router.post('/auth/login', (req: Request, res: Response): void => {
+  const { password } = req.body || {};
+  if (!password || !checkAdminPassword(password)) {
+    res.status(401).json({ error: 'Mot de passe coordinateur incorrect.' });
+    return;
+  }
+  const token = generateAdminToken();
+  res.json({ success: true, data: { token } });
+});
+
+router.get('/auth/check', (req: Request, res: Response): void => {
+  const authHeader = req.headers.authorization || (req.headers['x-admin-token'] as string);
+  let token = '';
+  if (authHeader) {
+    token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+  }
+  if (verifyAdminToken(token)) {
+    res.json({ success: true, data: { authenticated: true } });
+  } else {
+    res.status(401).json({ error: 'Session coordinateur expirée ou invalide.' });
+  }
+});
+
+router.get('/portal/learner', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const email = (req.query.email as string || '').trim();
+    if (!email) {
+      res.status(400).json({ error: 'Adresse de courriel requise.' });
+      return;
+    }
+
+    const data = await store.getLearnerPortalData(email);
+    if (!data) {
+      res.status(404).json({ error: 'Aucun apprenant trouvé avec cette adresse de courriel.' });
+      return;
+    }
+
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+// ============================================================
+// Protected Coordinator Endpoints (Requires Valid Token)
+// ============================================================
+router.use(requireAdminAuth);
 
 // File upload config
 const upload = multer({
@@ -298,29 +351,6 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// ============================================================
-// Public Learner Portal Endpoint
-// ============================================================
-
-router.get('/portal/learner', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const email = (req.query.email as string || '').trim();
-    if (!email) {
-      res.status(400).json({ error: 'Adresse de courriel requise.' });
-      return;
-    }
-
-    const data = await store.getLearnerPortalData(email);
-    if (!data) {
-      res.status(404).json({ error: 'Aucun apprenant trouvé avec cette adresse de courriel.' });
-      return;
-    }
-
-    res.json({ success: true, data });
-  } catch (error) {
-    res.status(500).json({ error: String(error) });
-  }
-});
 
 // ============================================================
 // Activity endpoints
