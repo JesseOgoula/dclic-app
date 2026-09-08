@@ -8,8 +8,10 @@ dotenv.config();
 
 import type {
   Learner, Activity, LearnerProgress, Upload, CommunicationLog,
-  Evaluation, Report, Alert, DashboardStats, LearnerWithProgress, SequenceStat
+  Evaluation, Report, Alert, DashboardStats, LearnerWithProgress, SequenceStat,
+  ProgressionHole, LearnerPortalData
 } from '../types.js';
+import { isAssignment } from './parser/moodleParser.js';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_KEY!;
@@ -219,6 +221,67 @@ class DataStore {
     return allData;
   }
 
+  /**
+   * Analyse la progression d'un apprenant pour identifier :
+   * 1. L'index maximal atteint/validé
+   * 2. Les trous de progression (activités non validées avant l'index max)
+   * 3. Les devoirs non validés en amont (blocages majeurs pour la certification)
+   */
+  computeProgressionGaps(learnerProgress: LearnerProgress[], allActivities: Activity[]) {
+    const sortedActivities = [...allActivities].sort((a, b) => a.display_order - b.display_order);
+
+    const validMap = new Map<string, LearnerProgress>();
+    for (const p of learnerProgress) {
+      if (p.status === 'completed' || p.status === 'passed') {
+        validMap.set(p.activity_id, p);
+      }
+    }
+
+    let maxValidOrder = -1;
+    sortedActivities.forEach(act => {
+      if (validMap.has(act.id)) {
+        if (act.display_order > maxValidOrder) {
+          maxValidOrder = act.display_order;
+        }
+      }
+    });
+
+    const progressionHoles: ProgressionHole[] = [];
+    const unvalidatedAssignments: ProgressionHole[] = [];
+
+    if (maxValidOrder > -1) {
+      sortedActivities.forEach(act => {
+        if (act.display_order < maxValidOrder && !validMap.has(act.id)) {
+          const p = learnerProgress.find(x => x.activity_id === act.id);
+          const isDevoir = act.type === 'devoir' || isAssignment(act.name);
+          const hole: ProgressionHole = {
+            activity_id: act.id,
+            code: act.code,
+            name: act.name,
+            sequence: act.sequence,
+            type: isDevoir ? 'devoir' : act.type,
+            is_evaluated: act.is_evaluated || isDevoir,
+            status: p ? p.status : 'not_completed',
+            completed_at: p ? p.completed_at : null,
+            display_order: act.display_order,
+          };
+          progressionHoles.push(hole);
+
+          if (isDevoir) {
+            unvalidatedAssignments.push(hole);
+          }
+        }
+      });
+    }
+
+    return {
+      maxValidOrder,
+      progressionHoles,
+      unvalidatedAssignments,
+      hasUnvalidatedAssignments: unvalidatedAssignments.length > 0,
+    };
+  }
+
   // ----------------------------------------------------------
   // Dashboard stats
   // ----------------------------------------------------------
@@ -247,6 +310,9 @@ class DataStore {
         ? Math.floor((now.getTime() - lastActivity) / (1000 * 60 * 60 * 24))
         : 999;
 
+      const { progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+        this.computeProgressionGaps(learnerProgress, allActivities);
+
       return {
         ...learner,
         completion_rate: completionRate,
@@ -254,6 +320,9 @@ class DataStore {
         total_activities: totalActivities,
         days_inactive: daysInactive,
         progress: learnerProgress,
+        progression_holes: progressionHoles,
+        unvalidated_assignments: unvalidatedAssignments,
+        has_unvalidated_assignments: hasUnvalidatedAssignments,
       };
     });
 
@@ -273,7 +342,12 @@ class DataStore {
       ).length;
       const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
 
-      const isPhase1Completed = hasCompletedSeq5 || hasCompletedAllPhase1;
+      // Pour valider la Phase 1, l'apprenant ne doit pas avoir de devoir bloquant non validé en amont dans la Phase 1
+      const hasNoPhase1AssignmentHoles = !(lwp.unvalidated_assignments || []).some(u =>
+        u.sequence.startsWith('Séquence ') || u.sequence === 'Préalable'
+      );
+
+      const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
       const status = computeLearnerStatus(lwp.completion_rate, lwp.days_inactive, isPhase1Completed);
 
       // Mettre à jour le statut dans l'objet en mémoire et en base si changé
@@ -354,15 +428,18 @@ class DataStore {
       .sort((a, b) => b.days_inactive - a.days_inactive)
       .slice(0, 10);
 
+    // Apprenants bloqués : inclut ceux avec échec explicite ET ceux avec devoirs non validés en amont
     const blockedLearners = learnersWithProgress
-      .filter(l => l.progress.some(p => p.status === 'failed'))
+      .filter(l => l.progress.some(p => p.status === 'failed') || (l.unvalidated_assignments && l.unvalidated_assignments.length > 0))
       .map(l => {
         const failedProg = l.progress.filter(p => p.status === 'failed');
-        const failedModules = failedProg.map(fp => {
+        const failedModulesFromProg = failedProg.map(fp => {
           const act = allActivities.find(a => a.id === fp.activity_id);
-          return act ? act.code : 'Inconnu';
+          return act ? act.name : 'Inconnu';
         });
-        return { ...l, failed_modules: failedModules };
+        const unvalidatedModuleNames = (l.unvalidated_assignments || []).map(u => u.name);
+        const allFailedModules = Array.from(new Set([...failedModulesFromProg, ...unvalidatedModuleNames]));
+        return { ...l, failed_modules: allFailedModules };
       })
       .sort((a, b) => a.last_name.localeCompare(b.last_name));
 
@@ -388,6 +465,75 @@ class DataStore {
       blocked_learners: blockedLearners,
       completed_phase1_list: completedPhase1Learners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
       completed_list: completedLearners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
+    };
+  }
+
+  // ----------------------------------------------------------
+  // Learner Portal Data
+  // ----------------------------------------------------------
+
+  async getLearnerPortalData(email: string): Promise<LearnerPortalData | null> {
+    const cleanEmail = email.toLowerCase().trim();
+    const learner = await this.getLearnerByEmail(cleanEmail);
+    if (!learner) return null;
+
+    const allActivities = await this.getActivities();
+    const progress = await this.getProgressByLearner(learner.id);
+
+    const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+      this.computeProgressionGaps(progress, allActivities);
+
+    const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
+    const total = allActivities.length;
+    const completionRate = total > 0 ? Math.round((completed / total) * 100 * 10) / 10 : 0;
+
+    const sequencesMap = new Map<string, any[]>();
+    for (const act of allActivities) {
+      const seq = act.sequence || 'Autre';
+      if (!sequencesMap.has(seq)) {
+        sequencesMap.set(seq, []);
+      }
+      const p = progress.find(x => x.activity_id === act.id);
+      const isCompleted = p ? (p.status === 'completed' || p.status === 'passed') : false;
+      const isDevoir = act.type === 'devoir' || isAssignment(act.name);
+      const isTrou = progressionHoles.some(h => h.activity_id === act.id);
+
+      sequencesMap.get(seq)!.push({
+        ...act,
+        type: isDevoir ? 'devoir' : act.type,
+        status: p ? p.status : 'not_completed',
+        completed_at: p ? p.completed_at : null,
+        is_devoir: isDevoir,
+        is_trou: isTrou,
+        is_completed: isCompleted,
+      });
+    }
+
+    const sequences = Array.from(sequencesMap.entries()).map(([seqName, acts]) => ({
+      sequence: seqName,
+      total: acts.length,
+      completed: acts.filter(a => a.is_completed).length,
+      activities: acts,
+    }));
+
+    return {
+      learner: {
+        id: learner.id,
+        first_name: learner.first_name,
+        last_name: learner.last_name,
+        email: learner.email,
+        group_id: learner.group_id,
+        status: learner.status,
+        last_activity_at: learner.last_activity_at,
+      },
+      completion_rate: completionRate,
+      completed_activities: completed,
+      total_activities: total,
+      max_reached_order: maxValidOrder,
+      unvalidated_assignments: unvalidatedAssignments,
+      all_progression_holes: progressionHoles,
+      has_unvalidated_assignments: hasUnvalidatedAssignments,
+      sequences,
     };
   }
 

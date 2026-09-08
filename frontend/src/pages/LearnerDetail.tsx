@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { ArrowLeft, Mail, AlertCircle, CheckCircle2, Clock, ChevronDown, ChevronRight, Award } from 'lucide-react';
+import {
+  ArrowLeft,
+  Mail,
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  ChevronDown,
+  ChevronRight,
+  Award,
+  ExternalLink,
+  Copy,
+  Check,
+  GraduationCap
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,57 +26,102 @@ interface LearnerDetailProps {
   onBack: () => void;
 }
 
-const SequenceAccordion = ({ seq, activities, defaultOpen = false }: { seq: string; activities: any[]; defaultOpen?: boolean }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const SequenceAccordion = ({
+  seq,
+  activities,
+  unvalidatedIds = new Set<string>(),
+  defaultOpen = false
+}: {
+  seq: string;
+  activities: any[];
+  unvalidatedIds?: Set<string>;
+  defaultOpen?: boolean;
+}) => {
+  const hasUnvalidatedInSeq = activities.some((act: any) => unvalidatedIds.has(act.id));
+  const [isOpen, setIsOpen] = useState(defaultOpen || hasUnvalidatedInSeq);
 
   return (
-    <div className="mb-4 last:mb-0 border border-border rounded-xl overflow-hidden bg-card">
+    <div className={cn(
+      "mb-4 last:mb-0 border rounded-xl overflow-hidden bg-card transition-colors",
+      hasUnvalidatedInSeq ? "border-amber-300" : "border-border"
+    )}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-3">
-          <div className="h-6 w-1 bg-primary rounded-full"></div>
+          <div className={cn("h-6 w-1 rounded-full", hasUnvalidatedInSeq ? "bg-amber-500" : "bg-primary")}></div>
           <h3 className="font-bold text-base text-foreground">{seq}</h3>
           <Badge variant="outline" className="ml-2 bg-background">
             {activities.length} activité(s)
           </Badge>
+          {hasUnvalidatedInSeq && (
+            <Badge variant="destructive" className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] gap-1 ml-1">
+              <AlertTriangle className="h-3 w-3" /> Devoir à rattraper
+            </Badge>
+          )}
         </div>
         {isOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
       </button>
 
       {isOpen && (
         <div className="p-4 pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-3 bg-background/50 animate-fade-in">
-          {activities.map((act: any, j: number) => (
-            <div key={j} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
-              <div className={cn(
-                "mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                (act.status === 'completed' || act.status === 'passed') ? "bg-emerald-100 text-emerald-700" :
-                  act.status === 'failed' ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-              )}>
-                {act.status === 'completed' || act.status === 'passed' ? (
-                  <CheckCircle2 className="h-5 w-5" />
-                ) : act.status === 'failed' ? (
-                  <AlertCircle className="h-5 w-5" />
-                ) : (
-                  <Clock className="h-5 w-5" />
+          {activities.map((act: any, j: number) => {
+            const isUnvalidated = unvalidatedIds.has(act.id);
+            const isCompleted = act.status === 'completed' || act.status === 'passed';
+            return (
+              <div
+                key={j}
+                className={cn(
+                  "flex items-start gap-3 p-3 rounded-xl border transition-shadow shadow-sm",
+                  isUnvalidated
+                    ? "border-amber-400 bg-amber-50/70 shadow-amber-100"
+                    : "border-border bg-card hover:shadow-md"
                 )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground text-sm truncate" title={act.name}>{act.name}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="font-medium text-[10px] text-muted-foreground">
-                    {act.type}
-                  </Badge>
-                  {act.completed_at && (
-                    <span className="text-[10px] font-medium text-muted-foreground">
-                      {new Date(act.completed_at).toLocaleDateString('fr-FR')}
-                    </span>
+              >
+                <div className={cn(
+                  "mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                  isUnvalidated
+                    ? "bg-amber-200/80 text-amber-800"
+                    : isCompleted
+                      ? "bg-emerald-100 text-emerald-700"
+                      : act.status === 'failed'
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-muted text-muted-foreground"
+                )}>
+                  {isUnvalidated ? (
+                    <AlertTriangle className="h-4.5 w-4.5 text-amber-700" />
+                  ) : isCompleted ? (
+                    <CheckCircle2 className="h-5 w-5" />
+                  ) : act.status === 'failed' ? (
+                    <AlertCircle className="h-5 w-5" />
+                  ) : (
+                    <Clock className="h-5 w-5" />
                   )}
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className={cn("font-semibold text-sm truncate", isUnvalidated ? "text-amber-950 font-bold" : "text-foreground")} title={act.name}>
+                    {act.name}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <Badge variant="outline" className={cn("font-medium text-[10px]", isUnvalidated ? "border-amber-300 text-amber-800 bg-amber-100/50" : "text-muted-foreground")}>
+                      {act.type}
+                    </Badge>
+                    {isUnvalidated && (
+                      <Badge variant="destructive" className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-semibold">
+                        Devoir non validé (Note &lt; 10)
+                      </Badge>
+                    )}
+                    {act.completed_at && (
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        {isUnvalidated ? 'Soumis le ' : ''}{new Date(act.completed_at).toLocaleDateString('fr-FR')}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -95,6 +154,7 @@ const formatTimeAgo = (isoString: string | null) => {
 export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
   const [learner, setLearner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -107,6 +167,9 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Chargement...</div>;
   if (!learner) return <div className="p-8 text-center text-destructive">Apprenant non trouvé.</div>;
+
+  const unvalidatedIds = new Set<string>((learner.unvalidated_assignments || []).map((u: any) => u.activity_id as string));
+  const portalUrl = `${window.location.origin}${window.location.pathname}?email=${encodeURIComponent(learner.email)}`;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -132,8 +195,17 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
           </div>
         </div>
 
-        {/* Quick action button */}
-        <div className="flex items-center gap-2">
+        {/* Quick action buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-card text-foreground"
+            onClick={() => window.open(portalUrl, '_blank')}
+          >
+            <GraduationCap className="h-4 w-4 text-primary" />
+            Espace Apprenant
+          </Button>
           <a
             href={`mailto:${learner.email}?subject=Suivi formation DCLIC&body=Bonjour ${learner.first_name},`}
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-muted text-foreground transition-colors shadow-sm"
@@ -144,6 +216,58 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
         </div>
       </div>
 
+      {/* Unvalidated assignments warning banner */}
+      {learner.has_unvalidated_assignments && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-5 shadow-sm text-amber-950 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-amber-200/70 text-amber-800 rounded-lg shrink-0 mt-0.5 sm:mt-0">
+                <AlertTriangle className="h-6 w-6 text-amber-700" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-amber-950 flex items-center gap-2">
+                  Attention : {learner.unvalidated_assignments?.length || 0} devoir(s) en attente de validation / rattrapage
+                </h3>
+                <p className="text-sm text-amber-800 mt-1 max-w-3xl">
+                  Cet apprenant a continué à avancer dans les modules suivants, mais les devoirs obligatoires ci-dessous n'ont pas atteint la note minimale (10/20) requise pour valider sa progression.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {learner.unvalidated_assignments?.map((u: any, idx: number) => (
+                    <Badge key={idx} variant="destructive" className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs py-1 px-2.5 shadow-sm">
+                      {u.name} — <span className="opacity-90 font-normal ml-1">{u.sequence}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 shadow-sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(portalUrl);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+              >
+                {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                {copied ? 'Lien copié !' : 'Copier lien portail'}
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white gap-1.5 shadow-sm"
+                onClick={() => window.open(portalUrl, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Ouvrir portail
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="md:col-span-1 shadow-sm border-border">
           <CardHeader>
@@ -152,25 +276,32 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1.5">Statut</p>
-              {learner.status === 'active' && (
-                <Badge variant="default">Actif</Badge>
-              )}
-              {learner.status === 'inactive' && (
-                <Badge variant="secondary">Inactif</Badge>
-              )}
-              {learner.status === 'dropped' && (
-                <Badge variant="destructive">Décroché</Badge>
-              )}
-              {learner.status === 'completed_phase1' && (
-                <Badge variant="outline" className="border-primary text-primary font-semibold gap-1">
-                  <CheckCircle2 size={12} /> Phase 1 terminée
-                </Badge>
-              )}
-              {learner.status === 'completed' && (
-                <Badge variant="default" className="bg-emerald-600 text-white font-semibold gap-1">
-                  <Award size={12} /> Session terminée (100%)
-                </Badge>
-              )}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {learner.status === 'active' && (
+                  <Badge variant="default">Actif</Badge>
+                )}
+                {learner.status === 'inactive' && (
+                  <Badge variant="secondary">Inactif</Badge>
+                )}
+                {learner.status === 'dropped' && (
+                  <Badge variant="destructive">Décroché</Badge>
+                )}
+                {learner.status === 'completed_phase1' && (
+                  <Badge variant="outline" className="border-primary text-primary font-semibold gap-1">
+                    <CheckCircle2 size={12} /> Phase 1 terminée
+                  </Badge>
+                )}
+                {learner.status === 'completed' && (
+                  <Badge variant="default" className="bg-emerald-600 text-white font-semibold gap-1">
+                    <Award size={12} /> Session terminée (100%)
+                  </Badge>
+                )}
+                {learner.is_blocked && learner.status !== 'dropped' && (
+                  <Badge variant="destructive" className="bg-red-600 font-semibold gap-1">
+                    <AlertTriangle size={12} /> Bloqué (devoir à rattraper)
+                  </Badge>
+                )}
+              </div>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">Progression Globale</p>
@@ -270,6 +401,7 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
                   key={i}
                   seq={seq}
                   activities={learner.activities.filter((a: any) => a.sequence === seq)}
+                  unvalidatedIds={unvalidatedIds}
                   defaultOpen={i === 0}
                 />
               ))}

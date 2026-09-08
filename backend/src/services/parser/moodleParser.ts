@@ -179,6 +179,14 @@ export function parseProgressCSV(filePath: string): ParsedCSVRow[] {
         }
       }
 
+      // Règle spéciale Lettre d'engagement:
+      // Si la personne l'a envoyée (horodatée), même si c'est écrit pas terminé,
+      // vu qu'elle n'est pas notée, on la considère comme faite (completed).
+      const isEngagement = activityNames[a].toLowerCase().includes("lettre d'engagement") || activityNames[a].toLowerCase().includes("lettre d");
+      if (isEngagement && completedAt) {
+        normalizedStatus = 'completed';
+      }
+
       activities.push({
         name: activityNames[a],
         status: normalizedStatus,
@@ -233,6 +241,32 @@ export function filterByGroup(participants: ParsedParticipant[], groupId: string
 }
 
 /**
+ * Identifie si une activité est un Devoir officiel (selon le programme DCLIC).
+ */
+export function isAssignment(name: string): boolean {
+  const lower = name.toLowerCase();
+  if (lower.includes('correction') || lower.includes('exercice évalué sur les débouchés') || lower.includes('exercice evalue sur les debouches')) {
+    return false;
+  }
+  return (
+    lower.includes("lettre d'engagement") ||
+    lower.includes("lettre d") ||
+    lower.includes("débouchés professionnels") ||
+    lower.includes("debouches professionnels") ||
+    lower.includes("devoir de conception d'une stratégie marketing") ||
+    lower.includes("devoir de conception d'une strategie marketing") ||
+    lower.includes("entraînez-vous à rédiger pour le web") ||
+    lower.includes("entrainez-vous a rediger pour le web") ||
+    lower.includes("production d'un contenu audiovisuel") ||
+    lower.includes("utiliser l'intelligence artificielle pour produire un contenu") ||
+    lower.includes("utiliser l'ia pour produire") ||
+    lower.includes("rapport d'interprétation des indicateurs") ||
+    lower.includes("rapport d'interpretation des indicateurs") ||
+    lower.includes("livrable final")
+  );
+}
+
+/**
  * Extract activity metadata from the parsed CSV column names.
  * Maps activity codes (M1A, M2B, etc.) to sequences and types.
  */
@@ -278,14 +312,20 @@ export function extractActivityMetadata(activityNames: string[]): Array<{
     }
 
     // Determine type
+    const isDevoir = isAssignment(name);
     let type: 'exercise' | 'quiz' | 'devoir' | 'documentation' = 'exercise';
     const lowerName = name.toLowerCase();
-    if (lowerName.includes('quiz')) type = 'quiz';
-    else if (lowerName.includes('devoir') || lowerName.includes('livrable')) type = 'devoir';
-    else if (lowerName.includes('documentation') || lowerName.includes('correction') || lowerName.includes('présentation')) type = 'documentation';
+
+    if (isDevoir) {
+      type = 'devoir';
+    } else if (lowerName.includes('quiz')) {
+      type = 'quiz';
+    } else if (lowerName.includes('documentation') || lowerName.includes('correction') || lowerName.includes('présentation') || lowerName.includes('presentation')) {
+      type = 'documentation';
+    }
 
     // Determine if evaluated
-    const isEvaluated = lowerName.includes('évalué') || lowerName.includes('devoir') || lowerName.includes('livrable');
+    const isEvaluated = isDevoir || lowerName.includes('évalué') || lowerName.includes('evalue');
 
     return {
       code,

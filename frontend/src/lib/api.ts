@@ -64,17 +64,62 @@ export interface Learner {
   created_at: string;
 }
 
+export interface ProgressionHole {
+  activity_id: string;
+  code: string;
+  name: string;
+  sequence: string;
+  type: string;
+  is_evaluated: boolean;
+  status: string;
+  completed_at: string | null;
+  display_order: number;
+}
+
 export interface LearnerWithProgress extends Learner {
   completion_rate: number;
   completed_activities: number;
   total_activities: number;
   days_inactive: number;
   failed_modules?: string[];
+  progression_holes?: ProgressionHole[];
+  unvalidated_assignments?: ProgressionHole[];
+  has_unvalidated_assignments?: boolean;
+  is_blocked?: boolean;
 }
 
 export interface LearnerDetail extends LearnerWithProgress {
   activities: ActivityProgress[];
   communications: CommunicationLog[];
+  max_reached_order?: number;
+}
+
+export interface LearnerPortalData {
+  learner: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    group_id: string;
+    status: string;
+    last_activity_at: string | null;
+  };
+  completion_rate: number;
+  completed_activities: number;
+  total_activities: number;
+  max_reached_order: number;
+  unvalidated_assignments: ProgressionHole[];
+  all_progression_holes: ProgressionHole[];
+  has_unvalidated_assignments: boolean;
+  sequences: {
+    sequence: string;
+    total: number;
+    completed: number;
+    activities: (ActivityProgress & {
+      is_devoir: boolean;
+      is_trou: boolean;
+    })[];
+  }[];
 }
 
 export interface ActivityProgress {
@@ -157,6 +202,7 @@ export const api = {
   },
 
   getLearner: (id: string) => request<LearnerDetail>(`/learners/${id}`),
+  getLearnerPortal: (email: string) => request<LearnerPortalData>(`/portal/learner?email=${encodeURIComponent(email)}`),
 
   // Activities
   getActivities: () => request<Activity[]>('/activities'),

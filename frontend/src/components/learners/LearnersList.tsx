@@ -10,6 +10,8 @@ import {
   Users as UsersIcon,
   CheckCircle2,
   Download,
+  AlertTriangle,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type LearnerWithProgress } from '@/lib/api';
@@ -97,7 +99,14 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
     return sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
   };
 
-  const statusBadge = (status: string) => {
+  const statusBadge = (status: string, isBlocked?: boolean) => {
+    if (isBlocked && status !== 'dropped') {
+      return (
+        <Badge variant="destructive" className="font-medium bg-red-600 hover:bg-red-700">
+          Bloqué
+        </Badge>
+      );
+    }
     const config = ({
       active: { label: 'Actif', variant: 'default' as const },
       inactive: { label: 'Inactif', variant: 'secondary' as const },
@@ -259,19 +268,20 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                   </div>
                 </TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead className="w-16 text-right">Portail</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className={cn("transition-opacity duration-300", loading && learners.length > 0 ? "opacity-50" : "")}>
               {loading && learners.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     Chargement...
                   </TableCell>
                 </TableRow>
               ) : learners.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
                     <div className="flex flex-col items-center justify-center">
                       <Search className="w-8 h-8 text-muted-foreground/50 mb-3" />
                       <p className="text-sm font-medium text-foreground">Aucun apprenant trouvé</p>
@@ -291,10 +301,16 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                     onClick={() => onSelectLearner?.(learner.id)}
                   >
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <p className="font-medium text-foreground">{learner.first_name} {learner.last_name}</p>
-                        </div>
+                      <div className="flex flex-col gap-1">
+                        <p className="font-medium text-foreground">{learner.first_name} {learner.last_name}</p>
+                        {learner.unvalidated_assignments && learner.unvalidated_assignments.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-300 rounded px-1.5 py-0.5">
+                              <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                              {learner.unvalidated_assignments.length} devoir(s) à rattraper : {learner.unvalidated_assignments.map(u => u.name).join(', ')}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs">{learner.email}</TableCell>
@@ -324,7 +340,21 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                         {learner.days_inactive > 900 ? 'Jamais' : `${learner.days_inactive}j`}
                       </span>
                     </TableCell>
-                    <TableCell>{statusBadge(learner.status)}</TableCell>
+                    <TableCell>{statusBadge(learner.status, learner.is_blocked)}</TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        title="Consulter l'Espace Apprenant"
+                        onClick={() => {
+                          const url = `${window.location.origin}${window.location.pathname}?email=${encodeURIComponent(learner.email)}`;
+                          window.open(url, '_blank');
+                        }}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}

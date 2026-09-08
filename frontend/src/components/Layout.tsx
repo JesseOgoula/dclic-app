@@ -12,12 +12,13 @@ import {
   UserX,
   X,
   ExternalLink,
+  GraduationCap,
 } from 'lucide-react';
 import { api, type Alert } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
+type Page = 'dashboard' | 'learners' | 'upload' | 'reports' | 'portal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,6 +34,7 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'reports', label: 'Rapports', icon: BarChart },
   { id: 'learners', label: 'Apprenants', icon: Users },
+  { id: 'portal', label: 'Espace Apprenant', icon: GraduationCap },
   { id: 'upload', label: 'Import', icon: Upload },
 ];
 

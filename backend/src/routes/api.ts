@@ -158,8 +158,18 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       ).length;
       const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
 
-      const isPhase1Completed = hasCompletedSeq5 || hasCompletedAllPhase1;
+      const { progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+        store.computeProgressionGaps(progress, activities);
+
+      const hasNoPhase1AssignmentHoles = !unvalidatedAssignments.some(u =>
+        u.sequence.startsWith('Séquence ') || u.sequence === 'Préalable'
+      );
+
+      const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
       const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed);
+
+      const hasFailed = progress.some(p => p.status === 'failed');
+      const isBlocked = hasFailed || hasUnvalidatedAssignments;
 
       return {
         ...l,
@@ -168,7 +178,11 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
         completed_activities: completed,
         total_activities: total,
         days_inactive: daysInactive,
-        has_failed_activities: progress.some(p => p.status === 'failed'),
+        has_failed_activities: hasFailed,
+        has_unvalidated_assignments: hasUnvalidatedAssignments,
+        unvalidated_assignments: unvalidatedAssignments,
+        progression_holes: progressionHoles,
+        is_blocked: isBlocked,
       };
     });
 
@@ -178,7 +192,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       if (status === 'at_risk') {
         enriched = enriched.filter(l => l.status === 'active' && l.days_inactive > 7);
       } else if (status === 'blocked') {
-        enriched = enriched.filter(l => l.has_failed_activities);
+        enriched = enriched.filter(l => l.has_failed_activities || l.has_unvalidated_assignments);
       } else {
         enriched = enriched.filter(l => l.status === status);
       }
@@ -251,7 +265,14 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
     ).length;
     const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
 
-    const isPhase1Completed = hasCompletedSeq5 || hasCompletedAllPhase1;
+    const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+      store.computeProgressionGaps(progress, activities);
+
+    const hasNoPhase1AssignmentHoles = !unvalidatedAssignments.some(u =>
+      u.sequence.startsWith('Séquence ') || u.sequence === 'Préalable'
+    );
+
+    const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
     const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed);
 
     res.json({
@@ -265,8 +286,37 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
         days_inactive: daysInactive,
         activities: activityProgress,
         communications,
+        max_reached_order: maxValidOrder,
+        progression_holes: progressionHoles,
+        unvalidated_assignments: unvalidatedAssignments,
+        has_unvalidated_assignments: hasUnvalidatedAssignments,
+        is_blocked: progress.some(p => p.status === 'failed') || hasUnvalidatedAssignments,
       },
     });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+// ============================================================
+// Public Learner Portal Endpoint
+// ============================================================
+
+router.get('/portal/learner', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const email = (req.query.email as string || '').trim();
+    if (!email) {
+      res.status(400).json({ error: 'Adresse de courriel requise.' });
+      return;
+    }
+
+    const data = await store.getLearnerPortalData(email);
+    if (!data) {
+      res.status(404).json({ error: 'Aucun apprenant trouvé avec cette adresse de courriel.' });
+      return;
+    }
+
+    res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }

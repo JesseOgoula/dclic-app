@@ -138,6 +138,18 @@ export interface SequenceStat {
   learners_not_started: number;
 }
 
+export interface ProgressionHole {
+  activity_id: string;
+  code: string;
+  name: string;
+  sequence: string;
+  type: 'exercise' | 'quiz' | 'devoir' | 'documentation';
+  is_evaluated: boolean;
+  status: 'not_completed' | 'failed' | 'completed' | 'passed';
+  completed_at: string | null;
+  display_order: number;
+}
+
 export interface LearnerWithProgress extends Learner {
   completion_rate: number;
   completed_activities: number;
@@ -145,6 +157,39 @@ export interface LearnerWithProgress extends Learner {
   days_inactive: number;
   progress: LearnerProgress[];
   failed_modules?: string[];
+  progression_holes?: ProgressionHole[];
+  unvalidated_assignments?: ProgressionHole[];
+  has_unvalidated_assignments?: boolean;
+}
+
+export interface LearnerPortalData {
+  learner: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    group_id: string;
+    status: string;
+    last_activity_at: string | null;
+  };
+  completion_rate: number;
+  completed_activities: number;
+  total_activities: number;
+  max_reached_order: number;
+  unvalidated_assignments: ProgressionHole[];
+  all_progression_holes: ProgressionHole[];
+  has_unvalidated_assignments: boolean;
+  sequences: {
+    sequence: string;
+    total: number;
+    completed: number;
+    activities: (Activity & {
+      status: 'completed' | 'passed' | 'failed' | 'not_completed';
+      completed_at: string | null;
+      is_devoir: boolean;
+      is_trou: boolean;
+    })[];
+  }[];
 }
 
 // ============================================================

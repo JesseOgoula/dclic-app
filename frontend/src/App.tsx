@@ -5,11 +5,18 @@ import LearnersList from './components/learners/LearnersList';
 import UploadPage from './components/upload/UploadPage';
 import { LearnerDetail } from './pages/LearnerDetail';
 import Reports from './pages/Reports';
+import LearnerPortal from './pages/LearnerPortal';
 
-type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
+type Page = 'dashboard' | 'learners' | 'upload' | 'reports' | 'portal';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('email') || params.get('portal') === 'true') {
+      return 'portal';
+    }
+    return 'dashboard';
+  });
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
   const [learnersFilter, setLearnersFilter] = useState<string>('');
@@ -64,6 +71,9 @@ function App() {
       )}
       {currentPage === 'learners' && selectedLearnerId && (
         <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} />
+      )}
+      {currentPage === 'portal' && (
+        <LearnerPortal onBackToAdmin={() => handleNavigate('dashboard')} />
       )}
       {currentPage === 'upload' && <UploadPage onNavigate={handleNavigate} />}
     </Layout>

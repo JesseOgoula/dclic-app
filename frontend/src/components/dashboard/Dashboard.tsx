@@ -8,6 +8,8 @@ import {
   Award,
   Calendar,
   CheckCircle2,
+  ExternalLink,
+  GraduationCap,
 } from 'lucide-react';
 import {
   BarChart,
@@ -184,6 +186,35 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
 
   return (
     <div className="space-y-4">
+      {/* Learner portal banner */}
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-3.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Espace Apprenant disponible</p>
+            <p className="text-xs text-muted-foreground">
+              Les apprenants peuvent vérifier leur progression et identifier leurs devoirs à rattraper simplement avec leur email.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs bg-background/80 hover:bg-background"
+            onClick={() => {
+              const url = `${window.location.origin}${window.location.pathname}?portal=true`;
+              window.open(url, '_blank');
+            }}
+          >
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+            Ouvrir le portail
+          </Button>
+        </div>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
@@ -500,11 +531,19 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
 
         {/* Blocked learners */}
         <Card className="shadow-sm border-border overflow-hidden">
-          <CardHeader className="bg-muted/30 pb-3 border-b border-border">
+          <CardHeader className="bg-muted/30 pb-3 border-b border-border flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               <UserX className="w-5 h-5 text-destructive" />
-              <CardTitle className="text-base font-semibold">Apprenants bloqués</CardTitle>
+              <div>
+                <CardTitle className="text-base font-semibold">Apprenants bloqués</CardTitle>
+                <p className="text-xs text-muted-foreground">Devoirs non validés (&lt; 10/20) ou échecs</p>
+              </div>
             </div>
+            {filteredBlocked.length > 0 && (
+              <Badge variant="destructive" className="font-semibold text-xs">
+                {filteredBlocked.length} bloqué{filteredBlocked.length > 1 ? 's' : ''}
+              </Badge>
+            )}
           </CardHeader>
           <CardContent className="p-0">
             {filteredBlocked.length === 0 ? (
@@ -514,7 +553,8 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                 <TableHeader>
                   <TableRow>
                     <TableHead>Apprenant</TableHead>
-                    <TableHead>Statut</TableHead>
+                    <TableHead>Devoir(s) à rattraper</TableHead>
+                    <TableHead className="w-16 text-right">Portail</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -525,19 +565,37 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                       onClick={() => onSelectLearner?.(learner.id)}
                     >
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className="font-medium text-sm text-foreground truncate max-w-[150px]">{learner.first_name} {learner.last_name}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">{learner.email}</p>
-                          </div>
+                        <div>
+                          <p className="font-medium text-sm text-foreground truncate max-w-[140px]">{learner.first_name} {learner.last_name}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[140px]">{learner.email}</p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="destructive" className="font-medium whitespace-nowrap">
-                          {learner.failed_modules && learner.failed_modules.length > 0
-                            ? `Bloqué (${learner.failed_modules.join(', ')})`
-                            : 'Note minimale non atteinte'}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1 max-w-[220px]">
+                          {learner.failed_modules && learner.failed_modules.length > 0 ? (
+                            learner.failed_modules.map((fm, idx) => (
+                              <Badge key={idx} variant="destructive" className="text-[10px] px-1.5 py-0 font-medium bg-red-600 hover:bg-red-700">
+                                {fm}
+                              </Badge>
+                            ))
+                          ) : (
+                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 font-medium">Note &lt; 10</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          title="Consulter le portail apprenant"
+                          onClick={() => {
+                            const url = `${window.location.origin}${window.location.pathname}?email=${encodeURIComponent(learner.email)}`;
+                            window.open(url, '_blank');
+                          }}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -548,7 +606,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           {filteredBlocked.length > 5 && onViewAll && (
             <div className="p-4 border-t border-border flex justify-center bg-muted/10">
               <Button variant="outline" size="sm" onClick={() => onViewAll('blocked')}>
-                Voir plus
+                Voir les {filteredBlocked.length} apprenants bloqués
               </Button>
             </div>
           )}
