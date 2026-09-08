@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Mail,
   Award,
-  BookOpen,
   LogOut,
   UserCheck
 } from 'lucide-react';
@@ -344,8 +343,7 @@ export const LearnerPortal: React.FC = () => {
             {/* Sequence by Sequence Checklist */}
             <div className="space-y-3">
               <div className="flex items-center justify-between pb-1">
-                <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-primary" />
+                <h3 className="text-sm sm:text-base font-bold text-foreground">
                   Détail de votre parcours par séquence
                 </h3>
                 <span className="text-xs text-muted-foreground">
