@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 
 const SECRET_SALT = process.env.AUTH_SECRET || 'dclic-monitoring-secret-key-2026';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dclic2026!';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Dclic#2026!Coord$Peda';
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**

@@ -204,7 +204,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
       {/* Learner portal banner */}
       <div className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-3">
-          <GraduationCap className="w-5 h-5 text-primary shrink-0" />
+          <GraduationCap className="w-5 h-5 text-muted-foreground shrink-0" />
           <div>
             <p className="text-sm font-bold text-foreground">Lien unique de l'Espace Apprenant</p>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -218,7 +218,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
             size="sm"
             className="h-8 text-xs gap-1.5 cursor-pointer font-medium"
             onClick={() => {
-              const url = `${window.location.origin}${window.location.pathname}?portal=true`;
+              const url = `${window.location.origin}/?portal=true`;
               navigator.clipboard.writeText(url);
               setBannerCopied(true);
               setTimeout(() => setBannerCopied(false), 2500);

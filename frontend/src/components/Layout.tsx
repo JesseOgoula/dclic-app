@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Share2,
   Check,
+  Copy,
   LogOut,
 } from 'lucide-react';
 import { api, type Alert } from '@/lib/api';
@@ -245,16 +246,16 @@ export default function Layout({
               variant="outline"
               size="sm"
               onClick={() => {
-                const portalUrl = `${window.location.origin}${window.location.pathname}?portal=true`;
+                const portalUrl = `${window.location.origin}/?portal=true`;
                 navigator.clipboard.writeText(portalUrl);
                 setPortalLinkCopied(true);
                 setTimeout(() => setPortalLinkCopied(false), 2500);
               }}
-              className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-full bg-white border-border hover:bg-muted/50 text-xs font-medium cursor-pointer shadow-xs"
+              className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg border-border hover:bg-muted text-xs font-medium cursor-pointer shadow-xs text-foreground bg-card"
               title="Copier le lien unique à partager avec tous les apprenants"
             >
-              {portalLinkCopied ? <Check size={14} className="text-emerald-600" /> : <Share2 size={14} className="text-primary" />}
-              <span>{portalLinkCopied ? 'Lien copié !' : 'Lien Espace Apprenant'}</span>
+              {portalLinkCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} className="text-muted-foreground" />}
+              <span>{portalLinkCopied ? 'Lien copié !' : 'Copier le lien apprenants'}</span>
             </Button>
 
             {/* Alerts bell & Popover */}
