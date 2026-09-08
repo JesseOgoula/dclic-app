@@ -7,16 +7,28 @@ import { LearnerDetail } from './pages/LearnerDetail';
 import Reports from './pages/Reports';
 import LearnerPortal from './pages/LearnerPortal';
 
-type Page = 'dashboard' | 'learners' | 'upload' | 'reports' | 'portal';
+type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
+
+function isLearnerPortalMode(): boolean {
+  const path = window.location.pathname.toLowerCase();
+  const params = new URLSearchParams(window.location.search);
+  return (
+    path.includes('/portal') ||
+    path.includes('/apprenant') ||
+    params.has('portal') ||
+    params.has('email')
+  );
+}
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('email') || params.get('portal') === 'true') {
-      return 'portal';
-    }
-    return 'dashboard';
-  });
+  const isPortal = isLearnerPortalMode();
+
+  // If in learner mode, render ONLY LearnerPortal with no access to Layout or admin monitoring
+  if (isPortal) {
+    return <LearnerPortal />;
+  }
+
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
   const [learnersFilter, setLearnersFilter] = useState<string>('');
@@ -71,9 +83,6 @@ function App() {
       )}
       {currentPage === 'learners' && selectedLearnerId && (
         <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} />
-      )}
-      {currentPage === 'portal' && (
-        <LearnerPortal onBackToAdmin={() => handleNavigate('dashboard')} />
       )}
       {currentPage === 'upload' && <UploadPage onNavigate={handleNavigate} />}
     </Layout>

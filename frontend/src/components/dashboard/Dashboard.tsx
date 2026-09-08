@@ -10,6 +10,9 @@ import {
   CheckCircle2,
   ExternalLink,
   GraduationCap,
+  Share2,
+  Check,
+  Copy,
 } from 'lucide-react';
 import {
   BarChart,
@@ -51,6 +54,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bannerCopied, setBannerCopied] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -187,30 +191,44 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
   return (
     <div className="space-y-4">
       {/* Learner portal banner */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-3.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+      <div className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Espace Apprenant disponible</p>
-            <p className="text-xs text-muted-foreground">
-              Les apprenants peuvent vérifier leur progression et identifier leurs devoirs à rattraper simplement avec leur email.
+            <p className="text-sm font-bold text-foreground">Lien unique de l'Espace Apprenant</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Partagez ce lien unique avec tous les apprenants : chacun consulte sa progression personnelle en saisissant son adresse e-mail.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
           <Button
+            variant="default"
+            size="sm"
+            className="h-8 text-xs gap-1.5 cursor-pointer font-medium"
+            onClick={() => {
+              const url = `${window.location.origin}${window.location.pathname}?portal=true`;
+              navigator.clipboard.writeText(url);
+              setBannerCopied(true);
+              setTimeout(() => setBannerCopied(false), 2500);
+            }}
+          >
+            {bannerCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+            {bannerCopied ? 'Lien copié !' : 'Copier le lien apprenants'}
+          </Button>
+          <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs bg-background/80 hover:bg-background"
+            className="h-8 text-xs gap-1.5 cursor-pointer"
             onClick={() => {
               const url = `${window.location.origin}${window.location.pathname}?portal=true`;
               window.open(url, '_blank');
             }}
           >
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-            Ouvrir le portail
+            <ExternalLink className="w-3.5 h-3.5" />
+            Tester l'accès
           </Button>
         </div>
       </div>

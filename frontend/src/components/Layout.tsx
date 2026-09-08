@@ -12,13 +12,14 @@ import {
   UserX,
   X,
   ExternalLink,
-  GraduationCap,
+  Share2,
+  Check,
 } from 'lucide-react';
 import { api, type Alert } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-type Page = 'dashboard' | 'learners' | 'upload' | 'reports' | 'portal';
+type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,7 +35,6 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'reports', label: 'Rapports', icon: BarChart },
   { id: 'learners', label: 'Apprenants', icon: Users },
-  { id: 'portal', label: 'Espace Apprenant', icon: GraduationCap },
   { id: 'upload', label: 'Import', icon: Upload },
 ];
 
@@ -50,6 +50,7 @@ export default function Layout({
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [unreadAlertCount, setUnreadAlertCount] = useState<number>(0);
+  const [portalLinkCopied, setPortalLinkCopied] = useState(false);
   const alertsRef = useRef<HTMLDivElement>(null);
 
   const calculateUnread = (items: Alert[]) => {
@@ -235,6 +236,23 @@ export default function Layout({
                 className="pl-9 pr-4 py-2 bg-white rounded-full border border-border shadow-sm text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-64 transition-all"
               />
             </div>
+
+            {/* Copy Unique Learner Portal Link */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const portalUrl = `${window.location.origin}${window.location.pathname}?portal=true`;
+                navigator.clipboard.writeText(portalUrl);
+                setPortalLinkCopied(true);
+                setTimeout(() => setPortalLinkCopied(false), 2500);
+              }}
+              className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-full bg-white border-border hover:bg-muted/50 text-xs font-medium cursor-pointer shadow-xs"
+              title="Copier le lien unique à partager avec tous les apprenants"
+            >
+              {portalLinkCopied ? <Check size={14} className="text-emerald-600" /> : <Share2 size={14} className="text-primary" />}
+              <span>{portalLinkCopied ? 'Lien copié !' : 'Lien Espace Apprenant'}</span>
+            </Button>
 
             {/* Alerts bell & Popover */}
             <div className="relative" ref={alertsRef}>
