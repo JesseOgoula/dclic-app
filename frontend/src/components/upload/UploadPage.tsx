@@ -153,9 +153,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <UploadIcon className="w-8 h-8 text-primary" />
-            </div>
+            <UploadIcon className="w-10 h-10 text-primary" />
             <div>
               <p className="font-medium text-foreground">
                 Glissez votre fichier ici ou <span className="text-primary">parcourez</span>
@@ -314,16 +312,16 @@ function FormatCard({
   description: string;
   variant?: 'primary' | 'secondary' | 'success';
 }) {
-  const styleMap = {
-    primary: 'bg-primary/10 text-primary',
-    secondary: 'bg-muted text-foreground',
-    success: 'bg-emerald-500/10 text-emerald-600',
+  const colorMap = {
+    primary: 'text-primary',
+    secondary: 'text-muted-foreground',
+    success: 'text-emerald-600',
   };
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
-      <div className={cn('p-2 rounded-lg', styleMap[variant] || styleMap.primary)}>
-        <Icon size={18} />
+      <div className="mt-0.5 shrink-0">
+        <Icon size={18} className={colorMap[variant] || colorMap.primary} />
       </div>
       <div>
         <p className="text-sm font-medium">{title}</p>

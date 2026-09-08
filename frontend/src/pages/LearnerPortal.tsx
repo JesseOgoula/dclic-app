@@ -84,55 +84,22 @@ export const LearnerPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Top Header - Branded & Clean */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="bg-primary text-primary-foreground font-extrabold text-sm px-2.5 py-1 rounded tracking-wide">
-              DCLIC
-            </span>
-            <div>
-              <span className="font-semibold text-sm text-foreground">
-                Espace Apprenant
-              </span>
-              <span className="hidden sm:inline text-xs text-muted-foreground ml-2">
-                Suivi de progression en temps réel
-              </span>
-            </div>
-          </div>
-
-          {portalData && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="text-xs h-8 gap-1.5 cursor-pointer"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Changer d'adresse e-mail
-            </Button>
-          )}
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* State 1: Email Form (Initial or Reset) */}
         {!portalData && (
-          <div className="max-w-xl mx-auto pt-6 pb-12 space-y-6">
+          <div className="max-w-md mx-auto pt-8 sm:pt-16 pb-12">
             <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="text-center pb-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
-                  <UserCheck className="h-6 w-6" />
-                </div>
-                <CardTitle className="text-xl font-bold text-foreground">
+              <CardHeader className="text-center pb-4">
+                <UserCheck className="h-10 w-10 text-primary mx-auto mb-3" />
+                <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
                   Consulter mon avancement
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Renseignez l'adresse e-mail avec laquelle vous êtes inscrit sur la plateforme pour visualiser vos activités validées et vos devoirs.
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                  Renseignez l'adresse e-mail avec laquelle vous êtes inscrit pour visualiser votre progression et vos devoirs.
                 </p>
               </CardHeader>
-              <CardContent className="pt-2 space-y-4">
+              <CardContent className="space-y-4">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -141,13 +108,13 @@ export const LearnerPortal: React.FC = () => {
                   className="space-y-3"
                 >
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     <Input
                       type="email"
-                      placeholder="nom.prenom@exemple.com"
+                      placeholder="votre.email@exemple.com"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      className="pl-10 h-11 text-base bg-background"
+                      className="pl-10 h-11 text-sm sm:text-base bg-background"
                       required
                       autoFocus
                     />
@@ -173,10 +140,10 @@ export const LearnerPortal: React.FC = () => {
                   </div>
                 )}
 
-                <div className="p-3 rounded-lg border border-border bg-muted/30 text-xs text-muted-foreground space-y-1">
+                <div className="p-3 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground space-y-1">
                   <p className="font-semibold text-foreground">Information importante :</p>
                   <p>
-                    Pour que vos devoirs soient validés dans votre parcours de formation, une note minimale de 10/20 est requise par la coordination pédagogique.
+                    Pour que vos devoirs soient validés dans votre parcours, une note minimale de 10/20 est requise.
                   </p>
                 </div>
               </CardContent>
@@ -187,15 +154,31 @@ export const LearnerPortal: React.FC = () => {
         {/* State 2: Learner Data Displayed */}
         {portalData && (
           <div className="space-y-6 animate-fade-in">
+            {/* Top action bar */}
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Espace Apprenant
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="text-xs h-8 gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Changer d'adresse e-mail
+              </Button>
+            </div>
+
             {/* Learner Identity & Status Card */}
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-4 border-b border-border bg-muted/10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-bold text-foreground">
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
                       {portalData.learner.first_name} {portalData.learner.last_name}
                     </h2>
-                    <p className="text-sm text-muted-foreground flex flex-wrap items-center gap-2 mt-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground flex flex-wrap items-center gap-2 mt-1">
                       <span>{portalData.learner.email}</span>
                       <span>·</span>
                       <Badge variant="outline" className="text-xs font-medium">
@@ -235,13 +218,13 @@ export const LearnerPortal: React.FC = () => {
 
               <CardContent className="pt-6 space-y-6">
                 {/* 3 Metric Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="p-4 rounded-xl border border-border bg-card flex flex-col justify-center">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Progression globale
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-3xl font-extrabold text-foreground">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
                         {portalData.completion_rate}%
                       </span>
                       <span className="text-xs text-muted-foreground">complétée</span>
@@ -264,7 +247,7 @@ export const LearnerPortal: React.FC = () => {
                       Activités validées
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-3xl font-extrabold text-foreground">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
                         {portalData.completed_activities}
                       </span>
                       <span className="text-sm text-muted-foreground">/ {portalData.total_activities}</span>
@@ -279,7 +262,7 @@ export const LearnerPortal: React.FC = () => {
                       Devoirs obligatoires
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-3xl font-extrabold text-foreground">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
                         {portalData.has_unvalidated_assignments ? portalData.unvalidated_assignments.length : 0}
                       </span>
                       <span className="text-xs text-muted-foreground">à régulariser</span>
@@ -297,27 +280,25 @@ export const LearnerPortal: React.FC = () => {
 
                 {/* Diagnostic Banner */}
                 {portalData.has_unvalidated_assignments ? (
-                  <div className="p-5 rounded-xl border border-destructive/40 bg-destructive/5 text-foreground space-y-3">
+                  <div className="p-4 sm:p-5 rounded-xl border border-destructive/30 bg-card text-foreground space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-destructive/10 text-destructive shrink-0 mt-0.5">
-                        <AlertTriangle className="h-5 w-5" />
-                      </div>
+                      <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                       <div>
-                        <h3 className="font-bold text-base text-destructive">
+                        <h3 className="font-bold text-sm sm:text-base text-destructive">
                           Attention : {portalData.unvalidated_assignments.length} devoir(s) obligatoire(s) non validé(s)
                         </h3>
-                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                          Bien que vous ayez pu continuer dans les séquences suivantes, les devoirs obligatoires ci-dessous n'ont pas atteint la note minimale de <strong>10/20</strong> requise ou nécessitent un rattrapage. Sans la validation de ces devoirs, la formation ne pourra être considérée comme achevée.
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                          Bien que vous ayez pu continuer dans les séquences suivantes, les devoirs obligatoires ci-dessous n'ont pas atteint la note minimale de <strong>10/20</strong> requise. Sans la validation de ces devoirs, la formation ne pourra être considérée comme achevée.
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-2 pl-0 sm:pl-10 space-y-2">
+                    <div className="mt-2 space-y-2">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {portalData.unvalidated_assignments.map((unval, i) => (
                           <div
                             key={i}
-                            className="p-3 rounded-lg border border-destructive/20 bg-card text-xs space-y-1"
+                            className="p-3 rounded-lg border border-destructive/20 bg-background text-xs space-y-1"
                           >
                             <div className="flex items-center justify-between gap-2">
                               <span className="font-bold text-foreground truncate">
@@ -335,22 +316,20 @@ export const LearnerPortal: React.FC = () => {
                         ))}
                       </div>
 
-                      <div className="p-3 rounded-lg border border-border bg-card text-xs text-muted-foreground mt-3">
+                      <div className="p-3 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground mt-3">
                         <span className="font-semibold text-foreground">Action à entreprendre : </span>
                         Rendez-vous sur la plateforme Moodle, consultez les remarques et annotations de votre évaluateur, puis déposez à nouveau votre devoir corrigé.
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
-                      <CheckCircle2 className="h-5 w-5" />
-                    </div>
+                  <div className="p-4 rounded-xl border border-border bg-card text-foreground flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-bold text-sm text-emerald-950">
+                      <h3 className="font-bold text-sm text-foreground">
                         Dossier conforme et à jour
                       </h3>
-                      <p className="text-xs text-emerald-800 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Tous les devoirs et activités franchis jusqu'à présent sont validés. Continuez ainsi jusqu'au bout du parcours.
                       </p>
                     </div>
@@ -362,7 +341,7 @@ export const LearnerPortal: React.FC = () => {
             {/* Sequence by Sequence Checklist */}
             <div className="space-y-3">
               <div className="flex items-center justify-between pb-1">
-                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-primary" />
                   Détail de votre parcours par séquence
                 </h3>
@@ -381,23 +360,23 @@ export const LearnerPortal: React.FC = () => {
                     key={sIdx}
                     className={cn(
                       'border rounded-xl overflow-hidden bg-card transition-colors',
-                      hasTrou ? 'border-destructive/40' : 'border-border'
+                      hasTrou ? 'border-destructive/30' : 'border-border'
                     )}
                   >
                     <button
                       type="button"
                       onClick={() => toggleSequence(seq.sequence)}
-                      className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-muted/40 transition-colors text-left cursor-pointer"
+                      className="w-full flex items-center justify-between p-3.5 sm:p-4 bg-muted/20 hover:bg-muted/30 transition-colors text-left cursor-pointer"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div
                           className={cn(
-                            'w-2 h-6 rounded-full shrink-0',
+                            'w-1.5 h-6 rounded-full shrink-0',
                             isAllDone ? 'bg-emerald-600' : hasTrou ? 'bg-destructive' : 'bg-primary'
                           )}
                         />
                         <div className="min-w-0">
-                          <h4 className="font-semibold text-sm sm:text-base text-foreground truncate">
+                          <h4 className="font-semibold text-xs sm:text-sm text-foreground truncate">
                             {seq.sequence}
                           </h4>
                           <p className="text-xs text-muted-foreground mt-0.5">
@@ -426,7 +405,7 @@ export const LearnerPortal: React.FC = () => {
                     </button>
 
                     {isOpen && (
-                      <div className="p-4 pt-3 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-muted/5">
+                      <div className="p-3 sm:p-4 pt-3 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-2 bg-muted/5">
                         {seq.activities.map((act, aIdx) => {
                           const isDone = act.status === 'completed' || act.status === 'passed';
                           const isFailed = act.status === 'failed';
@@ -437,34 +416,23 @@ export const LearnerPortal: React.FC = () => {
                             <div
                               key={aIdx}
                               className={cn(
-                                'p-3 rounded-lg border flex items-start gap-3 bg-card transition-colors',
+                                'p-3 rounded-lg border flex items-start gap-2.5 bg-card transition-colors',
                                 isTrou
-                                  ? 'border-destructive/40 bg-destructive/5'
+                                  ? 'border-destructive/30'
                                   : isDone
                                   ? 'border-border'
                                   : 'border-dashed border-border opacity-70'
                               )}
                             >
-                              <div
-                                className={cn(
-                                  'w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5',
-                                  isTrou
-                                    ? 'bg-destructive/15 text-destructive'
-                                    : isDone
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : isFailed
-                                    ? 'bg-destructive/15 text-destructive'
-                                    : 'bg-muted text-muted-foreground'
-                                )}
-                              >
+                              <div className="shrink-0 mt-0.5">
                                 {isTrou ? (
-                                  <AlertTriangle className="h-4 w-4" />
+                                  <AlertTriangle className="h-4 w-4 text-destructive" />
                                 ) : isDone ? (
-                                  <CheckCircle2 className="h-4 w-4" />
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                                 ) : isFailed ? (
-                                  <AlertTriangle className="h-4 w-4" />
+                                  <AlertTriangle className="h-4 w-4 text-destructive" />
                                 ) : (
-                                  <Clock className="h-4 w-4" />
+                                  <Clock className="h-4 w-4 text-muted-foreground" />
                                 )}
                               </div>
 

@@ -50,6 +50,17 @@ interface DashboardProps {
   onViewAll?: (filter: string) => void;
 }
 
+function getShortModuleCode(name: string): string {
+  const match = name.match(/^(M\d+[A-Z]?)/i);
+  if (match) return match[1].toUpperCase();
+  if (/lettre/i.test(name)) return 'Lettre';
+  if (/strat/i.test(name)) return 'Stratégie';
+  if (/gestion/i.test(name)) return 'Gestion';
+  if (/contenu/i.test(name)) return 'Contenu';
+  if (/tableau/i.test(name)) return 'Dashboard';
+  return name.length > 8 ? name.slice(0, 8) : name;
+}
+
 export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAll }: DashboardProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -192,10 +203,8 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
     <div className="space-y-4">
       {/* Learner portal banner */}
       <div className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <GraduationCap className="w-5 h-5" />
-          </div>
+        <div className="flex items-center gap-3">
+          <GraduationCap className="w-5 h-5 text-primary shrink-0" />
           <div>
             <p className="text-sm font-bold text-foreground">Lien unique de l'Espace Apprenant</p>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -571,8 +580,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                 <TableHeader>
                   <TableRow>
                     <TableHead>Apprenant</TableHead>
-                    <TableHead>Devoir(s) à rattraper</TableHead>
-                    <TableHead className="w-16 text-right">Portail</TableHead>
+                    <TableHead className="text-right">Devoirs bloqués</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -583,37 +591,26 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                       onClick={() => onSelectLearner?.(learner.id)}
                     >
                       <TableCell>
-                        <div>
-                          <p className="font-medium text-sm text-foreground truncate max-w-[140px]">{learner.first_name} {learner.last_name}</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[140px]">{learner.email}</p>
-                        </div>
+                        <p className="font-medium text-sm text-foreground truncate max-w-[160px]">{learner.first_name} {learner.last_name}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[160px]">{learner.email}</p>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1 max-w-[220px]">
+                      <TableCell className="text-right">
+                        <div className="flex flex-wrap justify-end gap-1">
                           {learner.failed_modules && learner.failed_modules.length > 0 ? (
                             learner.failed_modules.map((fm, idx) => (
-                              <Badge key={idx} variant="destructive" className="text-[10px] px-1.5 py-0 font-medium bg-red-600 hover:bg-red-700">
-                                {fm}
+                              <Badge 
+                                key={idx} 
+                                variant="destructive" 
+                                className="text-[10px] px-1.5 py-0 font-medium"
+                                title={fm}
+                              >
+                                {getShortModuleCode(fm)}
                               </Badge>
                             ))
                           ) : (
                             <Badge variant="destructive" className="text-[10px] px-1.5 py-0 font-medium">Note &lt; 10</Badge>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          title="Consulter le portail apprenant"
-                          onClick={() => {
-                            const url = `${window.location.origin}${window.location.pathname}?email=${encodeURIComponent(learner.email)}`;
-                            window.open(url, '_blank');
-                          }}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
