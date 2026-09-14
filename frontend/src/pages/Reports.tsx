@@ -68,6 +68,7 @@ export default function Reports() {
   const [customEndDate, setCustomEndDate] = useState('');
   const [customReport, setCustomReport] = useState<any>(null);
   const [generatingCustom, setGeneratingCustom] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -79,6 +80,16 @@ export default function Reports() {
         setDashboardStats(statsData);
         if (reportsData.length > 0) {
           setSelectedWeek(reportsData[0].week_start);
+          const startStr = reportsData[0].week_start ? reportsData[0].week_start.split('T')[0] : '';
+          const endStr = reportsData[0].week_end ? reportsData[0].week_end.split('T')[0] : '';
+          setCustomStartDate(startStr);
+          setCustomEndDate(endStr);
+        } else {
+          const now = new Date();
+          const past = new Date();
+          past.setDate(now.getDate() - 30);
+          setCustomStartDate(past.toISOString().split('T')[0]);
+          setCustomEndDate(now.toISOString().split('T')[0]);
         }
       })
       .catch(console.error)
@@ -89,29 +100,40 @@ export default function Reports() {
   if (reports.length === 0 && !isCustomMode) return <div className="p-8 text-muted-foreground">Aucun historique disponible.</div>;
 
   const currentIndex = reports.findIndex(r => r.week_start === selectedWeek);
-  const currentReport = isCustomMode ? customReport : (reports[currentIndex] || reports[0]);
+  const currentReport = isCustomMode ? customReport : (currentIndex >= 0 ? reports[currentIndex] : reports[0]);
   const previousReport = (!isCustomMode && currentIndex >= 0 && currentIndex < reports.length - 1) ? reports[currentIndex + 1] : null;
 
-  const handleGenerateCustom = async () => {
-    if (!customStartDate || !customEndDate) return;
+  const handleGenerateCustom = async (startDate = customStartDate, endDate = customEndDate) => {
+    if (!startDate || !endDate) {
+      setCustomError('Veuillez renseigner une date de début et une date de fin.');
+      return;
+    }
+    if (new Date(startDate) > new Date(endDate)) {
+      setCustomError('La date de début doit être antérieure ou égale à la date de fin.');
+      return;
+    }
+    setCustomError(null);
     setGeneratingCustom(true);
     try {
-      const report = await api.getCustomReport(customStartDate, customEndDate);
+      const report = await api.getCustomReport(startDate, endDate);
       setCustomReport(report);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Erreur lors de la génération du rapport personnalisé.');
+      setCustomError(err?.message || 'Erreur lors de la génération du rapport personnalisé.');
     } finally {
       setGeneratingCustom(false);
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   };
 
-  const calculateTrend = (current: number, previous: number) => {
-    if (!previous || previous === 0) return null;
+  const calculateTrend = (current?: number, previous?: number) => {
+    if (current === undefined || previous === undefined || previous === null || previous === 0) return null;
     const diff = current - previous;
     const percent = Math.round((diff / previous) * 100);
     return { diff, percent };
@@ -120,8 +142,12 @@ export default function Reports() {
   const valTrend = currentReport ? calculateTrend(currentReport.total_validations, previousReport?.total_validations) : null;
   const learnTrend = currentReport ? calculateTrend(currentReport.active_learners, previousReport?.active_learners) : null;
 
-  const topSequence = currentReport?.validations_by_sequence ? [...currentReport.validations_by_sequence].sort((a: any, b: any) => b.count - a.count)[0] : null;
-  const topDay = currentReport?.validations_by_day ? [...currentReport.validations_by_day].sort((a: any, b: any) => b.count - a.count)[0] : null;
+  const topSequence = currentReport?.validations_by_sequence && currentReport.validations_by_sequence.length > 0
+    ? [...currentReport.validations_by_sequence].sort((a: any, b: any) => b.count - a.count)[0] 
+    : null;
+  const topDay = currentReport?.validations_by_day && currentReport.validations_by_day.length > 0
+    ? [...currentReport.validations_by_day].sort((a: any, b: any) => b.count - a.count)[0] 
+    : null;
 
   const weekOptions = reports.map(r => ({
     value: r.week_start,
@@ -278,11 +304,19 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
             {isCustomMode ? 'Rapport Personnalisé' : 'Rapports Hebdomadaires'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Analyse détaillée de la cohorte du <span className="font-semibold text-foreground">{currentReport ? formatDate(currentReport.week_start) : '-'} au {currentReport ? formatDate(currentReport.week_end) : '-'}</span>
+            {isCustomMode ? (
+              currentReport ? (
+                <>Analyse de la période du <span className="font-semibold text-foreground">{formatDate(currentReport.week_start)} au {formatDate(currentReport.week_end)}</span></>
+              ) : (
+                'Sélectionnez une plage de dates pour générer un rapport sur-mesure'
+              )
+            ) : (
+              <>Analyse détaillée de la cohorte du <span className="font-semibold text-foreground">{currentReport ? formatDate(currentReport.week_start) : '-'} au {currentReport ? formatDate(currentReport.week_end) : '-'}</span></>
+            )}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <CustomSelect
             options={[
               { value: 'custom', label: 'Période personnalisée...' },
@@ -292,41 +326,60 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
             onChange={(val) => {
               if (val === 'custom') {
                 setIsCustomMode(true);
+                setCustomError(null);
+                if (!customReport && customStartDate && customEndDate) {
+                  handleGenerateCustom(customStartDate, customEndDate);
+                }
               } else {
                 setIsCustomMode(false);
                 setSelectedWeek(val);
+                setCustomError(null);
               }
             }}
           />
 
           {isCustomMode && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input 
                 type="date" 
-                className="h-10 px-2 rounded-md border border-input bg-background text-sm" 
+                className="h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" 
                 value={customStartDate} 
-                onChange={e => setCustomStartDate(e.target.value)} 
+                onChange={e => {
+                  setCustomStartDate(e.target.value);
+                  setCustomError(null);
+                }} 
               />
-              <span className="text-muted-foreground text-sm">au</span>
+              <span className="text-muted-foreground text-sm font-medium">au</span>
               <input 
                 type="date" 
-                className="h-10 px-2 rounded-md border border-input bg-background text-sm" 
+                className="h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" 
                 value={customEndDate} 
-                onChange={e => setCustomEndDate(e.target.value)} 
+                onChange={e => {
+                  setCustomEndDate(e.target.value);
+                  setCustomError(null);
+                }} 
               />
               <button 
-                onClick={handleGenerateCustom}
+                onClick={() => handleGenerateCustom()}
                 disabled={generatingCustom || !customStartDate || !customEndDate}
-                className="h-10 px-3 bg-accent text-accent-foreground rounded-md text-sm font-medium hover:bg-accent/90 disabled:opacity-50"
+                className="h-10 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm cursor-pointer flex items-center gap-2"
               >
-                {generatingCustom ? '...' : 'Générer'}
+                {generatingCustom ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    Génération...
+                  </>
+                ) : (
+                  'Générer'
+                )}
               </button>
             </div>
           )}
 
           <button
             onClick={exportToMarkdown}
-            className="flex items-center gap-2 h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            disabled={!currentReport}
+            className="flex items-center gap-2 h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <Download size={16} />
             Export MD
@@ -334,14 +387,38 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
         </div>
       </div>
 
-      {isCustomMode && !customReport && (
+      {customError && (
+        <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md border border-destructive/20 flex items-center gap-2 animate-in fade-in">
+          <span>{customError}</span>
+        </div>
+      )}
+
+      {isCustomMode && !customReport && !generatingCustom && (
         <Card className="shadow-sm border-border p-8 text-center bg-muted/20 my-6">
           <div className="max-w-md mx-auto space-y-3">
             <Calendar className="w-10 h-10 text-primary mx-auto opacity-70" />
             <h3 className="font-semibold text-base text-foreground">Génération de rapport personnalisé</h3>
             <p className="text-xs text-muted-foreground">
-              Veuillez sélectionner une date de début et une date de fin ci-dessus, puis cliquez sur "Générer" pour charger les statistiques de la période.
+              Veuillez sélectionner une date de début et une date de fin ci-dessus, puis cliquez sur « Générer » pour charger les statistiques de la période.
             </p>
+            <button
+              type="button"
+              onClick={() => handleGenerateCustom()}
+              disabled={generatingCustom || !customStartDate || !customEndDate}
+              className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm cursor-pointer"
+            >
+              <Calendar size={15} />
+              Générer le rapport
+            </button>
+          </div>
+        </Card>
+      )}
+
+      {generatingCustom && (
+        <Card className="shadow-sm border-border p-12 text-center bg-muted/10 my-6">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-medium text-muted-foreground">Génération du rapport personnalisé en cours...</p>
           </div>
         </Card>
       )}
@@ -383,158 +460,162 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1 */}
-        <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground truncate mb-1">Total Validations</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{currentReport.total_validations}</p>
-                  {valTrend && (
-                    <span className={cn("text-xs font-semibold", valTrend.diff >= 0 ? "text-emerald-600" : "text-rose-600")}>
-                      {valTrend.diff > 0 ? '+' : ''}{valTrend.percent}%
-                    </span>
-                  )}
+      {currentReport && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPI 1 */}
+            <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-muted-foreground truncate mb-1">Total Validations</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{currentReport.total_validations ?? 0}</p>
+                      {valTrend && (
+                        <span className={cn("text-xs font-semibold", valTrend.diff >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                          {valTrend.diff > 0 ? '+' : ''}{valTrend.percent}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
+                    <Target className="h-5 w-5" strokeWidth={2.5} />
+                  </div>
                 </div>
-              </div>
-              <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
-                <Target className="h-5 w-5" strokeWidth={2.5} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* KPI 2 */}
-        <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground truncate mb-1">Apprenants Actifs</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{currentReport.active_learners}</p>
-                  {learnTrend && (
-                    <span className={cn("text-xs font-semibold", learnTrend.diff >= 0 ? "text-emerald-600" : "text-rose-600")}>
-                      {learnTrend.diff > 0 ? '+' : ''}{learnTrend.percent}%
-                    </span>
-                  )}
+            {/* KPI 2 */}
+            <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-muted-foreground truncate mb-1">Apprenants Actifs</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{currentReport.active_learners ?? 0}</p>
+                      {learnTrend && (
+                        <span className={cn("text-xs font-semibold", learnTrend.diff >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                          {learnTrend.diff > 0 ? '+' : ''}{learnTrend.percent}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
+                    <Users className="h-5 w-5" strokeWidth={2.5} />
+                  </div>
                 </div>
-              </div>
-              <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
-                <Users className="h-5 w-5" strokeWidth={2.5} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* KPI 3 */}
-        <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground truncate mb-1">Séquence top</p>
-                <div className="flex flex-col">
-                  <p className="text-lg font-bold text-foreground tracking-tight leading-none truncate" title={topSequence?.sequence || '-'}>
-                    {topSequence?.sequence || '-'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">{topSequence?.count || 0} validations</p>
+            {/* KPI 3 */}
+            <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-muted-foreground truncate mb-1">Séquence top</p>
+                    <div className="flex flex-col">
+                      <p className="text-lg font-bold text-foreground tracking-tight leading-none truncate" title={topSequence?.sequence || '-'}>
+                        {topSequence?.sequence || '-'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1.5">{topSequence?.count || 0} validations</p>
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
+                    <Trophy className="h-5 w-5" strokeWidth={2.5} />
+                  </div>
                 </div>
-              </div>
-              <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
-                <Trophy className="h-5 w-5" strokeWidth={2.5} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* KPI 4 */}
-        <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-muted-foreground truncate mb-1">Jour record</p>
-                <div className="flex flex-col">
-                  <p className="text-lg font-bold text-foreground tracking-tight leading-none capitalize truncate">
-                    {topDay?.day || '-'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1.5">{topDay?.count || 0} validations</p>
+            {/* KPI 4 */}
+            <Card className="shadow-sm border-border hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-muted-foreground truncate mb-1">Jour record</p>
+                    <div className="flex flex-col">
+                      <p className="text-lg font-bold text-foreground tracking-tight leading-none capitalize truncate">
+                        {topDay?.day || '-'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1.5">{topDay?.count || 0} validations</p>
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
+                    <Activity className="h-5 w-5" strokeWidth={2.5} />
+                  </div>
                 </div>
-              </div>
-              <div className="p-2 bg-muted text-muted-foreground rounded-xl shrink-0">
-                <Activity className="h-5 w-5" strokeWidth={2.5} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Rythme de Validation par Jour</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[260px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={currentReport.validations_by_day} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#db2777" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#db2777" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: '13px' }}
-                    cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
-                  />
-                  <Area type="monotone" dataKey="count" name="Validations" stroke="#db2777" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="shadow-sm border-border">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold">Rythme de Validation par Jour</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[260px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={currentReport.validations_by_day || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#db2777" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#db2777" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
+                      <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: '13px' }}
+                        cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                      />
+                      <Area type="monotone" dataKey="count" name="Validations" stroke="#db2777" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="shadow-sm border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Répartition par Séquence</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[260px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={currentReport.validations_by_sequence} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={32}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis
-                    dataKey="sequence"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 11, fill: '#6b7280' }}
-                    tickFormatter={(v: string) => {
-                      const match = v.match(/Séquence (\d)/i);
-                      return match ? `Séq. ${match[1]}` : v.substring(0, 10) + '...';
-                    }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: '#64748b' }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: '13px' }}
-                    formatter={(value: any, name: any) => [`${value} validations`, name]}
-                    labelFormatter={(label: any) => label}
-                  />
-                  <Bar dataKey="count" name="Validations" fill="#db2777" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="shadow-sm border-border">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold">Répartition par Séquence</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[260px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={currentReport.validations_by_sequence || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={32}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                      <XAxis
+                        dataKey="sequence"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        tickFormatter={(v: string) => {
+                          const match = v.match(/Séquence (\d)/i);
+                          return match ? `Séq. ${match[1]}` : v.substring(0, 10) + '...';
+                        }}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: '#64748b' }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: '13px' }}
+                        formatter={(value: any, name: any) => [`${value} validations`, name]}
+                        labelFormatter={(label: any) => label}
+                      />
+                      <Bar dataKey="count" name="Validations" fill="#db2777" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 }

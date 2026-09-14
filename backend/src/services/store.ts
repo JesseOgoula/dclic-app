@@ -651,7 +651,7 @@ class DataStore {
       unique_learners: new Set<string>(),
       validations_by_sequence: {} as Record<string, number>,
       validations_by_day: {
-        'Dimanche': 0, 'Lundi': 0, 'Mardi': 0, 'Mercredi': 0, 'Jeudi': 0, 'Vendredi': 0, 'Samedi': 0
+        'Lundi': 0, 'Mardi': 0, 'Mercredi': 0, 'Jeudi': 0, 'Vendredi': 0, 'Samedi': 0, 'Dimanche': 0
       } as Record<string, number>,
       validations_by_learner: {} as Record<string, number>
     };
