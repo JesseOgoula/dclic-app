@@ -242,7 +242,22 @@ export default function Reports() {
 | Bloqués (note minimale non atteinte) | **${blockedCount}** |
 
 ### 📈 Progression par Séquence
-${dashboardStats.sequence_stats.filter((s: any) => s.sequence !== 'Autre' && s.sequence !== 'Préalable').map((s: any) => `- **${s.sequence}** : ${s.learners_completed} terminés, ${s.learners_in_progress} en cours, ${s.learners_not_started} non commencés (Moyenne : ${s.avg_completion}%)`).join('\n')}
+${dashboardStats.sequence_stats
+  .filter((s: any) => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
+  .sort((a: any, b: any) => {
+    const getOrder = (seq: string) => {
+      if (seq.includes('Séquence 1')) return 1;
+      if (seq.includes('Séquence 2')) return 2;
+      if (seq.includes('Séquence 3')) return 3;
+      if (seq.includes('Séquence 4')) return 4;
+      if (seq.includes('Séquence 5')) return 5;
+      if (seq.includes('Projet')) return 6;
+      if (seq.toLowerCase().includes('impression')) return 7;
+      return 99;
+    };
+    return getOrder(a.sequence) - getOrder(b.sequence);
+  })
+  .map((s: any) => `- **${s.sequence}** : ${s.learners_completed} terminés, ${s.learners_in_progress} en cours, ${s.learners_not_started} non commencés (Moyenne : ${s.avg_completion}%)`).join('\n')}
 
 ### ✅ Apprenants ayant terminé la Phase 1 (${phase1Count})
 ${phase1List}

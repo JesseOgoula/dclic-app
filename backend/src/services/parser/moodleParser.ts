@@ -304,17 +304,18 @@ export function extractActivityMetadata(activityNames: string[]): Array<{
     }
 
     // Special cases
+    const lowerName = name.toLowerCase();
     if (name.includes('Lettre d\'engagement') || name.includes('Lettre d')) {
       sequence = 'Préalable';
-    }
-    if (name.includes('Livrable final') || name.includes('Document de strat') || name.includes('Projet')) {
+    } else if (lowerName.includes('impression')) {
+      sequence = "Phase d'impressions";
+    } else if (name.includes('Livrable final') || name.includes('Document de strat') || name.includes('Projet')) {
       sequence = 'Projet professionnel';
     }
 
     // Determine type
     const isDevoir = isAssignment(name);
     let type: 'exercise' | 'quiz' | 'devoir' | 'documentation' = 'exercise';
-    const lowerName = name.toLowerCase();
 
     if (isDevoir) {
       type = 'devoir';

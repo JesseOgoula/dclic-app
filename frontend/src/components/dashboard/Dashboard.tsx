@@ -109,9 +109,14 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           start = new Date(2026, 8, 7);
           end = new Date(2026, 8, 11, 23, 59, 59);
         } else if (s.sequence.includes('Projet')) {
-          dates = '14 sept - 25 sept';
+          dates = '14 sept - 22 sept';
           seqShort = 'Projet pro';
           start = new Date(2026, 8, 14);
+          end = new Date(2026, 8, 22, 23, 59, 59);
+        } else if (s.sequence.toLowerCase().includes('impression')) {
+          dates = '22 sept - 25 sept';
+          seqShort = 'Impressions';
+          start = new Date(2026, 8, 22);
           end = new Date(2026, 8, 25, 23, 59, 59);
         }
 
@@ -123,8 +128,12 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
         return { sequence: seqShort, dates, status };
       })
       .sort((a, b) => {
-        if (a.sequence === 'Projet pro') return 1;
-        if (b.sequence === 'Projet pro') return -1;
+        const order = ['Séquence 1', 'Séquence 2', 'Séquence 3', 'Séquence 4', 'Séquence 5', 'Projet pro', 'Impressions'];
+        const indexA = order.indexOf(a.sequence);
+        const indexB = order.indexOf(b.sequence);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
         return a.sequence.localeCompare(b.sequence);
       });
   }, [stats]);
@@ -315,14 +324,34 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={stats.sequence_stats.filter(s => s.sequence !== 'Autre')} barSize={32}>
+              <BarChart
+                data={stats.sequence_stats
+                  .filter(s => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
+                  .sort((a, b) => {
+                    const getOrder = (seq: string) => {
+                      if (seq.includes('Séquence 1')) return 1;
+                      if (seq.includes('Séquence 2')) return 2;
+                      if (seq.includes('Séquence 3')) return 3;
+                      if (seq.includes('Séquence 4')) return 4;
+                      if (seq.includes('Séquence 5')) return 5;
+                      if (seq.includes('Projet')) return 6;
+                      if (seq.toLowerCase().includes('impression')) return 7;
+                      return 99;
+                    };
+                    return getOrder(a.sequence) - getOrder(b.sequence);
+                  })}
+                barSize={32}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis
                   dataKey="sequence"
                   tick={{ fontSize: 11, fill: '#6b7280' }}
                   tickFormatter={(v: string) => {
                     const match = v.match(/Séquence (\d)/);
-                    return match ? `Séq. ${match[1]}` : v.substring(0, 12);
+                    if (match) return `Séq. ${match[1]}`;
+                    if (v.includes('Projet')) return 'Projet pro';
+                    if (v.toLowerCase().includes('impression')) return 'Impressions';
+                    return v.substring(0, 12);
                   }}
                   axisLine={false}
                   tickLine={false}
@@ -683,11 +712,11 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                   {stats.completed_learners} apprenant{stats.completed_learners > 1 ? 's' : ''}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Formation 100% complétée — Projet Pro inclus</p>
+              <p className="text-xs text-muted-foreground mt-1">Formation 100% complétée — Projet Pro et Impressions inclus</p>
             </CardHeader>
             <CardContent className="p-0">
               {filteredCompleted.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant — le Projet Pro n'est pas encore ouvert</div>
+                <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant — les phases terminales ne sont pas encore ouvertes</div>
               ) : (
                 <Table>
                   <TableHeader>

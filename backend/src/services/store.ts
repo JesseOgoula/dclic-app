@@ -132,7 +132,17 @@ class DataStore {
       .from('activities')
       .select('*')
       .order('display_order', { ascending: true });
-    return data as Activity[] || [];
+    const activities = (data as Activity[]) || [];
+
+    // Auto-alignement : veiller à ce que l'activité d'impressions soit bien séparée en "Phase d'impressions"
+    for (const act of activities) {
+      if (act.name.toLowerCase().includes('impression') && act.sequence !== "Phase d'impressions") {
+        act.sequence = "Phase d'impressions";
+        supabase.from('activities').update({ sequence: "Phase d'impressions" }).eq('id', act.id).then();
+      }
+    }
+
+    return activities;
   }
 
   async getActivityByCode(code: string): Promise<Activity | undefined> {
