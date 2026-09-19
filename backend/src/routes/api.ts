@@ -362,9 +362,10 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
 // Activity endpoints
 // ============================================================
 
-router.get('/activities', async (_req: Request, res: Response): Promise<void> => {
+router.get('/activities', async (req: Request, res: Response): Promise<void> => {
   try {
-    const activities = await store.getActivities();
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
+    const activities = await store.getActivities(program);
     res.json({ success: true, data: activities });
   } catch (error) {
     res.status(500).json({ error: String(error) });

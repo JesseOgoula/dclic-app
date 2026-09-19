@@ -52,7 +52,7 @@ export async function processUpload(filePath: string, filename: string): Promise
       throw new Error(`Unsupported file type: ${ext}`);
     }
 
-    const stats = await store.getDashboardStats();
+    const stats = await store.getDashboardStats(result.formation_type || 'mn');
 
     await store.updateUpload(upload.id, {
       rows_processed: result.rows_processed,
@@ -112,9 +112,9 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
   let progressRecords = 0;
   const errors: string[] = [];
 
-  const allLearners = await store.getLearners();
-  const allActivities = await store.getActivities();
-  const allProgress = await store.getAllProgress();
+  const allLearners = await store.getLearners(formationType);
+  const allActivities = await store.getActivities(formationType);
+  const allProgress = await store.getAllProgress(formationType);
   const toInsert: any[] = [];
   const toUpdate: any[] = [];
 
@@ -151,7 +151,7 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
         first_name: existingLearner?.first_name || firstName,
         last_name: existingLearner?.last_name || lastName,
         email: row.email,
-        group_id: existingLearner?.group_id || 'UNKNOWN',
+        group_id: existingLearner?.group_id || targetGroup,
         last_activity_at: lastActivity,
       });
 
@@ -204,17 +204,29 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
   if (toInsert.length > 0) {
     const chunkSize = 500;
     for (let i = 0; i < toInsert.length; i += chunkSize) {
-      await supabase.from('progress').insert(toInsert.slice(i, i + chunkSize));
+      const chunk = toInsert.slice(i, i + chunkSize);
+      const { error: insertErr } = await supabase.from('progress').insert(chunk);
+      if (insertErr) {
+        console.error('Error inserting progress batch:', insertErr);
+        errors.push(`Erreur insertion progressions: ${insertErr.message}`);
+      } else {
+        progressRecords += chunk.length;
+      }
     }
-    progressRecords += toInsert.length;
   }
 
   if (toUpdate.length > 0) {
     const chunkSize = 500;
     for (let i = 0; i < toUpdate.length; i += chunkSize) {
-      await supabase.from('progress').upsert(toUpdate.slice(i, i + chunkSize), { onConflict: 'id' });
+      const chunk = toUpdate.slice(i, i + chunkSize);
+      const { error: updateErr } = await supabase.from('progress').upsert(chunk, { onConflict: 'id' });
+      if (updateErr) {
+        console.error('Error updating progress batch:', updateErr);
+        errors.push(`Erreur mise à jour progressions: ${updateErr.message}`);
+      } else {
+        progressRecords += chunk.length;
+      }
     }
-    progressRecords += toUpdate.length;
   }
 
   return {
@@ -225,6 +237,7 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
     learners_updated: learnersUpdated,
     progress_records: progressRecords,
     errors,
+    formation_type: formationType,
   };
 }
 
@@ -267,6 +280,7 @@ async function processParticipantsXLSX(filePath: string, uploadId: string): Prom
     learners_updated: learnersUpdated,
     progress_records: 0,
     errors,
+    formation_type: targetGroup === 'G1_GPM_092026' ? 'gp' : 'mn',
   };
 }
 
@@ -308,5 +322,6 @@ async function processParticipantsMD(filePath: string, uploadId: string): Promis
     learners_updated: learnersUpdated,
     progress_records: 0,
     errors,
+    formation_type: targetGroup === 'G1_GPM_092026' ? 'gp' : 'mn',
   };
 }

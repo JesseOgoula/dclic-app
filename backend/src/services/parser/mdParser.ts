@@ -17,7 +17,7 @@ export function parseParticipantsMD(filePath: string): ParsedParticipant[] {
     if (trimmed.startsWith('|')) {
       inTable = true;
       // Skip header and separator rows
-      if (trimmed.includes('Nom et Prénom') || trimmed.includes('|---|')) {
+      if (trimmed.includes('Nom et Prénom') || trimmed.includes('Nom / Prénom') || trimmed.includes('|---|')) {
         continue;
       }
 

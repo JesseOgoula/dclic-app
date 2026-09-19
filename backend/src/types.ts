@@ -37,6 +37,7 @@ export interface Activity {
   type: 'exercise' | 'quiz' | 'devoir' | 'documentation';
   is_evaluated: boolean;
   display_order: number;
+  formation_type?: string;
 }
 
 export interface LearnerProgress {
@@ -222,4 +223,5 @@ export interface UploadResult {
   learners_updated: number;
   progress_records: number;
   errors: string[];
+  formation_type?: 'mn' | 'gp';
 }
