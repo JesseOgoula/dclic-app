@@ -242,6 +242,7 @@ function App() {
       onLogout={handleLogout}
       activeProgram={activeProgram}
       onBackToPrograms={() => setActiveProgram(null)}
+      onSelectProgram={setActiveProgram}
     >
       {currentPage === 'dashboard' && activeProgram === 'mn' && (
         <Dashboard 

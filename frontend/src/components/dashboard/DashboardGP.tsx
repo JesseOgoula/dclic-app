@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 
-const PIE_COLORS = ['#14b8a6', '#0ea5e9', '#f43f5e', '#64748b'];
+const PIE_COLORS = ['#10b981', '#38bdf8', '#f43f5e', '#71717a'];
 
 interface DashboardProps {
   onSelectLearner?: (id: string) => void;
@@ -122,8 +122,8 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 border-teal-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Chargement du dashboard GP...</p>
+          <div className="w-8 h-8 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400">Chargement des données de spécialisation...</p>
         </div>
       </div>
     );
@@ -133,11 +133,11 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-3" />
-          <p className="text-destructive font-medium">{error}</p>
+          <AlertTriangle className="w-10 h-10 text-destructive mx-auto mb-3" />
+          <p className="text-destructive text-sm font-medium">{error}</p>
           <button
             onClick={loadStats}
-            className="mt-3 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition-colors"
+            className="mt-3 px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-xs font-medium transition-colors"
           >
             Réessayer
           </button>
@@ -192,9 +192,9 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
         </div>
         <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
           <Button
-            variant="default"
+            variant="outline"
             size="sm"
-            className="h-8 text-xs gap-1.5 cursor-pointer font-medium bg-teal-600 hover:bg-teal-700 text-white"
+            className="h-8 text-xs gap-1.5 cursor-pointer font-medium bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-200"
             onClick={() => {
               const url = `${window.location.origin}/?portal=true&program=gp`;
               navigator.clipboard.writeText(url);
@@ -202,8 +202,8 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
               setTimeout(() => setBannerCopied(false), 2500);
             }}
           >
-            {bannerCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
-            {bannerCopied ? 'Lien copié !' : 'Copier le lien apprenants'}
+            {bannerCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+            {bannerCopied ? 'Lien copié' : 'Copier le lien apprenants'}
           </Button>
         </div>
       </div>
@@ -214,7 +214,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
           title="Total Apprenants"
           value={stats.total_learners}
           icon={Users}
-          badgeText="Groupe GPM"
+          badgeText="G1_GPM_092026"
           badgeVariant="secondary"
           delay={1}
         />
@@ -225,7 +225,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
           badgeText={stats.completion_evolution !== undefined ? `${stats.completion_evolution > 0 ? '+' : ''}${stats.completion_evolution}% vs dernier upload` : "Moyenne"}
           badgeVariant={stats.completion_evolution !== undefined ? (stats.completion_evolution > 0 ? 'default' : stats.completion_evolution < 0 ? 'destructive' : 'secondary') : "outline"}
           delay={2}
-          colorClass="text-teal-600"
+          colorClass="text-zinc-200"
         />
         <KPICard
           title="Apprenants actifs"
@@ -234,7 +234,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
           badgeText={`${Math.round((stats.active_learners / Math.max(1, stats.total_learners)) * 100)}% de la cohorte`}
           badgeVariant="default"
           delay={3}
-          colorClass="text-teal-600"
+          colorClass="text-emerald-400"
         />
         <KPICard
           title="En risque"
@@ -252,10 +252,10 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
         <Card className="shadow-sm border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-teal-600" />
+              <Calendar className="w-4 h-4 text-zinc-400" />
               <CardTitle className="text-base font-semibold">Deadlines Séquences</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">Calendrier de la spécialisation</p>
+            <p className="text-xs text-muted-foreground">Calendrier de la spécialisation</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4 pt-2">
@@ -301,10 +301,10 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                   })}
                 barSize={32}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                 <XAxis
                   dataKey="sequence"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  tick={{ fontSize: 11, fill: '#a1a1aa' }}
                   tickFormatter={(v: string) => {
                     const match = v.match(/Séquence (\d)/);
                     if (match) return `Séq. ${match[1]}`;
@@ -315,17 +315,20 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  tick={{ fontSize: 11, fill: '#a1a1aa' }}
                   tickFormatter={(v: number) => `${v}`}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: '12px',
-                    border: 'none',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    padding: '12px 16px',
+                    backgroundColor: '#141417',
+                    border: '1px solid #27272a',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                    padding: '8px 12px',
+                    color: '#f4f4f5',
+                    fontSize: '12px',
                   }}
                   formatter={(value: any, name: any) => [`${value} apprenants`, name]}
                   labelFormatter={(label: any) => label}
@@ -334,22 +337,22 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                   dataKey="learners_completed"
                   name="Terminé"
                   stackId="a"
-                  fill="#14b8a6"
+                  fill="#10b981"
                   radius={[0, 0, 0, 0]}
                 />
                 <Bar
                   dataKey="learners_in_progress"
                   name="En cours"
                   stackId="a"
-                  fill="#0ea5e9"
+                  fill="#38bdf8"
                   radius={[0, 0, 0, 0]}
                 />
                 <Bar
                   dataKey="learners_not_started"
                   name="Non commencé"
                   stackId="a"
-                  fill="#e2e8f0"
-                  radius={[6, 6, 0, 0]}
+                  fill="#27272a"
+                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -403,9 +406,9 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
       {/* Special Projet Professionnel Section */}
       {projetProStat && (
         <Card className="shadow-sm border-border">
-          <CardHeader className="pb-3 border-b border-border bg-teal-500/5">
+          <CardHeader className="pb-3 border-b border-border bg-zinc-900/40">
             <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-teal-600" />
+              <Target className="w-4 h-4 text-zinc-300" />
               <div>
                 <CardTitle className="text-base font-semibold">Projet Professionnel</CardTitle>
                 <p className="text-xs text-muted-foreground">Progression sur les livrables d'entraînement et finaux</p>
@@ -421,7 +424,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-teal-500 rounded-full" 
+                    className="h-full bg-emerald-500 rounded-full" 
                     style={{ width: `${Math.max(0, Math.min(100, (projetProStat.learners_completed / Math.max(1, stats.total_learners)) * 100))}%` }} 
                   />
                 </div>
@@ -433,7 +436,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-500 rounded-full" 
+                    className="h-full bg-sky-500 rounded-full" 
                     style={{ width: `${Math.max(0, Math.min(100, (projetProStat.learners_in_progress / Math.max(1, stats.total_learners)) * 100))}%` }} 
                   />
                 </div>
@@ -445,7 +448,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-teal-600 rounded-full" 
+                    className="h-full bg-emerald-500 rounded-full" 
                     style={{ width: `${projetProStat.avg_completion}%` }} 
                   />
                 </div>
@@ -461,7 +464,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
         <Card className="shadow-sm border-border overflow-hidden">
           <CardHeader className="bg-muted/30 pb-3 border-b border-border">
             <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-teal-600" />
+              <Award className="w-4 h-4 text-zinc-300" />
               <CardTitle className="text-base font-semibold">Top Performers</CardTitle>
             </div>
           </CardHeader>
@@ -486,11 +489,11 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className={cn(
-                            'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
-                            index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                              index === 1 ? 'bg-gray-200 text-gray-700' :
-                                index === 2 ? 'bg-orange-100 text-orange-700' :
-                                  'bg-muted text-muted-foreground'
+                            'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0',
+                            index === 0 ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' :
+                              index === 1 ? 'bg-zinc-700/30 text-zinc-200 border border-zinc-600/30' :
+                                index === 2 ? 'bg-amber-800/20 text-amber-400 border border-amber-700/30' :
+                                  'bg-zinc-800 text-zinc-400'
                           )}>
                             {index + 1}
                           </div>
@@ -506,7 +509,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                             <div
                               className={cn(
                                 "h-full rounded-full transition-all duration-500",
-                                learner.completion_rate > 0 ? "bg-teal-500" : "bg-gray-300"
+                                learner.completion_rate > 0 ? "bg-emerald-500" : "bg-zinc-800"
                               )}
                               style={{ width: `${Math.max(learner.completion_rate, learner.completion_rate > 0 ? 4 : 0)}%` }}
                             />
@@ -666,7 +669,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
             <CardHeader className="bg-muted/30 pb-3 border-b border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-teal-600" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <CardTitle className="text-base font-semibold">Phase d'apprentissage terminée</CardTitle>
                 </div>
                 <Badge variant="outline">
@@ -718,7 +721,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
             <CardHeader className="bg-muted/30 pb-3 border-b border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-teal-600" />
+                  <Award className="w-4 h-4 text-zinc-200" />
                   <CardTitle className="text-base font-semibold">Spécialisation terminée</CardTitle>
                 </div>
                 <Badge variant="outline">
