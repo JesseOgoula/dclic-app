@@ -20,6 +20,7 @@ import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContaine
 interface LearnerDetailProps {
   id: string;
   onBack: () => void;
+  program?: 'mn' | 'gp';
 }
 
 const SequenceAccordion = ({
@@ -140,18 +141,18 @@ const formatTimeAgo = (isoString: string | null) => {
   return `Il y a ${seconds} seconde(s)`;
 };
 
-export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
+export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack, program }) => {
   const [learner, setLearner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      api.getLearner(id)
+      api.getLearner(id, program)
         .then(data => setLearner(data))
         .catch(console.error)
         .finally(() => setLoading(false));
     }
-  }, [id]);
+  }, [id, program]);
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Chargement...</div>;
   if (!learner) return <div className="p-8 text-center text-destructive">Apprenant non trouvé.</div>;

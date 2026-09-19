@@ -40,13 +40,14 @@ router.get('/auth/check', (req: Request, res: Response): void => {
 
 router.get('/portal/learner', async (req: Request, res: Response): Promise<void> => {
   try {
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
     const email = (req.query.email as string || '').trim();
     if (!email) {
       res.status(400).json({ error: 'Adresse de courriel requise.' });
       return;
     }
 
-    const data = await store.getLearnerPortalData(email);
+    const data = await store.getLearnerPortalData(email, program);
     if (!data) {
       res.status(404).json({ error: 'Aucun apprenant trouvé avec cette adresse de courriel.' });
       return;
@@ -131,9 +132,10 @@ router.delete('/reset', async (_req: Request, res: Response): Promise<void> => {
 // Reports endpoints
 // ============================================================
 
-router.get('/reports/weekly', async (_req: Request, res: Response): Promise<void> => {
+router.get('/reports/weekly', async (req: Request, res: Response): Promise<void> => {
   try {
-    const reports = await store.getWeeklyReports();
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
+    const reports = await store.getWeeklyReports(program);
     res.json({ success: true, data: reports });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -142,12 +144,13 @@ router.get('/reports/weekly', async (_req: Request, res: Response): Promise<void
 
 router.get('/reports/custom', async (req: Request, res: Response): Promise<void> => {
   try {
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
     const { start, end } = req.query;
     if (!start || !end) {
       res.status(400).json({ error: 'Missing start or end date' });
       return;
     }
-    const report = await store.getCustomReport(start as string, end as string);
+    const report = await store.getCustomReport(start as string, end as string, program);
     res.json({ success: true, data: report });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -158,9 +161,10 @@ router.get('/reports/custom', async (req: Request, res: Response): Promise<void>
 // Dashboard endpoints
 // ============================================================
 
-router.get('/dashboard/stats', async (_req: Request, res: Response): Promise<void> => {
+router.get('/dashboard/stats', async (req: Request, res: Response): Promise<void> => {
   try {
-    const stats = await store.getDashboardStats();
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
+    const stats = await store.getDashboardStats(program);
     res.json({ success: true, data: stats });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -173,7 +177,8 @@ router.get('/dashboard/stats', async (_req: Request, res: Response): Promise<voi
 
 router.get('/learners', async (req: Request, res: Response): Promise<void> => {
   try {
-    let learners = await store.getLearners();
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
+    let learners = await store.getLearners(program);
 
     // Search by name or email
     const search = (req.query.search as string || '').toLowerCase();
@@ -186,8 +191,8 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Enrich with progress
-    const activities = await store.getActivities();
-    const allProgress = await store.getAllProgress();
+    const activities = await store.getActivities(program);
+    const allProgress = await store.getAllProgress(program);
     const seq5Activities = activities.filter(a => a.sequence.includes('Séquence 5'));
     const phase1Activities = activities.filter(a => a.sequence.startsWith('Séquence '));
     
@@ -269,6 +274,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
 
 router.get('/learners/:id', async (req: Request, res: Response): Promise<void> => {
   try {
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
     const param = req.params.id;
     const learner = param.includes('@') 
       ? await store.getLearnerByEmail(param) 
@@ -280,7 +286,7 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
     }
 
     const progress = await store.getProgressByLearner(learner.id);
-    const activities = await store.getActivities();
+    const activities = await store.getActivities(program);
     const communications = await store.getCommunicationsByLearner(learner.id);
 
     // Merge progress with activity details
@@ -369,11 +375,12 @@ router.get('/activities', async (_req: Request, res: Response): Promise<void> =>
 // Progress heatmap data
 // ============================================================
 
-router.get('/progress/heatmap', async (_req: Request, res: Response): Promise<void> => {
+router.get('/progress/heatmap', async (req: Request, res: Response): Promise<void> => {
   try {
-    const learners = await store.getLearners();
-    const activities = await store.getActivities();
-    const allProgress = await store.getAllProgress();
+    const program = (req.query.program as 'mn' | 'gp') || 'mn';
+    const learners = await store.getLearners(program);
+    const activities = await store.getActivities(program);
+    const allProgress = await store.getAllProgress(program);
 
     const heatmapData = learners.map(learner => {
       const progress = allProgress.filter(p => p.learner_id === learner.id);

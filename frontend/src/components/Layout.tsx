@@ -32,6 +32,8 @@ interface LayoutProps {
   globalSearch?: string;
   onSearch?: (value: string) => void;
   onLogout?: () => void;
+  activeProgram?: 'mn' | 'gp';
+  onBackToPrograms?: () => void;
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
@@ -49,6 +51,8 @@ export default function Layout({
   globalSearch = '',
   onSearch,
   onLogout,
+  activeProgram,
+  onBackToPrograms,
 }: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -77,7 +81,7 @@ export default function Layout({
           calculateUnread(data);
         } else {
           // Fallback: check dashboard stats for at-risk/blocked learners
-          const stats = await api.getDashboardStats();
+          const stats = await api.getDashboardStats(activeProgram);
           const generated: Alert[] = [];
           
           stats.blocked_learners.slice(0, 5).forEach((b) => {
@@ -113,7 +117,7 @@ export default function Layout({
     }
 
     fetchAlerts();
-  }, [currentPage]);
+  }, [currentPage, activeProgram]);
 
   // Click outside listener for alerts dropdown
   useEffect(() => {
@@ -154,16 +158,53 @@ export default function Layout({
           collapsed ? 'w-[72px]' : 'w-[200px]'
         )}
       >
-        {/* Logo */}
-        <div className={cn("flex items-center gap-3 py-6 shrink-0", collapsed ? "justify-center px-0" : "px-6")}>
-          <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white font-bold text-xl shrink-0">
-            D
-          </div>
-          {!collapsed && (
-            <div className="animate-fade-in font-bold text-lg text-foreground tracking-tight flex items-center gap-1">
-              <span className="text-muted-foreground text-sm font-normal">Monitoring</span>
-            </div>
+        {/* Top sidebar area */}
+        <div className={cn("flex flex-col gap-4 py-6 shrink-0", collapsed ? "items-center px-0" : "px-6")}>
+          {onBackToPrograms && (
+            <button
+              onClick={onBackToPrograms}
+              className={cn(
+                "flex items-center text-muted-foreground hover:text-foreground text-xs font-medium transition-colors cursor-pointer",
+                collapsed ? "justify-center" : "gap-2 self-start"
+              )}
+              title="Retour aux formations"
+            >
+              <ChevronLeft size={16} />
+              {!collapsed && "Formations"}
+            </button>
           )}
+
+          <div className="flex flex-col items-center gap-3">
+            <div className={cn("flex items-center gap-3", collapsed ? "justify-center" : "w-full")}>
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white font-bold text-xl shrink-0">
+                D
+              </div>
+              {!collapsed && (
+                <div className="animate-fade-in font-bold text-lg text-foreground tracking-tight flex items-center gap-1">
+                  <span className="text-muted-foreground text-sm font-normal">Monitoring</span>
+                </div>
+              )}
+            </div>
+            
+            {activeProgram && (
+              <div className={cn("flex w-full", collapsed ? "justify-center px-1" : "")}>
+                <Badge 
+                  className={cn(
+                    "text-center shadow-none w-full flex justify-center border-none", 
+                    activeProgram === 'mn' 
+                      ? "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20" 
+                      : "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20",
+                    collapsed ? "px-1 py-1 text-[10px]" : "py-1.5"
+                  )}
+                >
+                  {collapsed 
+                    ? (activeProgram === 'mn' ? 'MN' : 'GP')
+                    : (activeProgram === 'mn' ? 'Marketing Numérique' : 'Gestion de Projet')
+                  }
+                </Badge>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Navigation */}

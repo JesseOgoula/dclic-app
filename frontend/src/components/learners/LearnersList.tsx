@@ -32,9 +32,10 @@ interface LearnersListProps {
   onSelectLearner?: (id: string) => void;
   globalSearch?: string;
   initialFilter?: string;
+  program?: 'mn' | 'gp';
 }
 
-export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '' }: LearnersListProps) {
+export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '', program }: LearnersListProps) {
   const [learners, setLearners] = useState<LearnerWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -53,14 +54,14 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
         status: statusFilter || undefined,
         sortBy,
         sortDir,
-      });
+      }, program);
       setLearners(data);
     } catch (err) {
       console.error('Failed to load learners:', err);
     } finally {
       setLoading(false);
     }
-  }, [search, globalSearch, statusFilter, sortBy, sortDir, learners.length]);
+  }, [search, globalSearch, statusFilter, sortBy, sortDir, learners.length, program]);
 
   useEffect(() => {
     setStatusFilter(initialFilter);
@@ -68,7 +69,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
   useEffect(() => {
     // Load stats once to get the counts for the filters
-    api.getDashboardStats().then(data => {
+    api.getDashboardStats(program).then(data => {
       setStats({
         total: data.total_learners,
         active: data.active_learners,
@@ -79,7 +80,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
         completed: data.completed_learners,
       });
     }).catch(console.error);
-  }, []);
+  }, [program]);
 
   useEffect(() => {
     loadLearners();

@@ -241,6 +241,24 @@ export function filterByGroup(participants: ParsedParticipant[], groupId: string
 }
 
 /**
+ * Détecte si le fichier exporté appartient au programme MN ou GP
+ * basé sur les en-têtes (noms d'activités).
+ */
+export function detectFormationType(headers: string[]): 'mn' | 'gp' {
+  const normalizedHeaders = headers.map(h => 
+    h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  );
+  
+  const isGP = normalizedHeaders.some(h => 
+    h.includes('posture strategique') || 
+    h.includes('audit 360') || 
+    h.includes('mission direction de projet')
+  );
+  
+  return isGP ? 'gp' : 'mn';
+}
+
+/**
  * Identifie si une activité est un Devoir officiel (selon le programme DCLIC).
  */
 export function isAssignment(name: string): boolean {

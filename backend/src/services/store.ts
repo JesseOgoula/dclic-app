@@ -72,11 +72,14 @@ class DataStore {
     return inserted as Learner;
   }
 
-  async getLearners(): Promise<Learner[]> {
-    const { data } = await supabase
-      .from('learners')
-      .select('*')
-      .or('group_id.eq.G1_MN_072026,group_id.eq.UNKNOWN');
+  async getLearners(program?: 'mn' | 'gp'): Promise<Learner[]> {
+    let query = supabase.from('learners').select('*');
+    if (program === 'gp') {
+      query = query.eq('group_id', 'G1_GPM_092026');
+    } else {
+      query = query.or('group_id.eq.G1_MN_072026,group_id.eq.UNKNOWN');
+    }
+    const { data } = await query;
     return data as Learner[] || [];
   }
 
@@ -127,11 +130,14 @@ class DataStore {
     return inserted as Activity;
   }
 
-  async getActivities(): Promise<Activity[]> {
-    const { data } = await supabase
-      .from('activities')
-      .select('*')
-      .order('display_order', { ascending: true });
+  async getActivities(program?: 'mn' | 'gp'): Promise<Activity[]> {
+    let query = supabase.from('activities').select('*').order('display_order', { ascending: true });
+    if (program === 'gp') {
+      query = query.eq('formation_type', 'gp');
+    } else {
+      query = query.or('formation_type.eq.mn,formation_type.is.null');
+    }
+    const { data } = await query;
     const activities = (data as Activity[]) || [];
 
     // Auto-alignement : veiller à ce que l'activité d'impressions soit bien séparée en "Phase d'impressions"
@@ -206,7 +212,7 @@ class DataStore {
     return data as LearnerProgress[] || [];
   }
 
-  async getAllProgress(): Promise<LearnerProgress[]> {
+  async getAllProgress(program?: 'mn' | 'gp'): Promise<LearnerProgress[]> {
     let allData: LearnerProgress[] = [];
     let from = 0;
     const step = 1000;
@@ -228,7 +234,9 @@ class DataStore {
       from += step;
     }
     
-    return allData;
+    const learners = await this.getLearners(program);
+    const learnerIds = new Set(learners.map(l => l.id));
+    return allData.filter(p => learnerIds.has(p.learner_id));
   }
 
   /**
@@ -296,10 +304,10 @@ class DataStore {
   // Dashboard stats
   // ----------------------------------------------------------
 
-  async getDashboardStats(): Promise<DashboardStats> {
-    const allLearners = await this.getLearners();
-    const allActivities = await this.getActivities();
-    const allProgress = await this.getAllProgress();
+  async getDashboardStats(program?: 'mn' | 'gp'): Promise<DashboardStats> {
+    const allLearners = await this.getLearners(program);
+    const allActivities = await this.getActivities(program);
+    const allProgress = await this.getAllProgress(program);
     const now = new Date();
 
     const learnersWithProgress: LearnerWithProgress[] = allLearners.map(learner => {
@@ -482,12 +490,12 @@ class DataStore {
   // Learner Portal Data
   // ----------------------------------------------------------
 
-  async getLearnerPortalData(email: string): Promise<LearnerPortalData | null> {
+  async getLearnerPortalData(email: string, program?: 'mn' | 'gp'): Promise<LearnerPortalData | null> {
     const cleanEmail = email.toLowerCase().trim();
     const learner = await this.getLearnerByEmail(cleanEmail);
     if (!learner) return null;
 
-    const allActivities = await this.getActivities();
+    const allActivities = await this.getActivities(program);
     const progress = await this.getProgressByLearner(learner.id);
 
     const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
@@ -551,11 +559,11 @@ class DataStore {
   // Weekly Reports
   // ----------------------------------------------------------
 
-  async getWeeklyReports() {
-    const allProgress = await this.getAllProgress();
+  async getWeeklyReports(program?: 'mn' | 'gp') {
+    const allProgress = await this.getAllProgress(program);
     const validProgress = allProgress.filter(p => p.completed_at && (p.status === 'completed' || p.status === 'passed'));
-    const allActivities = await this.getActivities();
-    const allLearners = await this.getLearners();
+    const allActivities = await this.getActivities(program);
+    const allLearners = await this.getLearners(program);
     
     const weeksMap = new Map<string, any>();
 
@@ -637,8 +645,8 @@ class DataStore {
   // Custom Reports
   // ----------------------------------------------------------
 
-  async getCustomReport(startStr: string, endStr: string) {
-    const allProgress = await this.getAllProgress();
+  async getCustomReport(startStr: string, endStr: string, program?: 'mn' | 'gp') {
+    const allProgress = await this.getAllProgress(program);
     const startDate = new Date(startStr);
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(endStr);
@@ -651,8 +659,8 @@ class DataStore {
       return d >= startDate && d <= endDate;
     });
 
-    const allActivities = await this.getActivities();
-    const allLearners = await this.getLearners();
+    const allActivities = await this.getActivities(program);
+    const allLearners = await this.getLearners(program);
 
     const report = {
       week_start: startDate.toISOString(),

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './components/dashboard/Dashboard';
+import DashboardGP from './components/dashboard/DashboardGP';
 import LearnersList from './components/learners/LearnersList';
 import UploadPage from './components/upload/UploadPage';
 import { LearnerDetail } from './pages/LearnerDetail';
 import Reports from './pages/Reports';
 import LearnerPortal from './pages/LearnerPortal';
+import ProgramSelector from './pages/ProgramSelector';
 import { api, authStorage } from './lib/api';
 import { Lock, Eye, EyeOff, X, AlertTriangle } from 'lucide-react';
 import { Button } from './components/ui/button';
@@ -39,6 +41,7 @@ function App() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  const [activeProgram, setActiveProgram] = useState<'mn' | 'gp' | null>(null);
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
@@ -93,6 +96,7 @@ function App() {
     setIsAdminAuthenticated(false);
     setCurrentPage('dashboard');
     setSelectedLearnerId(null);
+    setActiveProgram(null);
   };
 
   function handleNavigate(page: Page) {
@@ -222,6 +226,11 @@ function App() {
     );
   }
 
+  // If no program selected, show selector
+  if (activeProgram === null) {
+    return <ProgramSelector onSelectProgram={setActiveProgram} onLogout={handleLogout} />;
+  }
+
   // Authenticated Coordinator Interface
   return (
     <Layout 
@@ -231,24 +240,35 @@ function App() {
       globalSearch={globalSearch}
       onSearch={handleGlobalSearch}
       onLogout={handleLogout}
+      activeProgram={activeProgram}
+      onBackToPrograms={() => setActiveProgram(null)}
     >
-      {currentPage === 'dashboard' && (
+      {currentPage === 'dashboard' && activeProgram === 'mn' && (
         <Dashboard 
           onSelectLearner={handleSelectLearner}
           globalSearch={globalSearch}
           onViewAll={handleViewAllLearners}
         />
       )}
-      {currentPage === 'reports' && <Reports />}
+      {currentPage === 'dashboard' && activeProgram === 'gp' && (
+        <DashboardGP 
+          onSelectLearner={handleSelectLearner}
+          globalSearch={globalSearch}
+          onViewAll={handleViewAllLearners}
+          program={activeProgram}
+        />
+      )}
+      {currentPage === 'reports' && <Reports program={activeProgram} />}
       {currentPage === 'learners' && !selectedLearnerId && (
         <LearnersList 
           onSelectLearner={handleSelectLearner}
           globalSearch={globalSearch}
           initialFilter={learnersFilter}
+          program={activeProgram}
         />
       )}
       {currentPage === 'learners' && selectedLearnerId && (
-        <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} />
+        <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} program={activeProgram} />
       )}
       {currentPage === 'upload' && <UploadPage onNavigate={handleNavigate} />}
     </Layout>

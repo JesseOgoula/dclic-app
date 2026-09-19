@@ -50,7 +50,10 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorL
     setError(null);
 
     try {
-      const data = await api.getLearnerPortal(targetEmail);
+      const urlParams = new URLSearchParams(window.location.search);
+      const programParam = urlParams.get('program') as 'mn' | 'gp' | null;
+
+      const data = await api.getLearnerPortal(targetEmail, programParam || undefined);
       setPortalData(data);
 
       // Ouvrir par défaut les séquences avec des devoirs non validés ou non terminées
@@ -64,6 +67,9 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorL
 
       const url = new URL(window.location.href);
       url.searchParams.set('email', data.learner.email);
+      if (programParam) {
+        url.searchParams.set('program', programParam);
+      }
       window.history.replaceState({}, '', url.toString());
     } catch (err: any) {
       setPortalData(null);

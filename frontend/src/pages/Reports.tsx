@@ -57,7 +57,7 @@ function CustomSelect({ options, value, onChange }: { options: { value: string, 
   );
 }
 
-export default function Reports() {
+export default function Reports({ program }: { program?: 'mn' | 'gp' }) {
   const [reports, setReports] = useState<any[]>([]);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -72,8 +72,8 @@ export default function Reports() {
 
   useEffect(() => {
     Promise.all([
-      api.getWeeklyReports(),
-      api.getDashboardStats().catch(() => null)
+      api.getWeeklyReports(program),
+      api.getDashboardStats(program).catch(() => null)
     ])
       .then(([reportsData, statsData]) => {
         setReports(reportsData);
@@ -94,7 +94,7 @@ export default function Reports() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [program]);
 
   if (loading) return <div className="p-8">Chargement des rapports...</div>;
   if (reports.length === 0 && !isCustomMode) return <div className="p-8 text-muted-foreground">Aucun historique disponible.</div>;
@@ -115,7 +115,7 @@ export default function Reports() {
     setCustomError(null);
     setGeneratingCustom(true);
     try {
-      const report = await api.getCustomReport(startDate, endDate);
+      const report = await api.getCustomReport(startDate, endDate, program);
       setCustomReport(report);
     } catch (err: any) {
       console.error(err);

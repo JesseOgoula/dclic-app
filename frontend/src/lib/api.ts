@@ -202,29 +202,36 @@ export interface UploadResult {
 // API functions
 // ============================================================
 
+function withProgram(path: string, program?: 'mn' | 'gp'): string {
+  if (!program || program === 'mn') return path;
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}program=${program}`;
+}
+
 export const api = {
   // Dashboard
-  getDashboardStats: () => request<DashboardStats>('/dashboard/stats'),
+  getDashboardStats: (program?: 'mn' | 'gp') => request<DashboardStats>(withProgram('/dashboard/stats', program)),
 
   // Learners
-  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }) => {
+  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }, program?: 'mn' | 'gp') => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.set('search', params.search);
     if (params?.status) searchParams.set('status', params.status);
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortDir) searchParams.set('sortDir', params.sortDir);
+    if (program && program !== 'mn') searchParams.set('program', program);
     const qs = searchParams.toString();
     return request<LearnerWithProgress[]>(`/learners${qs ? `?${qs}` : ''}`);
   },
 
-  getLearner: (id: string) => request<LearnerDetail>(`/learners/${id}`),
-  getLearnerPortal: (email: string) => request<LearnerPortalData>(`/portal/learner?email=${encodeURIComponent(email)}`),
+  getLearner: (id: string, program?: 'mn' | 'gp') => request<LearnerDetail>(withProgram(`/learners/${id}`, program)),
+  getLearnerPortal: (email: string, program?: 'mn' | 'gp') => request<LearnerPortalData>(withProgram(`/portal/learner?email=${encodeURIComponent(email)}`, program)),
 
   // Activities
   getActivities: () => request<Activity[]>('/activities'),
 
   // Heatmap
-  getHeatmap: () => request<HeatmapData>('/progress/heatmap'),
+  getHeatmap: (program?: 'mn' | 'gp') => request<HeatmapData>(withProgram('/progress/heatmap', program)),
 
   // Alerts
   getAlerts: () => request<Alert[]>('/alerts'),
@@ -272,9 +279,9 @@ export const api = {
   isAuthenticated: () => authStorage.isAuthenticated(),
 
   // Reports
-  getWeeklyReports: () => request<any[]>('/reports/weekly'),
-  getCustomReport: (startDate: string, endDate: string) => 
-    request<any>(`/reports/custom?start=${startDate}&end=${endDate}`),
+  getWeeklyReports: (program?: 'mn' | 'gp') => request<any[]>(withProgram('/reports/weekly', program)),
+  getCustomReport: (startDate: string, endDate: string, program?: 'mn' | 'gp') => 
+    request<any>(withProgram(`/reports/custom?start=${startDate}&end=${endDate}`, program)),
 
   getUploads: () => request<any[]>('/uploads'),
   

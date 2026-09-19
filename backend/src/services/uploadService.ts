@@ -10,12 +10,12 @@ import {
   parseParticipantsXLSX,
   filterByGroup,
   extractActivityMetadata,
+  detectFormationType,
 } from './parser/moodleParser.js';
+import { extractGPActivityMetadata } from './parser/gpParser.js';
 import { parseParticipantsMD, parseRelativeTime } from './parser/mdParser.js';
 import { store, supabase } from './store.js';
 import type { UploadResult } from '../types.js';
-
-const TARGET_GROUP = 'G1_MN_072026';
 
 /**
  * Process an uploaded file — determines type and ingests data.
@@ -95,7 +95,14 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
   }
 
   // Register activities
-  const activityMeta = extractActivityMetadata(rows[0].activities.map(a => a.name));
+  const activityNames = rows[0].activities.map(a => a.name);
+  const formationType = detectFormationType(activityNames);
+  const targetGroup = formationType === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
+  
+  const activityMeta = formationType === 'gp' 
+    ? extractGPActivityMetadata(activityNames)
+    : extractActivityMetadata(activityNames);
+
   for (const meta of activityMeta) {
     await store.upsertActivity(meta);
   }
@@ -113,7 +120,7 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
 
   const g1Emails = new Set(
     allLearners
-      .filter(l => l.group_id === TARGET_GROUP)
+      .filter(l => l.group_id === targetGroup)
       .map(l => l.email)
   );
 
@@ -226,7 +233,10 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
  */
 async function processParticipantsXLSX(filePath: string, uploadId: string): Promise<UploadResult> {
   const allParticipants = parseParticipantsXLSX(filePath);
-  const g1Participants = filterByGroup(allParticipants, TARGET_GROUP);
+  
+  const hasGPM = allParticipants.some(p => p.group === 'G1_GPM_092026');
+  const targetGroup = hasGPM ? 'G1_GPM_092026' : 'G1_MN_072026';
+  const g1Participants = filterByGroup(allParticipants, targetGroup);
 
   let learnersCreated = 0;
   let learnersUpdated = 0;
@@ -264,8 +274,10 @@ async function processParticipantsXLSX(filePath: string, uploadId: string): Prom
  * Process the participants MD
  */
 async function processParticipantsMD(filePath: string, uploadId: string): Promise<UploadResult> {
+  const content = fs.readFileSync(filePath, 'utf8');
+  const targetGroup = content.includes('GPM') ? 'G1_GPM_092026' : 'G1_MN_072026';
   const allParticipants = parseParticipantsMD(filePath);
-  const g1Participants = filterByGroup(allParticipants, TARGET_GROUP);
+  const g1Participants = filterByGroup(allParticipants, targetGroup);
 
   let learnersCreated = 0;
   let learnersUpdated = 0;
