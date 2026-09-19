@@ -122,8 +122,8 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-zinc-400">Chargement des données de spécialisation...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-muted-foreground">Chargement des données de spécialisation...</p>
         </div>
       </div>
     );
@@ -137,7 +137,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
           <p className="text-destructive text-sm font-medium">{error}</p>
           <button
             onClick={loadStats}
-            className="mt-3 px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-xs font-medium transition-colors"
+            className="mt-3 px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-medium transition-colors"
           >
             Réessayer
           </button>
@@ -194,7 +194,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs gap-1.5 cursor-pointer font-medium bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-200"
+            className="h-8 text-xs gap-1.5 cursor-pointer font-medium bg-card border-border hover:bg-accent text-foreground"
             onClick={() => {
               const url = `${window.location.origin}/?portal=true&program=gp`;
               navigator.clipboard.writeText(url);
@@ -202,7 +202,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
               setTimeout(() => setBannerCopied(false), 2500);
             }}
           >
-            {bannerCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+            {bannerCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
             {bannerCopied ? 'Lien copié' : 'Copier le lien apprenants'}
           </Button>
         </div>
@@ -225,7 +225,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
           badgeText={stats.completion_evolution !== undefined ? `${stats.completion_evolution > 0 ? '+' : ''}${stats.completion_evolution}% vs dernier upload` : "Moyenne"}
           badgeVariant={stats.completion_evolution !== undefined ? (stats.completion_evolution > 0 ? 'default' : stats.completion_evolution < 0 ? 'destructive' : 'secondary') : "outline"}
           delay={2}
-          colorClass="text-zinc-200"
+          colorClass="text-foreground"
         />
         <KPICard
           title="Apprenants actifs"
@@ -252,7 +252,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
         <Card className="shadow-sm border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-zinc-400" />
+              <Calendar className="w-4 h-4 text-muted-foreground" />
               <CardTitle className="text-base font-semibold">Deadlines Séquences</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground">Calendrier de la spécialisation</p>
@@ -301,10 +301,10 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                   })}
                 barSize={32}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis
                   dataKey="sequence"
-                  tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
                   tickFormatter={(v: string) => {
                     const match = v.match(/Séquence (\d)/);
                     if (match) return `Séq. ${match[1]}`;
@@ -315,19 +315,19 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
                   tickFormatter={(v: number) => `${v}`}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#141417',
-                    border: '1px solid #27272a',
+                    backgroundColor: 'var(--popover)',
+                    border: '1px solid var(--border)',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                     padding: '8px 12px',
-                    color: '#f4f4f5',
+                    color: 'var(--popover-foreground)',
                     fontSize: '12px',
                   }}
                   formatter={(value: any, name: any) => [`${value} apprenants`, name]}
@@ -351,7 +351,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                   dataKey="learners_not_started"
                   name="Non commencé"
                   stackId="a"
-                  fill="#27272a"
+                  fill="var(--input)"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -406,9 +406,9 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
       {/* Special Projet Professionnel Section */}
       {projetProStat && (
         <Card className="shadow-sm border-border">
-          <CardHeader className="pb-3 border-b border-border bg-zinc-900/40">
+          <CardHeader className="pb-3 border-b border-border bg-muted/40">
             <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 text-zinc-300" />
+              <Target className="w-4 h-4 text-foreground" />
               <div>
                 <CardTitle className="text-base font-semibold">Projet Professionnel</CardTitle>
                 <p className="text-xs text-muted-foreground">Progression sur les livrables d'entraînement et finaux</p>
@@ -490,10 +490,10 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0',
-                            index === 0 ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' :
-                              index === 1 ? 'bg-zinc-700/30 text-zinc-200 border border-zinc-600/30' :
-                                index === 2 ? 'bg-amber-800/20 text-amber-400 border border-amber-700/30' :
-                                  'bg-zinc-800 text-zinc-400'
+                            index === 0 ? 'bg-amber-500/15 text-amber-500 border border-amber-500/30' :
+                              index === 1 ? 'bg-muted text-foreground border border-border' :
+                                index === 2 ? 'bg-amber-800/20 text-amber-600 border border-amber-700/30' :
+                                  'bg-muted text-muted-foreground'
                           )}>
                             {index + 1}
                           </div>
@@ -509,7 +509,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
                             <div
                               className={cn(
                                 "h-full rounded-full transition-all duration-500",
-                                learner.completion_rate > 0 ? "bg-emerald-500" : "bg-zinc-800"
+                                learner.completion_rate > 0 ? "bg-emerald-500" : "bg-muted"
                               )}
                               style={{ width: `${Math.max(learner.completion_rate, learner.completion_rate > 0 ? 4 : 0)}%` }}
                             />
@@ -721,7 +721,7 @@ export default function DashboardGP({ onSelectLearner, globalSearch = '', onView
             <CardHeader className="bg-muted/30 pb-3 border-b border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-zinc-200" />
+                  <Award className="w-4 h-4 text-foreground" />
                   <CardTitle className="text-base font-semibold">Spécialisation terminée</CardTitle>
                 </div>
                 <Badge variant="outline">

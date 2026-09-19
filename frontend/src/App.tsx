@@ -13,6 +13,7 @@ import { Lock, Eye, EyeOff, X, AlertTriangle } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { useTheme } from './lib/theme';
 
 type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
 
@@ -34,6 +35,7 @@ function checkAdminRequested(): boolean {
 }
 
 function App() {
+  useTheme();
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => authStorage.isAuthenticated());
   const [showLoginModal, setShowLoginModal] = useState<boolean>(() => checkAdminRequested());
   const [password, setPassword] = useState('');

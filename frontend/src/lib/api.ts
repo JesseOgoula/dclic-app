@@ -39,6 +39,52 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return data.data;
 }
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const apiCache = new Map<string, CacheEntry<any>>();
+const inFlightRequests = new Map<string, Promise<any>>();
+const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes cache for instant tab transitions
+
+export function clearApiCache(prefix?: string) {
+  if (prefix) {
+    for (const key of apiCache.keys()) {
+      if (key.startsWith(prefix)) {
+        apiCache.delete(key);
+      }
+    }
+  } else {
+    apiCache.clear();
+  }
+}
+
+async function cachedRequest<T>(path: string, bypassCache = false): Promise<T> {
+  const now = Date.now();
+  const cached = apiCache.get(path);
+
+  if (!bypassCache && cached && (now - cached.timestamp < CACHE_TTL_MS)) {
+    return cached.data as T;
+  }
+
+  if (inFlightRequests.has(path)) {
+    return inFlightRequests.get(path) as Promise<T>;
+  }
+
+  const reqPromise = request<T>(path)
+    .then((data) => {
+      apiCache.set(path, { data, timestamp: Date.now() });
+      return data;
+    })
+    .finally(() => {
+      inFlightRequests.delete(path);
+    });
+
+  inFlightRequests.set(path, reqPromise);
+  return reqPromise;
+}
+
 // ============================================================
 // Types (mirroring backend)
 // ============================================================
@@ -210,10 +256,11 @@ function withProgram(path: string, program?: 'mn' | 'gp'): string {
 
 export const api = {
   // Dashboard
-  getDashboardStats: (program?: 'mn' | 'gp') => request<DashboardStats>(withProgram('/dashboard/stats', program)),
+  getDashboardStats: (program?: 'mn' | 'gp', forceRefresh = false) => 
+    cachedRequest<DashboardStats>(withProgram('/dashboard/stats', program), forceRefresh),
 
   // Learners
-  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }, program?: 'mn' | 'gp') => {
+  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }, program?: 'mn' | 'gp', forceRefresh = false) => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.set('search', params.search);
     if (params?.status) searchParams.set('status', params.status);
@@ -221,29 +268,42 @@ export const api = {
     if (params?.sortDir) searchParams.set('sortDir', params.sortDir);
     if (program && program !== 'mn') searchParams.set('program', program);
     const qs = searchParams.toString();
-    return request<LearnerWithProgress[]>(`/learners${qs ? `?${qs}` : ''}`);
+    return cachedRequest<LearnerWithProgress[]>(`/learners${qs ? `?${qs}` : ''}`, forceRefresh);
   },
 
-  getLearner: (id: string, program?: 'mn' | 'gp') => request<LearnerDetail>(withProgram(`/learners/${id}`, program)),
-  getLearnerPortal: (email: string, program?: 'mn' | 'gp') => request<LearnerPortalData>(withProgram(`/portal/learner?email=${encodeURIComponent(email)}`, program)),
+  getLearner: (id: string, program?: 'mn' | 'gp', forceRefresh = false) => 
+    cachedRequest<LearnerDetail>(withProgram(`/learners/${id}`, program), forceRefresh),
+  
+  getLearnerPortal: (email: string, program?: 'mn' | 'gp', forceRefresh = false) => 
+    cachedRequest<LearnerPortalData>(withProgram(`/portal/learner?email=${encodeURIComponent(email)}`, program), forceRefresh),
 
   // Activities
-  getActivities: () => request<Activity[]>('/activities'),
+  getActivities: (forceRefresh = false) => 
+    cachedRequest<Activity[]>('/activities', forceRefresh),
 
   // Heatmap
-  getHeatmap: (program?: 'mn' | 'gp') => request<HeatmapData>(withProgram('/progress/heatmap', program)),
+  getHeatmap: (program?: 'mn' | 'gp', forceRefresh = false) => 
+    cachedRequest<HeatmapData>(withProgram('/progress/heatmap', program), forceRefresh),
 
   // Alerts
-  getAlerts: () => request<Alert[]>('/alerts'),
-  acknowledgeAlert: (id: string) => request<void>(`/alerts/${id}/acknowledge`, { method: 'POST' }),
+  getAlerts: (forceRefresh = false) => 
+    cachedRequest<Alert[]>('/alerts', forceRefresh),
+  acknowledgeAlert: async (id: string) => {
+    const res = await request<void>(`/alerts/${id}/acknowledge`, { method: 'POST' });
+    clearApiCache();
+    return res;
+  },
 
   // Communications
-  getCommunications: (learnerId?: string) => {
+  getCommunications: (learnerId?: string, forceRefresh = false) => {
     const qs = learnerId ? `?learner_id=${learnerId}` : '';
-    return request<CommunicationLog[]>(`/communications${qs}`);
+    return cachedRequest<CommunicationLog[]>(`/communications${qs}`, forceRefresh);
   },
-  saveCommunication: (data: Omit<CommunicationLog, 'id'>) =>
-    request<CommunicationLog>('/communications', { method: 'POST', body: JSON.stringify(data) }),
+  saveCommunication: async (data: Omit<CommunicationLog, 'id'>) => {
+    const res = await request<CommunicationLog>('/communications', { method: 'POST', body: JSON.stringify(data) });
+    clearApiCache();
+    return res;
+  },
 
   // Upload
   uploadFile: async (file: File): Promise<UploadResult> => {
@@ -265,26 +325,43 @@ export const api = {
     }
 
     const data = await res.json();
+    clearApiCache(); // Invalidate all cached data on new upload!
     return data.data;
   },
 
   // Auth
-  login: (password: string) =>
-    request<{ token: string }>('/auth/login', {
+  login: async (password: string) => {
+    clearApiCache();
+    return request<{ token: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ password }),
-    }),
+    });
+  },
   checkAuth: () => request<{ authenticated: boolean }>('/auth/check'),
-  logout: () => authStorage.removeToken(),
+  logout: () => {
+    clearApiCache();
+    authStorage.removeToken();
+  },
   isAuthenticated: () => authStorage.isAuthenticated(),
 
   // Reports
-  getWeeklyReports: (program?: 'mn' | 'gp') => request<any[]>(withProgram('/reports/weekly', program)),
-  getCustomReport: (startDate: string, endDate: string, program?: 'mn' | 'gp') => 
-    request<any>(withProgram(`/reports/custom?start=${startDate}&end=${endDate}`, program)),
+  getWeeklyReports: (program?: 'mn' | 'gp', forceRefresh = false) => 
+    cachedRequest<any[]>(withProgram('/reports/weekly', program), forceRefresh),
+  getCustomReport: (startDate: string, endDate: string, program?: 'mn' | 'gp', forceRefresh = false) => 
+    cachedRequest<any>(withProgram(`/reports/custom?start=${startDate}&end=${endDate}`, program), forceRefresh),
 
-  getUploads: () => request<any[]>('/uploads'),
+  getUploads: (forceRefresh = false) => 
+    cachedRequest<any[]>('/uploads', forceRefresh),
   
-  clearHistory: () => request<void>('/uploads', { method: 'DELETE' }),
-  resetData: () => request<void>('/reset', { method: 'DELETE' }),
+  clearHistory: async () => {
+    const res = await request<void>(`/uploads`, { method: 'DELETE' });
+    clearApiCache();
+    return res;
+  },
+  resetData: async () => {
+    const res = await request<void>('/reset', { method: 'DELETE' });
+    clearApiCache();
+    return res;
+  },
+  clearCache: () => clearApiCache(),
 };
