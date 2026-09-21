@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
   Boxes,
+  GraduationCap,
 } from 'lucide-react';
 import { api, type Alert } from '@/lib/api';
 import { useTheme } from '@/lib/theme';
@@ -39,9 +40,9 @@ interface LayoutProps {
   globalSearch?: string;
   onSearch?: (value: string) => void;
   onLogout?: () => void;
-  activeProgram?: 'mn' | 'gp';
+  activeProgram?: 'mn' | 'gp' | 'pp';
   onBackToPrograms?: () => void;
-  onSelectProgram?: (program: 'mn' | 'gp') => void;
+  onSelectProgram?: (program: 'mn' | 'gp' | 'pp') => void;
 }
 
 interface NavItem {
@@ -93,6 +94,11 @@ export default function Layout({
 
   useEffect(() => {
     async function fetchAlerts() {
+      if (activeProgram === 'pp') {
+        setAlerts([]);
+        setUnreadAlertCount(0);
+        return;
+      }
       try {
         const data = await api.getAlerts();
         if (data && data.length > 0) {
@@ -167,9 +173,9 @@ export default function Layout({
     }
   };
 
-  const currentProgramLabel = activeProgram === 'gp' ? 'Gestion de Projet' : 'Marketing Numérique';
-  const currentProgramCohort = activeProgram === 'gp' ? '157 apprenants' : '115 apprenants';
-  const currentProgramGroup = activeProgram === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
+  const currentProgramLabel = activeProgram === 'pp' ? 'Projet Professionnel' : activeProgram === 'gp' ? 'Gestion de Projet' : 'Marketing Numérique';
+  const currentProgramCohort = activeProgram === 'pp' ? '31 projets' : activeProgram === 'gp' ? '157 apprenants' : '115 apprenants';
+  const currentProgramGroup = activeProgram === 'pp' ? 'PROJET_PRO_2026' : activeProgram === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
@@ -284,6 +290,29 @@ export default function Layout({
                     </div>
                   </div>
                   {activeProgram === 'mn' && <Check size={14} className="text-foreground shrink-0 ml-1" />}
+                </button>
+
+                {/* PP option */}
+                <button
+                  onClick={() => {
+                    onSelectProgram?.('pp');
+                    setProgramMenuOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors cursor-pointer text-left mt-0.5",
+                    activeProgram === 'pp' ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/60 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-5 h-5 rounded bg-card border border-border flex items-center justify-center shrink-0">
+                      <GraduationCap size={12} className="text-foreground" />
+                    </div>
+                    <div className="truncate">
+                      <p className="font-medium truncate">Projet Professionnel</p>
+                      <p className="text-[10px] text-muted-foreground">31 projets · Certification</p>
+                    </div>
+                  </div>
+                  {activeProgram === 'pp' && <Check size={14} className="text-foreground shrink-0 ml-1" />}
                 </button>
 
                 {onBackToPrograms && (

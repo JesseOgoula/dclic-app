@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './components/dashboard/Dashboard';
 import DashboardGP from './components/dashboard/DashboardGP';
+import DashboardPP from './components/dashboard/DashboardPP';
 import LearnersList from './components/learners/LearnersList';
 import UploadPage from './components/upload/UploadPage';
 import { LearnerDetail } from './pages/LearnerDetail';
@@ -16,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { useTheme } from './lib/theme';
 
 type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
+type Program = 'mn' | 'gp' | 'pp';
 
 function checkExplicitPortalRequested(): boolean {
   const path = window.location.pathname.toLowerCase();
@@ -43,7 +45,7 @@ function App() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const [activeProgram, setActiveProgram] = useState<'mn' | 'gp' | null>(null);
+  const [activeProgram, setActiveProgram] = useState<Program | null>(null);
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
@@ -260,6 +262,9 @@ function App() {
           onViewAll={handleViewAllLearners}
           program={activeProgram}
         />
+      )}
+      {currentPage === 'dashboard' && activeProgram === 'pp' && (
+        <DashboardPP />
       )}
       {currentPage === 'reports' && <Reports program={activeProgram} />}
       {currentPage === 'learners' && !selectedLearnerId && (

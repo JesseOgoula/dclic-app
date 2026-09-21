@@ -248,7 +248,9 @@ export interface UploadResult {
 // API functions
 // ============================================================
 
-function withProgram(path: string, program?: 'mn' | 'gp'): string {
+export type ProgramType = 'mn' | 'gp' | 'pp';
+
+function withProgram(path: string, program?: ProgramType): string {
   if (!program || program === 'mn') return path;
   const sep = path.includes('?') ? '&' : '?';
   return `${path}${sep}program=${program}`;
@@ -256,11 +258,11 @@ function withProgram(path: string, program?: 'mn' | 'gp'): string {
 
 export const api = {
   // Dashboard
-  getDashboardStats: (program?: 'mn' | 'gp', forceRefresh = false) => 
+  getDashboardStats: (program?: ProgramType, forceRefresh = false) => 
     cachedRequest<DashboardStats>(withProgram('/dashboard/stats', program), forceRefresh),
 
   // Learners
-  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }, program?: 'mn' | 'gp', forceRefresh = false) => {
+  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }, program?: ProgramType, forceRefresh = false) => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.set('search', params.search);
     if (params?.status) searchParams.set('status', params.status);
@@ -271,10 +273,10 @@ export const api = {
     return cachedRequest<LearnerWithProgress[]>(`/learners${qs ? `?${qs}` : ''}`, forceRefresh);
   },
 
-  getLearner: (id: string, program?: 'mn' | 'gp', forceRefresh = false) => 
+  getLearner: (id: string, program?: ProgramType, forceRefresh = false) => 
     cachedRequest<LearnerDetail>(withProgram(`/learners/${id}`, program), forceRefresh),
   
-  getLearnerPortal: (email: string, program?: 'mn' | 'gp', forceRefresh = false) => 
+  getLearnerPortal: (email: string, program?: ProgramType, forceRefresh = false) => 
     cachedRequest<LearnerPortalData>(withProgram(`/portal/learner?email=${encodeURIComponent(email)}`, program), forceRefresh),
 
   // Activities
@@ -282,7 +284,7 @@ export const api = {
     cachedRequest<Activity[]>('/activities', forceRefresh),
 
   // Heatmap
-  getHeatmap: (program?: 'mn' | 'gp', forceRefresh = false) => 
+  getHeatmap: (program?: ProgramType, forceRefresh = false) => 
     cachedRequest<HeatmapData>(withProgram('/progress/heatmap', program), forceRefresh),
 
   // Alerts
@@ -345,9 +347,9 @@ export const api = {
   isAuthenticated: () => authStorage.isAuthenticated(),
 
   // Reports
-  getWeeklyReports: (program?: 'mn' | 'gp', forceRefresh = false) => 
+  getWeeklyReports: (program?: ProgramType, forceRefresh = false) => 
     cachedRequest<any[]>(withProgram('/reports/weekly', program), forceRefresh),
-  getCustomReport: (startDate: string, endDate: string, program?: 'mn' | 'gp', forceRefresh = false) => 
+  getCustomReport: (startDate: string, endDate: string, program?: ProgramType, forceRefresh = false) => 
     cachedRequest<any>(withProgram(`/reports/custom?start=${startDate}&end=${endDate}`, program), forceRefresh),
 
   getUploads: (forceRefresh = false) => 

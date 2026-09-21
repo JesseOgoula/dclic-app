@@ -57,7 +57,7 @@ function CustomSelect({ options, value, onChange }: { options: { value: string, 
   );
 }
 
-export default function Reports({ program }: { program?: 'mn' | 'gp' }) {
+export default function Reports({ program }: { program?: 'mn' | 'gp' | 'pp' }) {
   const [reports, setReports] = useState<any[]>([]);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);

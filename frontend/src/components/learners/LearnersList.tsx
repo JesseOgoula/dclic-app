@@ -32,7 +32,7 @@ interface LearnersListProps {
   onSelectLearner?: (id: string) => void;
   globalSearch?: string;
   initialFilter?: string;
-  program?: 'mn' | 'gp';
+  program?: 'mn' | 'gp' | 'pp';
 }
 
 export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '', program }: LearnersListProps) {

@@ -20,7 +20,7 @@ import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContaine
 interface LearnerDetailProps {
   id: string;
   onBack: () => void;
-  program?: 'mn' | 'gp';
+  program?: 'mn' | 'gp' | 'pp';
 }
 
 const SequenceAccordion = ({
