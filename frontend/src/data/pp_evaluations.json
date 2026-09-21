@@ -1,16 +1,54 @@
 {
   "stats": {
     "total_learners": 31,
-    "v1_completed": 17,
-    "v1_rate": 54.8,
+    "v1_completed": 9,
+    "v1_rate": 29.0,
     "v2_submitted": 0,
     "v2_rate": 0.0,
     "categories": {
-      "green": 17,
-      "yellow": 0,
-      "red": 14
+      "green": 9,
+      "yellow": 15,
+      "red": 7
     },
-    "last_updated": "2026-09-21T12:10:58.982575"
+    "deliverables_stats": {
+      "desc": {
+        "v1_submitted": 31,
+        "v1_rate": 100.0,
+        "v2_submitted": 0,
+        "v2_rate": 0.0
+      },
+      "strat": {
+        "v1_submitted": 24,
+        "v1_rate": 77.4,
+        "v2_submitted": 0,
+        "v2_rate": 0.0
+      },
+      "gest": {
+        "v1_submitted": 17,
+        "v1_rate": 54.8,
+        "v2_submitted": 0,
+        "v2_rate": 0.0
+      },
+      "budget": {
+        "v1_submitted": 17,
+        "v1_rate": 54.8,
+        "v2_submitted": 0,
+        "v2_rate": 0.0
+      },
+      "content": {
+        "v1_submitted": 0,
+        "v1_rate": 0.0,
+        "v2_submitted": 0,
+        "v2_rate": 0.0
+      },
+      "tdb": {
+        "v1_submitted": 9,
+        "v1_rate": 29.0,
+        "v2_submitted": 0,
+        "v2_rate": 0.0
+      }
+    },
+    "last_updated": "2026-09-21T12:32:47.335630"
   },
   "deliverables_def": [
     {
@@ -97,8 +135,8 @@
       "prenom": "Mahamat Amine",
       "full_name": "ABDRAMANE Mahamat Amine",
       "projet": "Agence Express Union — Transfert d'argent et services financiers de proximité (CEMAC, CEDEAO, France)",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Excellent niveau. Concevoir le Tableau de bord (PP4) et les contenus (PP3).",
       "synthesis": {
         "coherence": "L'alignement entre la description de l'agence, la stratégie d'acquisition/fidélisation et le plan de gestion de projet (Gantt budgété) est sans faille. Seule l'absence du tableau de bord crée une rupture dans la boucle de pilotage.",
@@ -243,7 +281,7 @@
       "full_name": "ADETOLA AISSI Chérita Marie Mignone Minette",
       "projet": "Corps & Âme — Institut de beauté et bien-être holistique au Bénin (Cotonou et Calavi)",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier complet. Détailler le budget par tâche et nommer 3 concurrents.",
       "synthesis": {
         "coherence": "Félicitations pour avoir déposé l'ensemble des 4 livrables d'entraînement. L'identité holistique irrigue tous les documents. La consolidation attendue porte sur le passage des intentions aux chiffres (budget détaillé par tâche et KPIs ciblés).",
@@ -394,7 +432,7 @@
       "full_name": "ANASS WOUCHIA Yaouba",
       "projet": "MediProche — Téléconsultation médicale par WhatsApp et téléphone pour les zones éloignées au Cameroun",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Niveau exceptionnel. Classeur Excel simulé remarquable. Note TDB < 100 mots.",
       "synthesis": {
         "coherence": "Travail de référence. La synchronisation entre la stratégie de santé, les jalons du planning Gantt et les formules de projection Excel est sans équivalent dans la cohorte.",
@@ -545,7 +583,7 @@
       "full_name": "ABENI Abla Christelle Léa",
       "projet": "Yonwa — Plateforme numérique de réservation d'expériences touristiques et culturelles autour des savoir-faire béninois (Cotonou, Porto-Novo, Ouidah)",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Qualité professionnelle. **Veiller à la limite stricte de 1000 mots pour PP1**.",
       "synthesis": {
         "coherence": "Alignement total et remarquable entre la cause culturelle, le modèle économique de plateforme et les outils de reporting automatisés.",
@@ -695,8 +733,8 @@
       "prenom": "Ahouéfa Johanita Auria",
       "full_name": "ASSOGBA Ahouéfa Johanita Auria",
       "projet": "Kola Épicerie / Kola Cube — Boutique en ligne et bouillons culinaires 100 % naturels Made in Benin",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟡 Projet très porteur. **Concevoir le Tableau de bord (PP4)**.",
       "synthesis": {
         "coherence": "Projet très porteur sur le marché agroalimentaire sain. L'alignement stratégique est bon, mais le tableau de bord fait défaut pour boucler le pilotage de la campagne.",
@@ -840,8 +878,8 @@
       "prenom": "Bidossessi",
       "full_name": "AZOSSI Bidossessi",
       "projet": "AURA — Boissons et jus naturels haut de gamme pour l'événementiel et les particuliers",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Bon positionnement. **Rédiger Gantt/budget (PP2) et TDB (PP4)**.",
       "synthesis": {
         "coherence": "L'amorce de positionnement sur l'événementiel est prometteuse, mais le projet manque actuellement de ses livrables opérationnels majeurs (Gantt, budget, tableau de bord).",
@@ -979,8 +1017,8 @@
       "prenom": "Carine",
       "full_name": "AGOSSA Carine",
       "projet": "Entreprise agroalimentaire — Épices fraîches en pâte et piments de table prêts à l'emploi",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Produit pertinent. **Manquent Gantt/budget (PP2) et TDB (PP4)**.",
       "synthesis": {
         "coherence": "L'utilité pratique du produit est évidente, mais l'absence des livrables de gestion opérationnelle et de tableau de bord bloque pour l'instant l'évaluation complète.",
@@ -1119,7 +1157,7 @@
       "full_name": "AGBLA Christelle Gloria",
       "projet": "ÉcoClean Bénin — Service digital d'assainissement, collecte sélective et recyclage écologique des déchets",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier complet et exemplaire dans sa présentation éditoriale.",
       "synthesis": {
         "coherence": "Félicitations pour ce dossier d'une très haute tenue : la continuité entre le défi écologique, la stratégie marketing, le Gantt budgété et le tableau de bord est exemplaire.",
@@ -1402,8 +1440,8 @@
       "prenom": "Diane",
       "full_name": "AFFANA Diane",
       "projet": "NKINA — Production et commercialisation de pâte d'arachide artisanale pure sans additifs (Yaoundé, Cameroun)",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Bonne stratégie. **Manquent Gantt/budget (PP2) et TDB (PP4)**.",
       "synthesis": {
         "coherence": "Produit d'une forte pertinence culturelle et culinaire. La stratégie marketing est bien entamée, mais les outils de gestion de projet et de suivi de performance doivent être impérativement conçus.",
@@ -1674,8 +1712,8 @@
       "prenom": "Doris Esther",
       "full_name": "ABOGO Doris Esther",
       "projet": "Allo Doc 237 — « Le médecin à portée de téléphone », service de téléconsultation médicale au Cameroun",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟡 Projet solide. **Élargir le planning au-delà de 14 jours et créer PP4**.",
       "synthesis": {
         "coherence": "Projet très solide et empathique. L'articulation entre le besoin sanitaire et la solution WhatsApp est limpide. L'ajustement principal réside dans l'extension calendaire de la campagne (passer de 14 jours à plusieurs mois).",
@@ -1819,8 +1857,8 @@
       "prenom": "Enagnon Jérémie",
       "full_name": "AFFODO Enagnon Jérémie",
       "projet": "Chaîne de Télévision Audiovisuelle — Stratégie de conquête d'audience numérique et diffusion web",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Excellente vision sectorielle. **Manquent PP2 et PP4**.",
       "synthesis": {
         "coherence": "Analyse sectorielle audiovisuelle de très haut vol. La stratégie marketing est solide, mais les outils de gestion de projet (Gantt budgété) et de reporting (tableau de bord) doivent impérativement être produits pour le rendu officiel.",
@@ -1958,8 +1996,8 @@
       "prenom": "Eudes",
       "full_name": "ACCROMBESSI Eudes",
       "projet": "SOLARIS BÉNIN — Solutions et kits d'énergie solaire photovoltaïque pour particuliers et PME",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Corriger nomenclature des fichiers. **Manquent PP2 et PP4**.",
       "synthesis": {
         "coherence": "Thématique d'énergie renouvelable très porteuse. La priorité immédiate est de corriger la confusion de numérotation des livrables et de créer le planning Gantt budgété et le tableau de bord.",
@@ -2231,7 +2269,7 @@
       "full_name": "ALI ISSA Hadiza",
       "projet": "NayaSkin — Cosmétiques et soins de la peau adaptés au climat sahélien à Niamey (Niger)",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier complet, très fouillé et parfaitement contextualisé à Niamey.",
       "synthesis": {
         "coherence": "Alignement remarquable entre le besoin cosmétique spécifique au Niger, la stratégie d'engagement communautaire, le rétroplanning sur 6 mois et les métriques de suivi.",
@@ -2381,8 +2419,8 @@
       "prenom": "Jean-Baptiste De La Salle Pacem Adétola",
       "full_name": "AÏKO Jean-Baptiste De La Salle Pacem Adétola",
       "projet": "AÏKO — Conseil en stratégie de contenu et copywriting bilingue (français/anglais) à Cotonou pour clients locaux et internationaux",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Modèle de solopreneur très mature et lucide. **Créer PP4**.",
       "synthesis": {
         "coherence": "Projet très mature et crédible. L'adéquation entre l'offre de copywriting bilingue et les compétences acquises dans le programme D-CLIC est totale.",
@@ -2659,8 +2697,8 @@
       "prenom": "Limatou",
       "full_name": "ASSOUMA Limatou",
       "projet": "Commercialisation en ligne de produits agroalimentaires locaux et sains au Bénin",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Gestion très dense (895 lignes). **Créer le Tableau de bord (PP4)**.",
       "synthesis": {
         "coherence": "Dossier très travailleur. La logique opérationnelle est poussée à un niveau de détail remarquable. Le tableau de bord manque pour boucler le système de pilotage de la campagne.",
@@ -2937,8 +2975,8 @@
       "prenom": "Moudachirou Sègla",
       "full_name": "AKE Moudachirou Sègla",
       "projet": "Boutique e-commerce de crèmes et soins de beauté pour la peau (Sujet 4) au Bénin (Cotonou)",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Bonne stratégie marketing. **Manquent PP2 et PP4**.",
       "synthesis": {
         "coherence": "La stratégie marketing est solide et bien ancrée dans les habitudes des jeunes consommateurs. L'effort principal doit maintenant se porter sur la production du planning Gantt budgété et du tableau de bord.",
@@ -3077,7 +3115,7 @@
       "full_name": "AYENA Moukaïla",
       "projet": "Bariba Startup Academy — Académie de formation aux compétences numériques et entrepreneuriat des jeunes à Parakou (Nord Bénin)",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier exceptionnel par sa rigueur, son exhaustivité et son impact local.",
       "synthesis": {
         "coherence": "Cohérence totale entre l'ambition sociale et territoriale, le plan d'action marketing, le découpage du calendrier sur 6 mois et la matrice de reporting.",
@@ -3227,8 +3265,8 @@
       "prenom": "N'Junior",
       "full_name": "AGOSSA N'Junior",
       "projet": "SARL AGRO-AQUA BORGOU — Élevage intégré de lapins et de poissons Clarias à Parakou (Bénin)",
-      "category": "red",
-      "category_label": "En retard (2/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "⚠️ **Alerte règle d'or** : Recentrer impérativement sur le marketing digital.",
       "synthesis": {
         "coherence": "Attention critique. Le projet présente un risque de pénalité pour \"hors sujet\" si l'accent est mis sur l'élevage physique plutôt que sur la transformation digitale de la commercialisation.",
@@ -3366,8 +3404,8 @@
       "prenom": "Naphtarie Fredline Rodlie",
       "full_name": "ALFRED Naphtarie Fredline Rodlie",
       "projet": "ALTITUDE — Média numérique et plateforme d'inspiration pour la jeunesse créative et entrepreneuriale en Haïti (« Élève ta vision »)",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Édition impeccable, identité forte, gestion solide. **Créer PP4**.",
       "synthesis": {
         "coherence": "Magnifique projet éditorial et citoyen. L'alignement entre le message d'inspiration, la stratégie de contenu et la gestion de projet est exemplaire. Seul le tableau de bord manque à l'appel.",
@@ -3512,7 +3550,7 @@
       "full_name": "PADONOU Gildas",
       "projet": "MédiProche — Plateforme de téléconsultation médicale et d'accès aux soins de santé",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier complet. Approfondir l'analyse et chiffrer le budget par tâche.",
       "synthesis": {
         "coherence": "Bravo pour avoir remis l'ensemble des 4 fiches de travail d'entraînement. L'ensemble est cohérent, mais chaque document nécessite d'être étoffé pour passer du format de notes brèves à des livrables professionnels denses.",
@@ -3662,8 +3700,8 @@
       "prenom": "Pascal",
       "full_name": "ADOKOU Pascal",
       "projet": "Immobilier Haho — Agence de transactions immobilières et sécurisation foncière à Notsé (Togo) et pour la diaspora",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Plan de gestion remarquable (339 lignes). **Créer le Tableau de bord (PP4)**.",
       "synthesis": {
         "coherence": "Projet très solide et crédible. L'alignement entre le besoin de transparence foncière, le marketing de réassurance et le plan de gestion de projet est sans faille.",
@@ -3941,7 +3979,7 @@
       "full_name": "ANTÉNOR Tania Laydie",
       "projet": "« Une lettre à moi-même » / EVENTURE MANAGEMENT — Événements artistiques et ateliers d'expression psychosociale pour la jeunesse haïtienne",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Projet admirable d'humanisme, de résilience et d'organisation.",
       "synthesis": {
         "coherence": "Un chef-d'œuvre de cohérence humaine, émotionnelle et méthodologique. Tous les livrables d'entraînement sont présents et dialoguent avec une harmonie parfaite.",
@@ -4092,7 +4130,7 @@
       "full_name": "ADANZOUNNON AGBO Tranquilin Yelognissè",
       "projet": "BELLA'CARE — Site e-commerce de crèmes et soins de beauté pour la peau (Sujet 4) au Bénin",
       "category": "green",
-      "category_label": "Complet (5/4 livrables)",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier complet. **Condenser impérativement la note du TDB sous 100 mots**.",
       "synthesis": {
         "coherence": "Alignement opérationnel sans faille. Les 4 livrables d'entraînement sont présents et parfaitement synchronisés. Le seul ajustement à opérer est d'ordre formel (condenser la note du tableau de bord).",
@@ -4252,8 +4290,8 @@
       "prenom": "Wolé Romaric",
       "full_name": "AKPO Wolé Romaric",
       "projet": "Digital Empire — Formation « La Méthode Vente Directe : Attirer des Prospects Qualifiés et Exploser vos Ventes »",
-      "category": "green",
-      "category_label": "Complet (4/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Approche infopreneuriat méthodique. Chiffrer en FCFA et **créer PP4**.",
       "synthesis": {
         "coherence": "Mécanique d'infopreneuriat parfaitement huilée. L'alignement entre les douleurs du persona, le tunnel de vente et la charge de travail est très bon. Il reste à valoriser financièrement le budget et à créer le tableau de bord.",

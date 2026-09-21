@@ -184,8 +184,8 @@ export default function DashboardPP() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card className="bg-card border-border shadow-sm">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <Card className="bg-card border-border shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -193,63 +193,75 @@ export default function DashboardPP() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{stats.total_learners}</p>
-                <p className="text-[11px] text-muted-foreground">Apprenants</p>
+                <p className="text-[11px] text-muted-foreground">Apprenants suivis</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border shadow-sm">
+        <Card className="bg-card border-border shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                 <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{stats.v1_completed}</p>
-                <p className="text-[11px] text-muted-foreground">V1 complets ({stats.v1_rate}%)</p>
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-2xl font-bold text-foreground">{stats.categories.green}</p>
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">({stats.v1_rate}%)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Complets V1 (4/4)</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border shadow-sm">
+        <Card className="bg-card border-border shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <TrendingUp className="w-4.5 h-4.5 text-blue-500" />
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Clock className="w-4.5 h-4.5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{stats.v2_submitted}</p>
-                <p className="text-[11px] text-muted-foreground">V2 déposées ({stats.v2_rate}%)</p>
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-2xl font-bold text-foreground">{stats.categories.yellow}</p>
+                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">({Math.round((stats.categories.yellow / stats.total_learners) * 100)}%)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Partiels V1 (2-3/4)</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.categories.green}</p>
-                <p className="text-[11px] text-muted-foreground">Dossiers complets</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-sm">
+        <Card className="bg-card border-border shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{stats.categories.red}</p>
-                <p className="text-[11px] text-muted-foreground">En retard</p>
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-2xl font-bold text-foreground">{stats.categories.red}</p>
+                  <span className="text-xs font-semibold text-red-600 dark:text-red-400">({Math.round((stats.categories.red / stats.total_learners) * 100)}%)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">En retard (1/4)</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border shadow-xs col-span-2 sm:col-span-1">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <TrendingUp className="w-4.5 h-4.5 text-blue-500" />
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-2xl font-bold text-foreground">{stats.v2_submitted}</p>
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">({stats.v2_rate}%)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Rendus finaux V2</p>
               </div>
             </div>
           </CardContent>
