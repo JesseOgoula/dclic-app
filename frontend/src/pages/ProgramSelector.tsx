@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Target, LogOut, ArrowRight, ShieldCheck, Sun, Moon, GraduationCap } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
+import ppData from '@/data/pp_evaluations.json';
 
 interface ProgramSelectorProps {
   onSelectProgram: (program: 'mn' | 'gp' | 'pp') => void;
@@ -122,7 +123,7 @@ const ProgramSelector: React.FC<ProgramSelectorProps> = ({ onSelectProgram, onLo
             <CardContent className="pt-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/60 px-3 py-2.5 rounded-lg border border-border/60">
                 <span className="font-mono text-foreground font-medium">PROJET_PRO_2026</span>
-                <span className="font-medium text-foreground">31 projets suivis</span>
+                <span className="font-medium text-foreground">{ppData?.stats?.total_learners || 31} projets suivis</span>
               </div>
               <div className="mt-4 flex items-center gap-1.5 text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors">
                 <span>Accéder au monitoring</span>

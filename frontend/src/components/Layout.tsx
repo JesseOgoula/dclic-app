@@ -28,6 +28,7 @@ import { api, type Alert } from '@/lib/api';
 import { useTheme } from '@/lib/theme';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ppData from '@/data/pp_evaluations.json';
 
 type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
 
@@ -174,7 +175,7 @@ export default function Layout({
   };
 
   const currentProgramLabel = activeProgram === 'pp' ? 'Projet Professionnel' : activeProgram === 'gp' ? 'Gestion de Projet' : 'Marketing Numérique';
-  const currentProgramCohort = activeProgram === 'pp' ? '31 projets' : activeProgram === 'gp' ? '157 apprenants' : '115 apprenants';
+  const currentProgramCohort = activeProgram === 'pp' ? `${ppData?.stats?.total_learners || 31} projets` : activeProgram === 'gp' ? '157 apprenants' : '115 apprenants';
   const currentProgramGroup = activeProgram === 'pp' ? 'PROJET_PRO_2026' : activeProgram === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
 
   return (
@@ -309,7 +310,7 @@ export default function Layout({
                     </div>
                     <div className="truncate">
                       <p className="font-medium truncate">Projet Professionnel</p>
-                      <p className="text-[10px] text-muted-foreground">31 projets · Certification</p>
+                      <p className="text-[10px] text-muted-foreground">{ppData?.stats?.total_learners || 31} projets · Certification</p>
                     </div>
                   </div>
                   {activeProgram === 'pp' && <Check size={14} className="text-foreground shrink-0 ml-1" />}

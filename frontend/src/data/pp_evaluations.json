@@ -1,37 +1,37 @@
 {
   "stats": {
-    "total_learners": 31,
-    "v1_completed": 9,
-    "v1_rate": 29.0,
+    "total_learners": 36,
+    "v1_completed": 11,
+    "v1_rate": 30.6,
     "v2_submitted": 0,
     "v2_rate": 0.0,
     "categories": {
-      "green": 9,
-      "yellow": 15,
-      "red": 7
+      "green": 11,
+      "yellow": 16,
+      "red": 9
     },
     "deliverables_stats": {
       "desc": {
-        "v1_submitted": 31,
+        "v1_submitted": 36,
         "v1_rate": 100.0,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
       "strat": {
-        "v1_submitted": 24,
-        "v1_rate": 77.4,
+        "v1_submitted": 27,
+        "v1_rate": 75.0,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
       "gest": {
-        "v1_submitted": 17,
-        "v1_rate": 54.8,
+        "v1_submitted": 18,
+        "v1_rate": 50.0,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
       "budget": {
         "v1_submitted": 17,
-        "v1_rate": 54.8,
+        "v1_rate": 47.2,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
@@ -42,13 +42,13 @@
         "v2_rate": 0.0
       },
       "tdb": {
-        "v1_submitted": 9,
-        "v1_rate": 29.0,
+        "v1_submitted": 12,
+        "v1_rate": 33.3,
         "v2_submitted": 0,
         "v2_rate": 0.0
       }
     },
-    "last_updated": "2026-09-21T12:32:47.335630"
+    "last_updated": "2026-09-21T12:50:54.116484"
   },
   "deliverables_def": [
     {
@@ -59,7 +59,11 @@
       "icon": "📝",
       "max_score": 0,
       "keywords": [
-        "description"
+        "description",
+        "cadrage",
+        "livrable 0",
+        "fiche de cadrage",
+        "projet libre"
       ]
     },
     {
@@ -72,7 +76,10 @@
       "keywords": [
         "stratégie",
         "strategie",
-        "marketing"
+        "marketing",
+        "pp1",
+        "livrable 1",
+        "livrable1"
       ]
     },
     {
@@ -84,8 +91,13 @@
       "max_score": 6,
       "keywords": [
         "gestion de projet",
+        "gestion",
         "gantt",
-        "rh"
+        "rh",
+        "ressources",
+        "pp2",
+        "livrable 2",
+        "livrable2"
       ]
     },
     {
@@ -96,7 +108,11 @@
       "icon": "💰",
       "max_score": 6,
       "keywords": [
-        "budget"
+        "budget",
+        "chiffrage",
+        "previsionnel",
+        "coûts",
+        "couts"
       ]
     },
     {
@@ -110,7 +126,11 @@
         "contenu",
         "content",
         "flyer",
-        "video"
+        "video",
+        "vidéo",
+        "pp3",
+        "livrable 3",
+        "livrable3"
       ]
     },
     {
@@ -123,7 +143,13 @@
       "keywords": [
         "tableau de bord",
         "indicateur",
-        "tdb"
+        "indicateurs",
+        "tdb",
+        "kpi",
+        "dashboard",
+        "pp4",
+        "livrable 4",
+        "livrable4"
       ]
     }
   ],
@@ -733,8 +759,8 @@
       "prenom": "Ahouéfa Johanita Auria",
       "full_name": "ASSOGBA Ahouéfa Johanita Auria",
       "projet": "Kola Épicerie / Kola Cube — Boutique en ligne et bouillons culinaires 100 % naturels Made in Benin",
-      "category": "yellow",
-      "category_label": "Partiel (3/4 livrables)",
+      "category": "green",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟡 Projet très porteur. **Concevoir le Tableau de bord (PP4)**.",
       "synthesis": {
         "coherence": "Projet très porteur sur le marché agroalimentaire sain. L'alignement stratégique est bon, mais le tableau de bord fait défaut pour boucler le pilotage de la campagne.",
@@ -854,10 +880,16 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "✅ Soumis",
             "comment": "Bonjour Auria,\nVous devez impérativement créer votre tableau de bord d'indicateurs pour le dépôt final : prévoyez des KPIs par canal (taux d'engagement sur les vidéos TikTok, coût par commande sur WhatsApp Business, volume de réachat des packs mensuels). Accompagnez votre tableau d'un texte de justification de moins de 100 mots.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "TABLEAU DE BORD DES KPIs Campagne Kola cube.pdf",
+                "size": 101276,
+                "mtime": "2026-09-21T11:40:14"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -1018,7 +1050,7 @@
       "full_name": "AGOSSA Carine",
       "projet": "Entreprise agroalimentaire — Épices fraîches en pâte et piments de table prêts à l'emploi",
       "category": "yellow",
-      "category_label": "Partiel (2/4 livrables)",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟡 Produit pertinent. **Manquent Gantt/budget (PP2) et TDB (PP4)**.",
       "synthesis": {
         "coherence": "L'utilité pratique du produit est évidente, mais l'absence des livrables de gestion opérationnelle et de tableau de bord bloque pour l'instant l'évaluation complète.",
@@ -1035,9 +1067,9 @@
             "comment": "Bonjour Carine,\nVotre projet d'épices fraîches prêtes à l'emploi répond à un vrai besoin pratique des personnes actives qui manquent de temps pour cuisiner. Pour consolider votre cadrage, précisez la part de la vente en ligne (commandes WhatsApp, livraisons programmées) par rapport à la vente directe.\nTon tuteur D-CLIC",
             "files": [
               {
-                "name": "Sujet professionnel.docx",
-                "size": 15956,
-                "mtime": "2026-09-16T17:51:12"
+                "name": "Description du projet.pdf",
+                "size": 96311,
+                "mtime": "2026-09-17T20:50:38"
               }
             ]
           },
@@ -1059,9 +1091,9 @@
             "comment": "Bonjour Carine,\nVotre cible de personnes actives pressées est bien identifiée. Pour le rendu final : formalisez 2 personas détaillés, nommez expressément 3 marques ou vendeuses concurrentes directes sur votre marché et formulez un objectif SMART précis (ex: vendre 500 pots et fidéliser 100 clients en 60 jours). Détaillez également 2 actions concrètes d'acquisition et 2 de rétention.\nTon tuteur D-CLIC",
             "files": [
               {
-                "name": "Audiance.pdf",
-                "size": 132738,
-                "mtime": "2026-09-18T18:17:40"
+                "name": "Stratégie Marketing.pdf",
+                "size": 123008,
+                "mtime": "2026-09-17T21:05:16"
               }
             ]
           },
@@ -1132,10 +1164,16 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "✅ Soumis",
             "comment": "Bonjour Carine,\nÉtablissez une grille d'indicateurs de suivi : portée et clics sur Facebook, volume de commandes reçues sur WhatsApp, coût moyen de livraison et taux de réachat mensuel. Ajoutez votre texte de justification de 100 mots max.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Tableau de bord.docx",
+                "size": 15352,
+                "mtime": "2026-09-21T13:00:28"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -1579,8 +1617,8 @@
       "prenom": "Dagbegnon Christelle",
       "full_name": "ASSOGBA Dagbegnon Christelle",
       "projet": "ADC TV CONNECT — Digitalisation et développement de l'audience d'une chaîne de télévision locale",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🔴 Bon cadrage média, mais **PP1, PP2 et PP4 restent à formaliser**.",
       "synthesis": {
         "coherence": "L'intuition et la compréhension des enjeux médias sont très bonnes dans le cadrage, mais l'absence des 4 livrables opérationnels (PP1 à PP4) empêche pour l'instant d'évaluer la mise en œuvre pratique.",
@@ -1616,10 +1654,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "✅ Soumis",
             "comment": "Bonjour Dagbegnon Christelle,\nEn cohérence avec votre cadrage télévisuel, rédigez pour le dépôt officiel votre stratégie marketing (< 1000 mots) : définissez 2 personas (le téléspectateur historique à domicile et le jeune actif mobile), analysez 3 chaînes ou médias concurrents sur votre zone, fixez un objectif SMART de croissance de vos audiences web, et détaillez vos actions d'acquisition (extraits courts TikTok/Reels) et de rétention (communauté WhatsApp des téléspectateurs).\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "STRATEGIE MARKETING.docx",
+                "size": 24951,
+                "mtime": "2026-09-21T02:37:16"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4290,8 +4334,8 @@
       "prenom": "Wolé Romaric",
       "full_name": "AKPO Wolé Romaric",
       "projet": "Digital Empire — Formation « La Méthode Vente Directe : Attirer des Prospects Qualifiés et Exploser vos Ventes »",
-      "category": "yellow",
-      "category_label": "Partiel (3/4 livrables)",
+      "category": "green",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Approche infopreneuriat méthodique. Chiffrer en FCFA et **créer PP4**.",
       "synthesis": {
         "coherence": "Mécanique d'infopreneuriat parfaitement huilée. L'alignement entre les douleurs du persona, le tunnel de vente et la charge de travail est très bon. Il reste à valoriser financièrement le budget et à créer le tableau de bord.",
@@ -4411,10 +4455,16 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "✅ Soumis",
             "comment": "Bonjour Wolé Romaric,\nConcevez une grille d'indicateurs de performance de tunnel de vente : coût par prospect inscrit à la masterclass, taux de présence en direct, taux de conversion en acheteurs de la formation et retour sur investissement publicitaire (ROAS). Ajoutez votre texte de justification de 100 mots max.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Tableau de bord.xlsx",
+                "size": 14004,
+                "mtime": "2026-09-21T11:32:50"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4547,6 +4597,689 @@
             "submitted": false,
             "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
             "comment": "Bonjour Yesmina,\nÉtablissez une grille d'indicateurs e-commerce D2C : coût par acquisition (CPA) sur TikTok Ads, taux de conversion des visites en achats, panier moyen et taux de réachat à 60 jours. Ajoutez votre texte de justification de 100 mots max.\nTon tuteur D-CLIC",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-32",
+      "num": "32",
+      "nom": "AVETO",
+      "prenom": "Cyrille",
+      "full_name": "AVETO Cyrille",
+      "projet": "MediConnect (Téléconsultation médicale en ligne)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
+      "status_priority": "",
+      "synthesis": {
+        "coherence": "Dossier en cours de constitution.",
+        "points_forts": "Apprenant engagé ayant déposé ses premiers livrables.",
+        "chantiers": "Poursuivre la formalisation des livrables manquants.",
+        "message": "Bonjour Cyrille,\nBienvenue dans le suivi du Projet Professionnel. Poursuivez vos dépôts pour compléter votre parcours."
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Cyrille,\nExcellent cadrage de projet pour MediConnect. Votre ambition de démocratiser la téléconsultation médicale en ligne en Afrique de l'Ouest répond à un enjeu de santé publique critique. Vos segments cibles (zones périurbaines et enclavées) sont très bien ciblés. Veillez à bien intégrer les aspects réglementaires et la confiance des utilisateurs dans la suite de vos livrables.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "DESCRIPTION DU PROJET PROFESSIONNEL.pdf",
+                "size": 96364,
+                "mtime": "2026-09-21T12:13:16"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Cyrille,\nTrès bonne stratégie marketing pour MediConnect. Vos deux personas (Aïcha, 28 ans et Michel, 46 ans) sont bien caractérisés avec des besoins et freins réalistes. Votre étude du marché béninois (benchmark DotoMed) et votre objectif SMART (+40 % de consultations en ligne en 6 mois) sont très cohérents. Pour le dépôt final : approfondissez la différenciation concurrentielle par rapport aux solutions existantes et précisez le budget alloué à l'acquisition WhatsApp/Facebook.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "DOCUMENT DE STRATÉGIE MARKETING.pdf",
+                "size": 186041,
+                "mtime": "2026-09-21T12:15:14"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Cyrille,\nVotre démarche Agile découpée en 3 étapes claires (Planification, Préparation/Production, Mise en œuvre) est bien adaptée à une start-up numérique. Pour le rendu final : veillez à joindre un tableau Gantt visuel précis avec les jalons temporels hebdomadaires, et détaillez l'affectation nominative des profils RH (CM, développeur, graphiste) ainsi que le chiffrage budgétaire par tâche.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "DOCUMENT DE GESTION DE PROJET.pdf",
+                "size": 186645,
+                "mtime": "2026-09-21T12:17:16"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-33",
+      "num": "33",
+      "nom": "AMOUSSA",
+      "prenom": "Eyitayo Adédoyin Sandrine Faridath",
+      "full_name": "AMOUSSA Eyitayo Adédoyin Sandrine Faridath",
+      "projet": "KDS School (École des métiers du numérique et création de contenu)",
+      "category": "red",
+      "category_label": "En retard (1/4 livrables)",
+      "status_priority": "",
+      "synthesis": {
+        "coherence": "Dossier en cours de constitution.",
+        "points_forts": "Apprenant engagé ayant déposé ses premiers livrables.",
+        "chantiers": "Poursuivre la formalisation des livrables manquants.",
+        "message": "Bonjour Eyitayo Adédoyin Sandrine Faridath,\nBienvenue dans le suivi du Projet Professionnel. Poursuivez vos dépôts pour compléter votre parcours."
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Eyitayo,\nTrès bon cadrage de votre projet KDS School. La formation aux métiers du numérique et de la création de contenu répond à une forte demande des jeunes et professionnels. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types (étudiant en reconversion et professionnel en perfectionnement), analysez 3 centres ou plateformes concurrentes de formation, et fixez des objectifs SMART d'acquisition d'inscrits.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Description.pdf",
+                "size": 63690,
+                "mtime": "2026-09-21T13:16:06"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-34",
+      "num": "34",
+      "nom": "ATTIOGBE",
+      "prenom": "Komi Ithiel",
+      "full_name": "ATTIOGBE Komi Ithiel",
+      "projet": "Santé Numérique / Télémédecine en Afrique de l'Ouest",
+      "category": "red",
+      "category_label": "En retard (1/4 livrables)",
+      "status_priority": "",
+      "synthesis": {
+        "coherence": "Dossier en cours de constitution.",
+        "points_forts": "Apprenant engagé ayant déposé ses premiers livrables.",
+        "chantiers": "Poursuivre la formalisation des livrables manquants.",
+        "message": "Bonjour Komi Ithiel,\nBienvenue dans le suivi du Projet Professionnel. Poursuivez vos dépôts pour compléter votre parcours."
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Komi Ithiel,\nExcellente analyse contextuelle et benchmark sectoriel approfondi sur la télémédecine en Afrique de l'Ouest francophone et au Togo. Votre socle documentaire est solide et bien documenté. Pour la suite (Livrable 1 - Stratégie) : traduisez ce benchmark en stratégie opérationnelle avec 2 personas patients/médecins, vos canaux d'acquisition prioritaires et vos objectifs chiffrés.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "ProjetProDclic_Livrable1_DescriptionDuProjet_KomiIthielAttiogbe.pdf",
+                "size": 612200,
+                "mtime": "2026-09-21T01:50:02"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-35",
+      "num": "35",
+      "nom": "ALLARABEYE",
+      "prenom": "Nodjipal Succès",
+      "full_name": "ALLARABEYE Nodjipal Succès",
+      "projet": "Développement de l'audience d'une chaîne TV tchadienne via le numérique",
+      "category": "red",
+      "category_label": "En retard (1/4 livrables)",
+      "status_priority": "",
+      "synthesis": {
+        "coherence": "Dossier en cours de constitution.",
+        "points_forts": "Apprenant engagé ayant déposé ses premiers livrables.",
+        "chantiers": "Poursuivre la formalisation des livrables manquants.",
+        "message": "Bonjour Nodjipal Succès,\nBienvenue dans le suivi du Projet Professionnel. Poursuivez vos dépôts pour compléter votre parcours."
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Nodjipal Succès,\nProjet très intéressant et pertinent sur le développement d'audience d'une chaîne de télévision tchadienne via les canaux numériques. L'adaptation aux nouveaux usages mobiles et réseaux sociaux est primordiale. Pour le Livrable 1 : structurez vos 2 personas (le téléspectateur traditionnel et le jeune connecté sur mobile), benchmarquez 3 médias concurrents au Tchad/Afrique centrale, et précisez vos leviers d'acquisition digitale (extraits vidéo courts, communauté).\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "PROJET PROFESSIONNEL ALLARABEYE N SUCCES 1.pdf",
+                "size": 231322,
+                "mtime": "2026-09-21T12:31:22"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-36",
+      "num": "36",
+      "nom": "AKADJA",
+      "prenom": "Olivier",
+      "full_name": "AKADJA Olivier",
+      "projet": "Doer Team Kids Academy (Soutien scolaire & cours particuliers bilingues)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
+      "status_priority": "",
+      "synthesis": {
+        "coherence": "Dossier en cours de constitution.",
+        "points_forts": "Apprenant engagé ayant déposé ses premiers livrables.",
+        "chantiers": "Poursuivre la formalisation des livrables manquants.",
+        "message": "Bonjour Olivier,\nBienvenue dans le suivi du Projet Professionnel. Poursuivez vos dépôts pour compléter votre parcours."
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Olivier,\nTrès bonne note de cadrage pour Doer Team Kids Academy. Votre proposition de valeur sur le soutien scolaire bilingue (français/anglais) du CI à la Terminale répond à un vrai besoin des familles. Votre objectif de progression de 12 à 20 élèves est clair et réaliste.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Description du projet libre .docx",
+                "size": 9091,
+                "mtime": "2026-09-21T00:52:52"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Olivier,\nRemarquable document de stratégie marketing. L'opposition entre le « parent stratège d'examen » (35-50 ans) et le « parent accompagnateur au long cours » (28-40 ans) est particulièrement fine et opérationnelle. Votre étude concurrentielle en 3 catégories montre bien la valeur ajoutée de votre offre globale. Pour le dépôt final : détaillez davantage vos actions d'activation et précisez vos indicateurs de conversion via les groupes WhatsApp de parents d'élèves.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Stratégie marketing DOER TEAM kids academy .docx",
+                "size": 10599,
+                "mtime": "2026-09-21T00:55:06"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
             "files": []
           },
           "final": {
