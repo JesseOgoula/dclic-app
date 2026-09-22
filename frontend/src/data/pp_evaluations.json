@@ -48,7 +48,7 @@
         "v2_rate": 0.0
       }
     },
-    "last_updated": "2026-09-22T09:12:54.979539"
+    "last_updated": "2026-09-22T09:34:07.167196"
   },
   "deliverables_def": [
     {
@@ -612,10 +612,10 @@
       "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Qualité professionnelle. **Veiller à la limite stricte de 1000 mots pour PP1**.",
       "synthesis": {
-        "coherence": "Alignement total et remarquable entre la cause culturelle, le modèle économique de plateforme et les outils de reporting automatisés.",
-        "points_forts": "Niveau de finition digne du monde professionnel, rigueur financière et sensibilité éditoriale.",
-        "chantiers": "- *Sur le fond* : Produire le Livrable 3 (Flyer + Vidéo d'expérience artisanale).\n  - *Sur la forme* : Réduire le volume textuel de la stratégie marketing sous la barre stricte des 1000 mots.",
-        "message": "Votre projet Yonwa est une véritable vitrine d'excellence pour le programme D-CLIC : la précision de votre vision, de votre gestion de projet et de vos maquettes Excel est impressionnante. Veillez simplement à calibrer votre texte de stratégie sous les 1000 mots et lancez-vous dans vos deux contenus créatifs pour sécuriser la note maximale !"
+        "coherence": "Le projet porte sur : , de réserver et de payer, puis d’évaluer son expérience. Le projet crée. Objectif : Accroître la visibilité, les réservations et les revenus des hôtes tout en facilitant la. Parcours V1 complet (4/4 livrables déposés).",
+        "points_forts": "Projet 5 personnes identifié et cadré.",
+        "chantiers": "Finaliser les livrables manquants et préparer la restitution finale.",
+        "message": "Le dossier pour 5 personnes est bien avancé avec tous les livrables V1 déposés. Poursuivre la structuration pour la restitution finale."
       },
       "deliverables": {
         "desc": {
@@ -623,7 +623,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Cadrage validé",
-            "comment": "Votre description de Yonwa est d'un très grand professionnalisme : valoriser les artisans et le patrimoine culturel immatériel béninois à travers une plateforme digitale de réservation d'ateliers immersifs est une idée brillante et parfaitement documentée. Ce cadrage est validé avec les félicitations du tuteur.",
+            "comment": "Votre note de cadrage pour 5 personnes est bien structurée. L'activité choisie (, de réserver et de payer, puis d’évaluer son expérience. Le projet crée) est clairement présentée. L'objectif de accroître la visibilité, les réservations et les revenus des hôtes tout en facilitant la est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "Description du projet Yonwa.pdf",
@@ -647,7 +647,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — Excellente qualité mais attention à la longueur",
-            "comment": "Votre stratégie marketing est d'une remarquable maturité : vos personas (diaspora et expatriés en quête de sens), votre étude concurrentielle et vos actions de partenariats sont impeccables. **Attention impérative** : votre texte dépasse actuellement le plafond des 1000 mots imposé par le barème officiel. Condensez légèrement votre propos pour le dépôt final afin de ne pas risquer une pénalité rédactionnelle.",
+            "comment": "Votre document de stratégie marketing pour 5 personnes a bien été analysé. Vos personas sont présents et identifiés. L'analyse concurrentielle est amorcée. Les objectifs SMART sont abordés. Veillez à ce que votre texte reste sous le plafond de 1000 mots pour le rendu final.",
             "files": [
               {
                 "name": "Strategie Marketing Yonwa.pdf",
@@ -671,7 +671,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Remarquable",
-            "comment": "Votre planification sous Excel sur 12 mois avec une équipe de 5 personnes est exemplaire : les phases de cadrage, de recrutement des artisans, de test pilote et de montée en charge sont parfaitement cadencées. Les responsabilités attribuées à chaque poste sont claires et équilibrées.",
+            "comment": "Votre document de gestion de projet pour 5 personnes a été examiné. Veillez à formaliser un planning Gantt clair avec les jalons clés pour le dépôt final. Détaillez l'affectation nominative des profils RH nécessaires. N'oubliez pas d'intégrer le chiffrage budgétaire par tâche.",
             "files": [
               {
                 "name": "Gestion de projet Yonwa.xlsx",
@@ -695,7 +695,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Réaliste et rigoureux",
-            "comment": "Votre enveloppe budgétaire de 5 000 000 FCFA sur 12 mois est judicieusement ventilée par mois et par catégorie opérationnelle. La marge de manœuvre financière et la prévision des commissions d'artisans témoignent d'une excellente compréhension du modèle de marketplace expérientielle.",
+            "comment": "Budget prévisionnel pour 5 personnes bien reçu et pris en compte. Veillez à détailler le chiffrage par tâche et par phase pour le rendu final, avec une ventilation claire en FCFA.",
             "files": []
           },
           "final": {
@@ -731,7 +731,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Remarquable",
-            "comment": "Votre classeur Excel automatisé est digne d'une agence conseil : le calcul dynamique du coût d'acquisition client (CAC), le suivi du taux de remplissage des ateliers et le volume d'affaires sont parfaitement suivis. Pensez à rédiger le texte de justification de 100 mots maximum pour accompagner ce beau tableau lors de la remise finale.",
+            "comment": "Votre tableau de bord d'indicateurs pour 5 personnes a été examiné. Précisez des KPIs clairs et mesurables par canal. Veillez scrupuleusement à ce que votre texte d'accompagnement justifiant le choix des métriques compte strictement moins de 100 mots pour respecter la consigne officielle.",
             "files": [
               {
                 "name": "Tableau de bord Marketing Yonwa.xlsx",
@@ -774,7 +774,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Cadrage validé",
-            "comment": "Votre description de projet pour Kola Cube pose un diagnostic de santé publique très juste : proposer une alternative naturelle et locale aux bouillons industriels chimiques répond à une forte attente des ménages béninois. Veillez à bien maintenir le canal de vente en ligne au cœur de votre dispositif marketing.",
+            "comment": "Votre note de cadrage est bien structurée. L'activité choisie ((produit) : Kola Cube , assaisonnement biologique  (sans additifs t oxique ni) est clairement présentée. Le ciblage (- B2C : Familles et ménages urbains soucieux de leur santé au bénin et dans la) est pertinent et bien identifié. L'objectif de accroître la notoriété de kola cube et générer 500 ventes dans un délai de 3 mois. est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "Description du projet- Auria Assogba.pdf",
@@ -798,7 +798,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — Bon travail, vigilance numérique",
-            "comment": "Votre stratégie marketing est très riche et cible judicieusement les ménages urbains soucieux de santé et les restauratrices. Attention : mettez expressément en avant votre dispositif digital (commandes WhatsApp Business, boutique en ligne, Meta Ads) pour respecter la règle d'or du marketing numérique. Veillez également à ne pas dépasser la limite de 1000 mots au dépôt final.",
+            "comment": "Votre document de stratégie marketing a bien été analysé. Vos personas sont présents et identifiés. L'analyse concurrentielle est amorcée. Précisez des objectifs SMART chiffrés et mesurables pour le dépôt final. Veillez à ce que votre texte reste sous le plafond de 1000 mots pour le rendu final.",
             "files": [
               {
                 "name": "Stratégie Marketing DCLIC AURIA.pdf",
@@ -822,7 +822,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Détaillé et structuré",
-            "comment": "Votre plan de gestion pour la campagne de 90 jours est bien construit : l'articulation entre votre équipe interne et les expertises externes ponctuelles (créateur vidéo culinaire, community manager) est très pertinente pour réussir le lancement de Kola Cube.",
+            "comment": "Votre document de gestion de projet a été examiné. Le planning/Gantt est présent et structuré. L'affectation des ressources humaines est abordée. Le volet budgétaire est mentionné.",
             "files": [
               {
                 "name": "Doc gestion de projet .pdf",
@@ -846,7 +846,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — À synthétiser sous forme tabulaire",
-            "comment": "Vos prévisions de dépenses sont réalistes, mais elles sont disséminées dans le texte. Pour votre remise finale, regroupez impérativement l'ensemble de vos coûts dans un tableau récapitulatif clair affichant le montant en FCFA en face de chaque tâche du planning Gantt.",
+            "comment": "Budget prévisionnel bien reçu et pris en compte. Veillez à détailler le chiffrage par tâche et par phase pour le rendu final, avec une ventilation claire en FCFA.",
             "files": []
           },
           "final": {
@@ -882,7 +882,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis",
-            "comment": "Vous devez impérativement créer votre tableau de bord d'indicateurs pour le dépôt final : prévoyez des KPIs par canal (taux d'engagement sur les vidéos TikTok, coût par commande sur WhatsApp Business, volume de réachat des packs mensuels). Accompagnez votre tableau d'un texte de justification de moins de 100 mots.",
+            "comment": "Votre tableau de bord d'indicateurs a été examiné. Les indicateurs de performance sont identifiés. Les canaux de suivi sont bien présents. Veillez scrupuleusement à ce que votre texte d'accompagnement justifiant le choix des métriques compte strictement moins de 100 mots pour respecter la consigne officielle.",
             "files": [
               {
                 "name": "TABLEAU DE BORD DES KPIs Campagne Kola cube.pdf",
@@ -1204,15 +1204,15 @@
       "nom": "AGBLA",
       "prenom": "Christelle Gloria",
       "full_name": "AGBLA Christelle Gloria",
-      "projet": "ÉcoClean Bénin — Service digital d'assainissement, collecte sélective et recyclage écologique des déchets",
+      "projet": "CLAP FAMILLE 360° — Stratégie de convergence TV-Web et croissance d'audience (Chaîne de télévision familiale)",
       "category": "green",
       "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Dossier complet et exemplaire dans sa présentation éditoriale.",
       "synthesis": {
-        "coherence": "Félicitations pour ce dossier d'une très haute tenue : la continuité entre le défi écologique, la stratégie marketing, le Gantt budgété et le tableau de bord est exemplaire.",
-        "points_forts": "Dépôt complet des 4 livrables d'entraînement, charte graphique verte harmonisée sur tous les PDF et rigueur méthodologique.",
-        "chantiers": "- *Sur le fond* : Produire le Livrable 3 (Flyer + Vidéo de sensibilisation).\n  - *Sur la forme* : Contrôler le respect strict des plafonds de mots (1000 pour PP1, 100 pour la note de PP4).",
-        "message": "Votre travail sur ÉcoClean Bénin est exemplaire de rigueur, de présentation et de cohérence stratégique : vos documents font honneur au programme D-CLIC. Il ne vous reste plus qu'à concevoir vos deux supports de contenu (flyer et vidéo) pour viser la note maximale au dépôt final. Toutes mes félicitations !"
+        "coherence": "Le projet porte sur une chaîne de télévision diffusant aussi sur internet, ciblant le public familial avec pour objectif d'augmenter son audience. L'activité est clairement liée au numérique via la convergence TV-Web.",
+        "points_forts": "Concept de convergence TV-Web bien défini, cibles complémentaires (public familial TV + jeunes connectés) clairement identifiées.",
+        "chantiers": "- *Sur le fond* : Finaliser les livrables manquants et préparer la restitution finale.\n  - *Sur la forme* : Veiller au respect des limites de mots et à la structuration visuelle des documents.",
+        "message": "Le projet CLAP FAMILLE 360° est bien structuré avec une vision claire de la stratégie de convergence TV-Web. Poursuivre la dynamique en consolidant les livrables restants pour la restitution finale."
       },
       "deliverables": {
         "desc": {
@@ -1220,7 +1220,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Exemplaire",
-            "comment": "Votre note de cadrage pour ÉcoClean Bénin est irréprochable : présentation soignée aux normes D-CLIC, problématique de salubrité et de recyclage clairement exposée, et articulation limpide entre la plateforme digitale et le service de collecte. Ce cadrage est pleinement validé.",
+            "comment": "Votre note de cadrage pour CLAP FAMILLE 360° est bien structurée et claire. Le positionnement sur la convergence TV-Web pour une chaîne familiale est pertinent et bien ancré dans les enjeux actuels de la consommation des médias. Les deux cibles (le public familial traditionnel devant le poste et les jeunes connectés sur smartphone) sont bien identifiées. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés (parent téléspectateur et jeune consommateur mobile), analysez au moins 3 chaînes ou médias concurrents, et fixez des objectifs SMART chiffrés de croissance d'audience.",
             "files": [
               {
                 "name": "Description du Projet Professionnel_Christelle Gloria AGBLA.pdf",
@@ -1244,7 +1244,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Très bon travail",
-            "comment": "Votre stratégie marketing est complète et très bien articulée : vos 2 personas (ménage éco-responsable et entreprise) sont précis, vos 3 concurrents bien identifiés et vos actions de tri incitatif sont stimulantes. Veillez simplement à vous assurer que votre texte reste sous le plafond de 1000 mots au dépôt final.",
+            "comment": "Votre stratégie marketing pour CLAP FAMILLE 360° aborde les leviers de convergence TV-Web. Veillez à bien structurer vos 2 personas types (le téléspectateur traditionnel et le jeune mobile), à benchmarquer au moins 3 chaînes ou médias concurrents, et à préciser vos objectifs SMART de croissance d'audience multiplateforme. Assurez-vous que votre texte reste sous le plafond de 1000 mots pour le rendu final.",
             "files": [
               {
                 "name": "Document de Stratégie Marketing_Projet Professionnel_Christelle Gloria AGBLA.pdf",
@@ -1268,7 +1268,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Très rigoureux",
-            "comment": "Votre planning Gantt est remarquablement structuré : le découpage en phases, les jalons de validation et les responsabilités affectées aux collecteurs, coordinateurs et chargés de communication sont réalistes et équilibrés.",
+            "comment": "Votre document de gestion de projet pour CLAP FAMILLE 360° pose les bases opérationnelles de la transition numérique de la chaîne. Veillez à formaliser un planning Gantt détaillé avec les jalons clés (mise en place de la cellule digitale, adaptation des studios pour le live stream, lancement des formats web) et à détailler l'affectation des ressources humaines et le budget par tâche.",
             "files": [
               {
                 "name": "Document de Gestion de Projet Professionnel_Christelle Gloria AGBLA.pdf",
@@ -1292,7 +1292,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Bien détaillé",
-            "comment": "Votre budget par tâche est rigoureusement chiffré en FCFA. Pensez simplement à préciser la part des frais logistiques récurrents (carburant, maintenance du matériel de collecte) pour consolider la faisabilité financière globale lors de la remise finale.",
+            "comment": "Votre budget prévisionnel pour CLAP FAMILLE 360° est pris en compte. Veillez à détailler le chiffrage par tâche et par phase pour le rendu final, avec une ventilation claire des coûts de production de contenu web, d'équipement de streaming et de promotion digitale.",
             "files": []
           },
           "final": {
@@ -1328,7 +1328,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Très bonne structure",
-            "comment": "Votre tableau de bord classe judicieusement les indicateurs par canal (Facebook, WhatsApp, terrain). Veillez scrupuleusement à ce que votre texte d'accompagnement justifiant le choix des métriques compte strictement moins de 100 mots pour respecter la consigne officielle.",
+            "comment": "Votre tableau de bord d'indicateurs pour CLAP FAMILLE 360° est bien structuré. Veillez à intégrer les métriques clés par plateforme : durée moyenne de visionnage sur YouTube, taux d'interaction sur Facebook Live, vues et partages sur les réseaux sociaux. Votre texte d'accompagnement justifiant le choix des métriques doit compter strictement moins de 100 mots.",
             "files": [
               {
                 "name": "Tableau de bord des indicateurs_Projet Professionnel_Christelle Gloria AGBLA.pdf",
@@ -1504,7 +1504,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Cadrage validé",
-            "comment": "Votre projet NKINA valorise un produit traditionnel incontournable à Yaoundé en mettant l'accent sur la pureté et l'absence d'additifs. Veillez à bien intégrer la composante marketing numérique (commandes via catalogue WhatsApp, livraisons programmées, campagnes Facebook ciblées) pour différencier NKINA des ventes de marché traditionnelles.",
+            "comment": "Votre note de cadrage est bien structurée. L'activité choisie (s :  Production  et  commercialisation  de  la  pâte  d’arachide  “Nkina”) est clairement présentée. Le ciblage (ménage  et  restaurant   de  la  ville  de  Yaoundé  et  de  ses  environs) est pertinent et bien identifié. L'objectif de s  :  faire  connaître  le  produit  et  réaliser  des  ventes est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "Projet professionnel (1).pdf",
@@ -1528,7 +1528,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — Bon travail, à structurer",
-            "comment": "Votre stratégie marketing est riche et bien documentée sur le comportement des ménagères et des restaurateurs. Pour le rendu final : formalisez 2 fiches personas complètes, nommez 3 marques d'arachide concurrentes réelles à Yaoundé et fixez un objectif SMART chiffré unique (ex: vendre 800 pots et fidéliser 30 restaurants en 90 jours). Veillez également à ne pas dépasser 1000 mots.",
+            "comment": "Votre document de stratégie marketing a bien été analysé. Vos personas sont présents et identifiés. L'analyse concurrentielle est amorcée. Les objectifs SMART sont abordés. Veillez à ce que votre texte reste sous le plafond de 1000 mots pour le rendu final.",
             "files": [
               {
                 "name": "document de strategie marketing.pdf",
@@ -1606,7 +1606,7 @@
           "entrainement": {
             "submitted": false,
             "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
-            "comment": "Construisez une grille d'indicateurs pour surveiller vos canaux clés : portée et clics sur Facebook, volume de commandes directes sur WhatsApp, taux de réachat mensuel des ménages et des restaurants. Ajoutez votre texte de justification de 100 mots max.",
+            "comment": "Votre tableau de bord pour NKINA doit intégrer les indicateurs de suivi par canal : visibilité sur les réseaux sociaux, volume de ventes, taux de fidélisation des clients réguliers. Votre texte d'accompagnement doit compter strictement moins de 100 mots.",
             "files": []
           },
           "final": {
@@ -1928,10 +1928,10 @@
       "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🟡 Excellente vision sectorielle. **Manquent PP2 et PP4**.",
       "synthesis": {
-        "coherence": "Analyse sectorielle audiovisuelle de très haut vol. La stratégie marketing est solide, mais les outils de gestion de projet (Gantt budgété) et de reporting (tableau de bord) doivent impérativement être produits pour le rendu officiel.",
-        "points_forts": "Niveau d'analyse stratégique digne d'un consultant média, excellente plume rédactionnelle.",
-        "chantiers": "- *Sur le fond* : Produire les Livrables 2 (Gantt budgété) et 4 (Tableau de bord).\n  - *Sur la forme* : Respecter la limite stricte des 1000 mots pour PP1.",
-        "message": "Votre analyse stratégique sur la digitalisation de la chaîne télévisée est remarquable d'intelligence et de pertinence. Pour sécuriser la note d'excellence que mérite votre travail, vous devez impérativement formaliser votre planning Gantt budgété (PP2) et votre tableau de bord de suivi (PP4). Bon courage pour cette phase finale !"
+        "coherence": "Le projet porte sur : principale est la production et la diffusion de programmes télévisés, avec une. Cible identifiée : La cible définie pour l'entreprise est un public familial.. Objectif : du projet. Parcours en bonne voie (2/4 livrables déposés).",
+        "points_forts": "Projet e « Rico & Arthur identifié et cadré.",
+        "chantiers": "Finaliser les livrables manquants et préparer la restitution finale.",
+        "message": "Bon démarrage pour e « Rico & Arthur. Poursuivre les dépôts de livrables manquants pour compléter le parcours V1."
       },
       "deliverables": {
         "desc": {
@@ -1939,7 +1939,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Cadrage validé",
-            "comment": "Votre document de cadrage de 93 lignes est remarquable par sa profondeur d'analyse : vous posez un diagnostic lucide sur une chaîne de télévision de 50 collaborateurs confrontée à la baisse de l'audience linéaire et devant réussir son virage digital. Le cadrage est pleinement validé.",
+            "comment": "Votre note de cadrage pour e « Rico & Arthur est bien structurée. L'activité choisie (principale est la production et la diffusion de programmes télévisés, avec une) est clairement présentée. Le ciblage (La cible définie pour l'entreprise est un public familial.) est pertinent et bien identifié. L'objectif de du projet est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "Description du projet.pdf",
@@ -1963,7 +1963,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — Très bon travail, à finaliser",
-            "comment": "En parfaite cohérence avec votre description, votre stratégie marketing aborde judicieusement les formats courts pour les jeunes et le streaming d'émissions phares. Pour le rendu final : nommez formellement au moins 3 chaînes ou médias concurrents dans votre zone, cadrez votre objectif sous une formule strictement SMART (abonnés, vues, délai) et veillez à ne pas dépasser 1000 mots.",
+            "comment": "Votre document de stratégie marketing pour e « Rico & Arthur a bien été analysé. Vos personas sont présents et identifiés. L'analyse concurrentielle est amorcée. Les objectifs SMART sont abordés. Veillez à ce que votre texte reste sous le plafond de 1000 mots pour le rendu final.",
             "files": [
               {
                 "name": "Document de stratégie marketing.pdf",
@@ -2925,10 +2925,10 @@
       "category_label": "En retard (1/4 livrables)",
       "status_priority": "🔴 Diagnostic d'entreprise remarquable, mais **PP1, PP2, PP4 à formaliser**.",
       "synthesis": {
-        "coherence": "Le socle conceptuel et organisationnel est d'un niveau d'analyse remarquable. La priorité absolue est désormais de ventiler cette matière dans les 4 livrables officiels exigés par le barème de notation.",
-        "points_forts": "Excellente vision managériale de la transformation digitale des médias africains, qualité de rédaction impeccable.",
-        "chantiers": "- *Sur le fond* : Produire les 4 livrables officiels du barème D-CLIC.\n  - *Sur la forme* : Respecter les gabarits séparés et la limite de 1000 mots pour PP1.",
-        "message": "Votre cadrage stratégique sur AFRIFAM TV démontre une remarquable intelligence managériale et une compréhension aiguë des enjeux des médias audiovisuels. Pour valider votre Projet Professionnel lors du dépôt final, vous devez impérativement formaliser les 4 livrables officiels : stratégie marketing, planning Gantt budgété, contenus et tableau de bord. Vous avez tout le potentiel pour décrocher une note d'excellence !"
+        "coherence": "Le projet porte sur : Média / Télévision traditionnelle hertzienne et satellite.. Cible identifiée : s Visées (Audiences). Objectif : s du Projet. Début de parcours (1/4 livrables déposés).",
+        "points_forts": "Projet STRATÉGIE DE identifié et cadré.",
+        "chantiers": "Finaliser les livrables manquants et préparer la restitution finale.",
+        "message": "Le projet STRATÉGIE DE est amorcé. Accélérer les dépôts de livrables pour rattraper le retard."
       },
       "deliverables": {
         "desc": {
@@ -2936,7 +2936,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Remarquable diagnostic d'entreprise",
-            "comment": "Votre document de cadrage de 86 lignes sur AFRIFAM TV est d'une grande maturité managériale : l'analyse de l'entreprise (50 employés), le diagnostic FFOM et l'enjeu de conquête de l'audience jeune sur le numérique sont remarquablement posés. Ce cadrage est pleinement validé.",
+            "comment": "Votre note de cadrage pour STRATÉGIE DE est bien structurée. L'activité choisie (Média / Télévision traditionnelle hertzienne et satellite.) est clairement présentée. Le ciblage (s Visées (Audiences)) est pertinent et bien identifié. L'objectif de s du projet est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "SUJET PROPOSER.pdf",
@@ -3493,10 +3493,10 @@
       "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟢 Édition impeccable, identité forte, gestion solide. **Créer PP4**.",
       "synthesis": {
-        "coherence": "Magnifique projet éditorial et citoyen. L'alignement entre le message d'inspiration, la stratégie de contenu et la gestion de projet est exemplaire. Seul le tableau de bord manque à l'appel.",
-        "points_forts": "Identité visuelle moderne et soignée sur tous les PDF, vision fédératrice, excellente gestion de projet.",
-        "chantiers": "- *Sur le fond* : Produire le Tableau de bord (PP4) et le Livrable 3 (Flyer + Teaser vidéo).\n  - *Sur la forme* : Présenter un tableau de budget par tâche synthétique et veiller aux 1000 mots pour PP1.",
-        "message": "Votre projet ALTITUDE est une bouffée d'oxygène et d'inspiration pour la jeunesse haïtienne : vos documents témoignent d'une maturité éditoriale et d'un professionnalisme remarquables. Pour finaliser un dossier d'excellence, synthétisez votre budget dans votre document de gestion, créez votre tableau de bord (PP4) et réalisez vos contenus médias (PP3). Vous êtes tout près de la perfection !"
+        "coherence": "Le projet porte sur : s destinées. Cible identifiée : , notamment. Objectif : n’est pas de créer immédiatement une. Parcours en bonne voie (3/4 livrables déposés).",
+        "points_forts": "Projet Avec Nanie identifié et cadré.",
+        "chantiers": "Finaliser les livrables manquants et préparer la restitution finale.",
+        "message": "Bon démarrage pour Avec Nanie. Poursuivre les dépôts de livrables manquants pour compléter le parcours V1."
       },
       "deliverables": {
         "desc": {
@@ -3504,7 +3504,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Cadrage validé",
-            "comment": "Votre note de cadrage pour ALTITUDE est admirable : donner une voix et un élan d'espoir à la jeunesse haïtienne à travers un média numérique créatif et inspirant est une initiative de grande valeur. L'identité éditoriale (« Élève ta vision ») est remarquable. Cadrage pleinement validé.",
+            "comment": "Votre note de cadrage pour Avec Nanie est bien structurée. L'activité choisie (s destinées) est clairement présentée. Le ciblage (, notamment) est pertinent et bien identifié. L'objectif de n’est pas de créer immédiatement une est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "ALTITUDE_Description_du_projet_DCLIC.pdf",
@@ -3528,7 +3528,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — Bon travail, à compléter",
-            "comment": "En cohérence avec votre description, votre stratégie identifie bien les aspirations des jeunes créateurs et entrepreneurs haïtiens. Pour le dépôt officiel : formalisez 2 fiches personas types détaillées, nommez expressément 3 médias numériques existants dans la région caraïbe francophone en faisant valoir votre différenciation positive, et fixez un objectif SMART chiffré (ex: 15 000 abonnés cumulés en 90 jours) sous la barre des 1000 mots.",
+            "comment": "Votre document de stratégie marketing pour Avec Nanie a bien été analysé. Veillez à bien définir 2 personas types détaillés pour le rendu final. Pensez à intégrer une analyse d'au moins 3 concurrents directs ou indirects. Précisez des objectifs SMART chiffrés et mesurables pour le dépôt final. Veillez à ce que votre texte reste sous le plafond de 1000 mots pour le rendu final.",
             "files": [
               {
                 "name": "ALTITUDE_Strategie_Marketing.pdf",
@@ -3552,7 +3552,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Très bien articulé",
-            "comment": "Votre document de gestion de projet (229 lignes) est remarquablement structuré : le séquençage sur 3 mois des phases de pré-lancement, de production des podcasts/interviews et de diffusion communautaire est très professionnel.",
+            "comment": "Votre document de gestion de projet pour Avec Nanie a été examiné. Le planning/Gantt est présent et structuré. L'affectation des ressources humaines est abordée. Le volet budgétaire est mentionné.",
             "files": [
               {
                 "name": "ALTITUDE_DCLIC_Document_de_gestion_de_projet.pdf",
@@ -3576,7 +3576,7 @@
           "entrainement": {
             "submitted": true,
             "status": "🟡 Soumis — À synthétiser sous forme tabulaire",
-            "comment": "Vos estimations de ressources sont cohérentes. Pour votre remise finale, isolez un tableau synthétique affichant clairement le budget en devises/FCFA en face de chaque tâche du planning Gantt (matériel audio, identité graphique, sponsorisation Instagram, hébergement du média).",
+            "comment": "Budget prévisionnel pour Avec Nanie bien reçu et pris en compte. Veillez à détailler le chiffrage par tâche et par phase pour le rendu final, avec une ventilation claire en FCFA.",
             "files": []
           },
           "final": {
@@ -5116,10 +5116,10 @@
       "category_label": "En retard (1/4 livrables)",
       "status_priority": "",
       "synthesis": {
-        "coherence": "Dossier en cours de constitution.",
-        "points_forts": "Apprenant engagé ayant déposé ses premiers livrables.",
-        "chantiers": "Poursuivre la formalisation des livrables manquants.",
-        "message": "Bienvenue dans le suivi du Projet Professionnel. Poursuivez vos dépôts pour compléter votre parcours."
+        "coherence": "Le projet porte sur : Médias, communication et audiovisuel.. Cible identifiée : La cible principale de la chaîne est constituée d’un public familial tchadien , aussi. Objectif : est de renforcer sa présence. Début de parcours (1/4 livrables déposés).",
+        "points_forts": "Projet ALLARABEYE NODJIPAL SUCCES identifié et cadré.",
+        "chantiers": "Finaliser les livrables manquants et préparer la restitution finale.",
+        "message": "Le projet ALLARABEYE NODJIPAL SUCCES est amorcé. Accélérer les dépôts de livrables pour rattraper le retard."
       },
       "deliverables": {
         "desc": {
@@ -5127,7 +5127,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Projet cadré",
-            "comment": "Projet très intéressant et pertinent sur le développement d'audience d'une chaîne de télévision tchadienne via les canaux numériques. L'adaptation aux nouveaux usages mobiles et réseaux sociaux est primordiale. Pour le Livrable 1 : structurez vos 2 personas (le téléspectateur traditionnel et le jeune connecté sur mobile), benchmarquez 3 médias concurrents au Tchad/Afrique centrale, et précisez vos leviers d'acquisition digitale (extraits vidéo courts, communauté).",
+            "comment": "Votre note de cadrage pour ALLARABEYE NODJIPAL SUCCES est bien structurée. L'activité choisie (Médias, communication et audiovisuel.) est clairement présentée. Le ciblage (La cible principale de la chaîne est constituée d’un public familial tchadien , aussi) est pertinent et bien identifié. L'objectif de est de renforcer sa présence est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
             "files": [
               {
                 "name": "PROJET PROFESSIONNEL ALLARABEYE N SUCCES 1.pdf",
