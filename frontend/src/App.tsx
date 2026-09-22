@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Dashboard from './components/dashboard/Dashboard';
 import DashboardGP from './components/dashboard/DashboardGP';
 import DashboardPP from './components/dashboard/DashboardPP';
+import DashboardMN from './components/dashboard/DashboardMN';
 import LearnersList from './components/learners/LearnersList';
 import UploadPage from './components/upload/UploadPage';
 import { LearnerDetail } from './pages/LearnerDetail';
@@ -17,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { useTheme } from './lib/theme';
 
 type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
-type Program = 'mn' | 'gp' | 'pp';
+export type Program = 'mn' | 'gp';
 
 function checkExplicitPortalRequested(): boolean {
   const path = window.location.pathname.toLowerCase();
@@ -249,10 +250,11 @@ function App() {
       onSelectProgram={setActiveProgram}
     >
       {currentPage === 'dashboard' && activeProgram === 'mn' && (
-        <Dashboard 
+        <DashboardMN 
           onSelectLearner={handleSelectLearner}
           globalSearch={globalSearch}
           onViewAll={handleViewAllLearners}
+          onNavigate={handleNavigate}
         />
       )}
       {currentPage === 'dashboard' && activeProgram === 'gp' && (
@@ -262,9 +264,6 @@ function App() {
           onViewAll={handleViewAllLearners}
           program={activeProgram}
         />
-      )}
-      {currentPage === 'dashboard' && activeProgram === 'pp' && (
-        <DashboardPP />
       )}
       {currentPage === 'reports' && <Reports program={activeProgram} />}
       {currentPage === 'learners' && !selectedLearnerId && (

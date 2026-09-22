@@ -3,6 +3,8 @@
 // ============================================================
 
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+dotenv.config();
 import type { Request, Response, NextFunction } from 'express';
 
 const SECRET_SALT = process.env.AUTH_SECRET || 'dclic-monitoring-secret-key-2026';

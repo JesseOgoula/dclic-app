@@ -2,6 +2,9 @@
 // DCLIC Backend — Entry Point
 // ============================================================
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import path from 'path';

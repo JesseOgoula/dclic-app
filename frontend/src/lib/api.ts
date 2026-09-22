@@ -244,6 +244,58 @@ export interface UploadResult {
   errors: string[];
 }
 
+export interface PPLearner {
+  id: string;
+  num: string;
+  nom: string;
+  prenom: string;
+  full_name: string;
+  projet: string;
+  category: 'green' | 'yellow' | 'red';
+  category_label: string;
+  status_priority: string;
+  synthesis: {
+    coherence?: string;
+    points_forts?: string;
+    chantiers?: string;
+    message?: string;
+  };
+  deliverables: Record<string, {
+    id: string;
+    entrainement: {
+      submitted: boolean;
+      status: string;
+      comment: string;
+      score?: number | null;
+      max_score?: number;
+      files: { name: string; size: number; mtime: string }[];
+      is_locked?: boolean;
+      evaluation_status?: 'pending' | 'ai_evaluated' | 'validated';
+    };
+    final: {
+      submitted: boolean;
+      status: string;
+      comment: string;
+      score?: number | null;
+      max_score?: number;
+      files: { name: string; size: number; mtime: string }[];
+      is_locked?: boolean;
+      evaluation_status?: 'pending' | 'ai_evaluated' | 'validated';
+    };
+  }>;
+}
+
+export interface PPStats {
+  total_learners: number;
+  v1_completed: number;
+  v1_rate: number;
+  v2_submitted: number;
+  v2_rate: number;
+  pending_evaluations: number;
+  categories: { green: number; yellow: number; red: number };
+  last_updated: string;
+}
+
 // ============================================================
 // API functions
 // ============================================================
@@ -366,4 +418,76 @@ export const api = {
     return res;
   },
   clearCache: () => clearApiCache(),
+
+  // Projet Professionnel
+  getPPLearners: (forceRefresh = false) =>
+    cachedRequest<PPLearner[]>('/pp/learners', forceRefresh),
+
+  getPPStats: (forceRefresh = false) =>
+    cachedRequest<PPStats>('/pp/stats', forceRefresh),
+
+  uploadPPZip: async (
+    file: File,
+    deliverableId: string,
+    phase: string,
+    autoEvaluate = false,
+    geminiApiKey?: string
+  ) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('deliverable_id', deliverableId);
+    formData.append('phase', phase);
+    formData.append('auto_evaluate', String(autoEvaluate));
+    if (geminiApiKey) formData.append('gemini_api_key', geminiApiKey);
+
+    const token = authStorage.getToken();
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const res = await fetch(`${API_BASE}/pp/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(error.error || `Échec de l'importation ZIP: ${res.status}`);
+    }
+
+    const data = await res.json();
+    clearApiCache('/pp/');
+    return data.data;
+  },
+
+  evaluatePPCopy: async (learnerId: string, deliverableId: string, phase: string, geminiApiKey?: string) => {
+    const res = await request<any>('/pp/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({
+        learner_id: learnerId,
+        deliverable_id: deliverableId,
+        phase,
+        gemini_api_key: geminiApiKey,
+      }),
+    });
+    clearApiCache('/pp/');
+    return res;
+  },
+
+  validatePPEvaluation: async (data: {
+    learner_id: string;
+    deliverable_id: string;
+    phase: string;
+    score?: number | null;
+    comment: string;
+    status?: string;
+  }) => {
+    const res = await request<any>('/pp/validate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    clearApiCache('/pp/');
+    return res;
+  },
+
+  getPPExcelExportUrl: () => `${API_BASE}/pp/export/excel`,
 };

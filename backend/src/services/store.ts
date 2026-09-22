@@ -801,6 +801,141 @@ class DataStore {
   async clearUploadHistory(): Promise<void> {
     await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   }
+
+  // ----------------------------------------------------------
+  // Projet Professionnel (PP) Operations
+  // ----------------------------------------------------------
+
+  async getPPLearners(): Promise<any[]> {
+    const { data: learners } = await supabase
+      .from('pp_learners')
+      .select('*')
+      .order('num', { ascending: true });
+
+    const { data: evaluations } = await supabase
+      .from('pp_evaluations')
+      .select('*');
+
+    const evals = evaluations || [];
+    const learnersList = learners || [];
+
+    return learnersList.map(l => {
+      const learnerEvals = evals.filter(e => e.learner_id === l.id);
+      const deliverables: Record<string, any> = {};
+
+      const delivIds = ['desc', 'strat', 'gest', 'budget', 'content', 'tdb'];
+      for (const dId of delivIds) {
+        const entrainement = learnerEvals.find(e => e.deliverable_id === dId && e.phase === 'entrainement');
+        const final = learnerEvals.find(e => e.deliverable_id === dId && e.phase === 'final');
+
+        deliverables[dId] = {
+          id: dId,
+          entrainement: entrainement || {
+            submitted: false,
+            status: 'Non soumis',
+            comment: '',
+            files: [],
+            evaluation_status: 'pending',
+            is_locked: false,
+          },
+          final: final || {
+            submitted: false,
+            status: 'En attente de remise finale',
+            score: null,
+            max_score: dId === 'desc' ? 0 : (['strat', 'gest', 'budget'].includes(dId) ? 6 : 4),
+            comment: '',
+            files: [],
+            evaluation_status: 'pending',
+            is_locked: false,
+          },
+        };
+      }
+
+      return {
+        ...l,
+        deliverables,
+      };
+    });
+  }
+
+  async getPPStats(): Promise<any> {
+    const learners = await this.getPPLearners();
+    const total_learners = learners.length;
+
+    let v1_completed = 0;
+    let v2_submitted = 0;
+    let pending_evaluations = 0;
+    const categories = { green: 0, yellow: 0, red: 0 };
+
+    for (const l of learners) {
+      if (l.category === 'green') categories.green++;
+      else if (l.category === 'yellow') categories.yellow++;
+      else if (l.category === 'red') categories.red++;
+
+      if (l.category === 'green') v1_completed++;
+
+      const v2Subs = Object.values(l.deliverables || {}).filter((d: any) => d.final?.submitted).length;
+      if (v2Subs > 0) v2_submitted++;
+
+      for (const d of Object.values(l.deliverables || {}) as any[]) {
+        if (d.entrainement?.submitted && !d.entrainement?.is_locked) pending_evaluations++;
+        if (d.final?.submitted && !d.final?.is_locked) pending_evaluations++;
+      }
+    }
+
+    return {
+      total_learners,
+      v1_completed,
+      v1_rate: total_learners > 0 ? Math.round((categories.green / total_learners) * 100) : 0,
+      v2_submitted,
+      v2_rate: total_learners > 0 ? Math.round((v2_submitted / total_learners) * 100) : 0,
+      pending_evaluations,
+      categories,
+      last_updated: new Date().toISOString(),
+    };
+  }
+
+  async upsertPPEvaluation(data: any): Promise<any> {
+    const { data: updated, error } = await supabase
+      .from('pp_evaluations')
+      .upsert({
+        ...data,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'learner_id,deliverable_id,phase',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  }
+
+  async validatePPEvaluation(
+    learnerId: string,
+    deliverableId: string,
+    phase: string,
+    tutorData: { score?: number | null; comment: string; status?: string }
+  ): Promise<any> {
+    const { data: updated, error } = await supabase
+      .from('pp_evaluations')
+      .update({
+        ...tutorData,
+        evaluation_status: 'validated',
+        is_locked: true,
+        validated_at: new Date().toISOString(),
+        validated_by: 'coordinateur',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('learner_id', learnerId)
+      .eq('deliverable_id', deliverableId)
+      .eq('phase', phase)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  }
 }
 
 // Singleton instance

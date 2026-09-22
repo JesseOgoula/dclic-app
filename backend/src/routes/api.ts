@@ -5,9 +5,13 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { processUpload } from '../services/uploadService.js';
 import { store, supabase, computeLearnerStatus } from '../services/store.js';
 import { requireAdminAuth, generateAdminToken, checkAdminPassword, verifyAdminToken } from '../services/auth.js';
+import { processPPMoodleZip } from '../services/ppUploadService.js';
+import { evaluateDeliverableWithGemini } from '../services/geminiEvaluationService.js';
+import { generatePPExcelReport } from '../services/ppExportService.js';
 
 const router = Router();
 
@@ -67,14 +71,14 @@ router.use(requireAdminAuth);
 // File upload config
 const upload = multer({
   dest: path.join(process.cwd(), 'uploads'),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB (allows large Moodle archives)
   fileFilter: (_req, file, cb) => {
-    const allowed = ['.csv', '.xlsx', '.xls', '.md'];
+    const allowed = ['.csv', '.xlsx', '.xls', '.md', '.zip'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowed.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error(`File type ${ext} not supported. Use CSV, XLSX, or MD.`));
+      cb(new Error(`File type ${ext} not supported. Use CSV, XLSX, MD, or ZIP.`));
     }
   },
 });
@@ -483,6 +487,154 @@ router.get('/reports', async (_req: Request, res: Response): Promise<void> => {
   try {
     const reports = await store.getReports();
     res.json({ success: true, data: reports });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+// ============================================================
+// Projet Professionnel (PP) Endpoints
+// ============================================================
+
+router.get('/pp/learners', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const learners = await store.getPPLearners();
+    res.json({ success: true, data: learners });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.get('/pp/stats', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const stats = await store.getPPStats();
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.post('/pp/upload', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'Aucun fichier ZIP téléversé' });
+      return;
+    }
+
+    const { deliverable_id, phase, auto_evaluate, gemini_api_key } = req.body || {};
+    if (!deliverable_id || !phase) {
+      res.status(400).json({ error: 'deliverable_id et phase requis' });
+      return;
+    }
+
+    const summary = await processPPMoodleZip({
+      zipFilePath: req.file.path,
+      deliverableId: deliverable_id,
+      phase,
+      autoEvaluate: auto_evaluate === 'true' || auto_evaluate === true,
+      geminiApiKey: gemini_api_key,
+    });
+
+    if (fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+
+    res.json({ success: true, data: summary });
+  } catch (error) {
+    console.error('PP ZIP Upload error:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+  }
+});
+
+router.post('/pp/evaluate', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { learner_id, deliverable_id, phase, gemini_api_key } = req.body || {};
+    if (!learner_id || !deliverable_id || !phase) {
+      res.status(400).json({ error: 'learner_id, deliverable_id et phase requis' });
+      return;
+    }
+
+    const { data: learner } = await supabase.from('pp_learners').select('*').eq('id', learner_id).single();
+    const { data: evalRecord } = await supabase
+      .from('pp_evaluations')
+      .select('*')
+      .eq('learner_id', learner_id)
+      .eq('deliverable_id', deliverable_id)
+      .eq('phase', phase)
+      .single();
+
+    if (!learner) {
+      res.status(404).json({ error: 'Apprenant introuvable' });
+      return;
+    }
+
+    const files = evalRecord?.files || [];
+    const fileNames = files.map((f: any) => f.name).join(', ') || 'Document soumis';
+    const textContent = evalRecord?.comment || fileNames;
+
+    const aiResult = await evaluateDeliverableWithGemini({
+      learnerName: learner.full_name,
+      projectName: learner.projet || '',
+      deliverableId: deliverable_id,
+      phase,
+      fileText: textContent,
+      fileName: fileNames,
+      customApiKey: gemini_api_key,
+    });
+
+    const updated = await store.upsertPPEvaluation({
+      learner_id,
+      deliverable_id,
+      phase,
+      submitted: true,
+      status: aiResult.statusBadge,
+      score: aiResult.score,
+      max_score: aiResult.maxScore,
+      comment: aiResult.comment,
+      criteria_results: {
+        points_forts: aiResult.pointsForts,
+        chantiers_fond: aiResult.chantiersFond,
+        chantiers_forme: aiResult.chantiersForme,
+        criteria: aiResult.criteriaResults,
+      },
+      evaluation_status: 'ai_evaluated',
+      is_locked: false,
+      evaluated_at: new Date().toISOString(),
+      evaluated_by: aiResult.usedAi ? 'agent_gemini' : 'system_heuristic',
+    });
+
+    res.json({ success: true, data: updated, aiResult });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.post('/pp/validate', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { learner_id, deliverable_id, phase, score, comment, status } = req.body || {};
+    if (!learner_id || !deliverable_id || !phase) {
+      res.status(400).json({ error: 'learner_id, deliverable_id et phase requis' });
+      return;
+    }
+
+    const validated = await store.validatePPEvaluation(learner_id, deliverable_id, phase, {
+      score: score !== undefined ? score : null,
+      comment: comment || '',
+      status: status || '✅ Validé par le tuteur',
+    });
+
+    res.json({ success: true, data: validated });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.get('/pp/export/excel', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const excelBuffer = await generatePPExcelReport();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=DCLIC_Projet_Pro_Evaluation_${new Date().toISOString().split('T')[0]}.xlsx`);
+    res.send(excelBuffer);
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }
