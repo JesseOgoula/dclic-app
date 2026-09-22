@@ -7,8 +7,8 @@
     "v2_rate": 0.0,
     "categories": {
       "green": 15,
-      "yellow": 20,
-      "red": 4
+      "yellow": 21,
+      "red": 3
     },
     "deliverables_stats": {
       "desc": {
@@ -18,8 +18,8 @@
         "v2_rate": 0.0
       },
       "strat": {
-        "v1_submitted": 35,
-        "v1_rate": 89.7,
+        "v1_submitted": 36,
+        "v1_rate": 92.3,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
@@ -48,7 +48,7 @@
         "v2_rate": 0.0
       }
     },
-    "last_updated": "2026-09-22T09:34:07.167196"
+    "last_updated": "2026-09-22T12:55:16.038600"
   },
   "deliverables_def": [
     {
@@ -2920,15 +2920,15 @@
       "nom": "MUKONKOLE",
       "prenom": "Ariane",
       "full_name": "MUKONKOLE Ariane",
-      "projet": "AFRIFAM TV – Cap sur le Numérique — Transition digitale d'une chaîne de télévision familiale panafricaine (50 collaborateurs)",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
-      "status_priority": "🔴 Diagnostic d'entreprise remarquable, mais **PP1, PP2, PP4 à formaliser**.",
+      "projet": "AFRIFAM TV – Cap sur le Numérique (Transition digitale d'une chaîne TV panafricaine)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
+      "status_priority": "🟡 Excellent socle stratégique (AFRIFAM TV). Formaliser PP2 (Gantt & Budget) et PP4 (Tableau de bord).",
       "synthesis": {
-        "coherence": "Le projet porte sur : Média / Télévision traditionnelle hertzienne et satellite.. Cible identifiée : s Visées (Audiences). Objectif : s du Projet. Début de parcours (1/4 livrables déposés).",
-        "points_forts": "Projet STRATÉGIE DE identifié et cadré.",
-        "chantiers": "Finaliser les livrables manquants et préparer la restitution finale.",
-        "message": "Le projet STRATÉGIE DE est amorcé. Accélérer les dépôts de livrables pour rattraper le retard."
+        "coherence": "Très bon cadrage de projet intégrant d'emblée la vision de stratégie marketing digitale pour AFRIFAM TV. Les livrables de gestion de projet (Gantt & Budget) et le tableau de bord d'indicateurs permettront de consolider le déploiement.",
+        "points_forts": "Diagnostic d'entreprise solide, compréhension claire des nouveaux usages de consommation vidéo (snack content vs replay), objectifs SMART bien quantifiés.",
+        "chantiers": "- *Sur le fond* : Structurer le planning Gantt et le budget prévisionnel (PP2), puis élaborer le tableau de bord (PP4).\n  - *Sur la forme* : Bien distinguer les livrables au moment du dépôt final.",
+        "message": "Le projet AFRIFAM TV dispose d'un excellent socle stratégique. Poursuivre dans cette voie en concrétisant la planification opérationnelle et le suivi de la performance."
       },
       "deliverables": {
         "desc": {
@@ -2936,7 +2936,7 @@
           "entrainement": {
             "submitted": true,
             "status": "✅ Soumis — Remarquable diagnostic d'entreprise",
-            "comment": "Votre note de cadrage pour STRATÉGIE DE est bien structurée. L'activité choisie (Média / Télévision traditionnelle hertzienne et satellite.) est clairement présentée. Le ciblage (s Visées (Audiences)) est pertinent et bien identifié. L'objectif de s du projet est bien formulé. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas types détaillés, analysez au moins 3 offres concurrentes, et fixez des objectifs SMART chiffrés d'acquisition.",
+            "comment": "Remarquable note de cadrage et stratégie marketing pour AFRIFAM TV. Votre projet de transition numérique pour une chaîne de télévision de 50 collaborateurs est ambitieux et très bien structuré. Vos deux segments d'audience (les Millennials/Gen Z sur mobile et la diaspora via le streaming/VOD) sont particulièrement pertinents. Vos objectifs SMART (100 000 abonnés cumulés, 50 000 visiteurs uniques/mois et 15 % de revenus publicitaires en ligne) sont clairs et chiffrés. Vos leviers d'action (recyclage de formats courts pour TikTok/Shorts, community management interactif et campagnes payantes) répondent parfaitement aux enjeux de visibilité.",
             "files": [
               {
                 "name": "SUJET PROPOSER.pdf",
@@ -2958,10 +2958,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
-            "comment": "En cohérence avec votre diagnostic d'entreprise, déclinez votre stratégie marketing (< 1000 mots) : définissez 2 personas de téléspectateurs/internautes, analysez 3 chaînes ou médias concurrents sur le digital, formulez un objectif SMART de croissance d'abonnés et de vues web, et détaillez vos actions d'acquisition (extraits d'émissions viraux, débats en direct) et de fidélisation.",
-            "files": []
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Excellent travail stratégique pour AFRIFAM TV. Votre vision de la convergence TV-Web et du formatage de contenus natifs (Reels, TikTok) est opérationnelle. Pour le dépôt final : veillez à approfondir le benchmark de 3 médias ou chaînes concurrentes et formalisez une matrice SWOT détaillée.",
+            "files": [
+              {
+                "name": "SUJET PROPOSER.pdf",
+                "size": 398832,
+                "mtime": "2026-09-17T12:34:48"
+              }
+            ]
           },
           "final": {
             "submitted": false,
