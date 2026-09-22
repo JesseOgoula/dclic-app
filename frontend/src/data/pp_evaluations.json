@@ -1,37 +1,37 @@
 {
   "stats": {
-    "total_learners": 36,
-    "v1_completed": 11,
-    "v1_rate": 30.6,
+    "total_learners": 39,
+    "v1_completed": 15,
+    "v1_rate": 38.5,
     "v2_submitted": 0,
     "v2_rate": 0.0,
     "categories": {
-      "green": 11,
-      "yellow": 16,
-      "red": 9
+      "green": 15,
+      "yellow": 20,
+      "red": 4
     },
     "deliverables_stats": {
       "desc": {
-        "v1_submitted": 36,
+        "v1_submitted": 39,
         "v1_rate": 100.0,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
       "strat": {
-        "v1_submitted": 27,
-        "v1_rate": 75.0,
+        "v1_submitted": 35,
+        "v1_rate": 89.7,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
       "gest": {
-        "v1_submitted": 18,
-        "v1_rate": 50.0,
+        "v1_submitted": 23,
+        "v1_rate": 59.0,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
       "budget": {
-        "v1_submitted": 17,
-        "v1_rate": 47.2,
+        "v1_submitted": 18,
+        "v1_rate": 46.2,
         "v2_submitted": 0,
         "v2_rate": 0.0
       },
@@ -42,13 +42,13 @@
         "v2_rate": 0.0
       },
       "tdb": {
-        "v1_submitted": 12,
-        "v1_rate": 33.3,
+        "v1_submitted": 17,
+        "v1_rate": 43.6,
         "v2_submitted": 0,
         "v2_rate": 0.0
       }
     },
-    "last_updated": "2026-09-21T12:50:54.116484"
+    "last_updated": "2026-09-22T08:04:02.515750"
   },
   "deliverables_def": [
     {
@@ -911,7 +911,7 @@
       "full_name": "AZOSSI Bidossessi",
       "projet": "AURA — Boissons et jus naturels haut de gamme pour l'événementiel et les particuliers",
       "category": "yellow",
-      "category_label": "Partiel (2/4 livrables)",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟡 Bon positionnement. **Rédiger Gantt/budget (PP2) et TDB (PP4)**.",
       "synthesis": {
         "coherence": "L'amorce de positionnement sur l'événementiel est prometteuse, mais le projet manque actuellement de ses livrables opérationnels majeurs (Gantt, budget, tableau de bord).",
@@ -1025,10 +1025,21 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Bidossessi,\nÉtablissez une grille d'indicateurs de performance par canal : visibilité sur Instagram (portée, interactions), génération de prospects qualifiés sur WhatsApp (demandes de devis événements), et taux de conversion des dégustations en commandes fermes. Ajoutez votre texte de justification de 100 mots max.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Justification des KPIs.pdf",
+                "size": 84622,
+                "mtime": "2026-09-21T19:26:50"
+              },
+              {
+                "name": "Tableau de bord KPIs (1).pdf",
+                "size": 113667,
+                "mtime": "2026-09-21T19:26:50"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -1617,8 +1628,8 @@
       "prenom": "Dagbegnon Christelle",
       "full_name": "ASSOGBA Dagbegnon Christelle",
       "projet": "ADC TV CONNECT — Digitalisation et développement de l'audience d'une chaîne de télévision locale",
-      "category": "yellow",
-      "category_label": "Partiel (2/4 livrables)",
+      "category": "green",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🔴 Bon cadrage média, mais **PP1, PP2 et PP4 restent à formaliser**.",
       "synthesis": {
         "coherence": "L'intuition et la compréhension des enjeux médias sont très bonnes dans le cadrage, mais l'absence des 4 livrables opérationnels (PP1 à PP4) empêche pour l'instant d'évaluer la mise en œuvre pratique.",
@@ -1678,10 +1689,16 @@
         "gest": {
           "id": "gest",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Dagbegnon Christelle,\nVous devez obligatoirement concevoir un diagramme de Gantt structuré planifiant le déploiement numérique de la chaîne : adaptation technique des studios pour le live stream, formation des équipes éditoriales aux formats web, calendrier de diffusion et événements interactifs.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Document de gestion de projet.docx",
+                "size": 26391,
+                "mtime": "2026-09-21T19:12:50"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -1732,10 +1749,16 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Dagbegnon Christelle,\nConcevez une grille d'indicateurs par plateforme : durée moyenne de visionnage sur YouTube, taux d'interaction en direct sur Facebook Live, vues et partages sur TikTok. Ajoutez votre court texte de justification de 100 mots max.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Tableau de bord.docx",
+                "size": 15843,
+                "mtime": "2026-09-22T02:34:58"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -1774,9 +1797,9 @@
             "comment": "Bonjour Doris Esther,\nVotre description d'Allo Doc 237 pose un problème de santé publique majeur au Cameroun avec un slogan très accrocheur (« Le médecin à portée de téléphone »). La solution de téléconsultation par WhatsApp et appel direct est pragmatique et adaptée aux usages locaux. Le cadrage est validé.\nTon tuteur D-CLIC",
             "files": [
               {
-                "name": "Description_Projet_AlloDoc237_ABOGO_Doris_compressed.pdf",
+                "name": "Description_Projet_AlloDoc237_ABOGO_Doris_compressed (2).pdf",
                 "size": 51852,
-                "mtime": "2026-09-17T18:24:30"
+                "mtime": "2026-09-21T18:55:28"
               }
             ]
           },
@@ -1798,9 +1821,9 @@
             "comment": "Bonjour Doris Esther,\nVotre persona de 'Maman Marie' (32 ans, cadre à Yaoundé cherchant un pédiatre en urgence sans attendre des heures à l'hôpital) est particulièrement réussi et touchant. Pour le dépôt officiel : citez au moins 3 initiatives ou services de santé concurrents au Cameroun, et étendez votre objectif SMART au-delà des 14 jours actuels pour couvrir une vraie phase d'installation de 3 à 6 mois.\nTon tuteur D-CLIC",
             "files": [
               {
-                "name": "Stratégie_Marketing_AlloDoc237_ABOGO_Doris_compressed.pdf",
+                "name": "Stratégie_Marketing_AlloDoc237_ABOGO_Doris_compressed (1).pdf",
                 "size": 62702,
-                "mtime": "2026-09-17T18:57:54"
+                "mtime": "2026-09-21T19:00:42"
               }
             ]
           },
@@ -2179,8 +2202,8 @@
       "prenom": "Fabrice Worou",
       "full_name": "ABISSI Fabrice Worou",
       "projet": "E-commerce de beauté — Vente en ligne de crèmes et soins de beauté pour la peau (Sujet 4 D-CLIC)",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🔴 Retard critique (21 lignes). **Produire les 4 livrables officiels**.",
       "synthesis": {
         "coherence": "Retard critique. Aucun livrable opérationnel n'ayant été soumis, il n'y a pas de cohérence évaluable pour l'instant.",
@@ -2216,10 +2239,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire d'urgence",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Fabrice,\nVous devez rédiger pour le rendu final votre document de stratégie marketing (< 1000 mots) : construisez 2 personas de jeunes urbains, analysez 3 boutiques e-commerce concurrentes réelles, fixez un objectif SMART de ventes en ligne, détaillez 2 actions d'acquisition (TikTok routines, parrainage) et 2 actions de fidélisation.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Document .pdf",
+                "size": 75651,
+                "mtime": "2026-09-22T01:48:52"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -2741,8 +2770,8 @@
       "prenom": "Limatou",
       "full_name": "ASSOUMA Limatou",
       "projet": "Commercialisation en ligne de produits agroalimentaires locaux et sains au Bénin",
-      "category": "yellow",
-      "category_label": "Partiel (3/4 livrables)",
+      "category": "green",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Gestion très dense (895 lignes). **Créer le Tableau de bord (PP4)**.",
       "synthesis": {
         "coherence": "Dossier très travailleur. La logique opérationnelle est poussée à un niveau de détail remarquable. Le tableau de bord manque pour boucler le système de pilotage de la campagne.",
@@ -2862,10 +2891,16 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Limatou,\nÉtablissez une grille d'indicateurs de performance par canal : volume de paniers commandés sur WhatsApp, coût d'acquisition par client sur Facebook, taux de réachat mensuel et délai moyen de livraison. N'oubliez pas la note de justification de moins de 100 mots.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Tableau de bord.pdf",
+                "size": 86713,
+                "mtime": "2026-09-21T13:53:44"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -3020,7 +3055,7 @@
       "full_name": "AKE Moudachirou Sègla",
       "projet": "Boutique e-commerce de crèmes et soins de beauté pour la peau (Sujet 4) au Bénin (Cotonou)",
       "category": "yellow",
-      "category_label": "Partiel (2/4 livrables)",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🟡 Bonne stratégie marketing. **Manquent PP2 et PP4**.",
       "synthesis": {
         "coherence": "La stratégie marketing est solide et bien ancrée dans les habitudes des jeunes consommateurs. L'effort principal doit maintenant se porter sur la production du planning Gantt budgété et du tableau de bord.",
@@ -3080,10 +3115,16 @@
         "gest": {
           "id": "gest",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Moudachirou Sègla,\nVous devez obligatoirement concevoir un planning Gantt pour le dépôt officiel : structurez les phases de sourcing des flacons, de création du catalogue WhatsApp, de shooting photo, de campagne publicitaire Meta Ads et d'organisation des livraisons avec les livreurs partenaires.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Document de gestion de projet.xlsx",
+                "size": 12412,
+                "mtime": "2026-09-21T16:07:22"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -3744,8 +3785,8 @@
       "prenom": "Pascal",
       "full_name": "ADOKOU Pascal",
       "projet": "Immobilier Haho — Agence de transactions immobilières et sécurisation foncière à Notsé (Togo) et pour la diaspora",
-      "category": "yellow",
-      "category_label": "Partiel (3/4 livrables)",
+      "category": "green",
+      "category_label": "Complet (4/4 livrables)",
       "status_priority": "🟢 Plan de gestion remarquable (339 lignes). **Créer le Tableau de bord (PP4)**.",
       "synthesis": {
         "coherence": "Projet très solide et crédible. L'alignement entre le besoin de transparence foncière, le marketing de réassurance et le plan de gestion de projet est sans faille.",
@@ -3865,10 +3906,16 @@
         "tdb": {
           "id": "tdb",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Pascal,\nÉtablissez une grille d'indicateurs de performance par canal : vues et messages reçus sur Facebook/TikTok, nombre de dossiers de vérification foncière ouverts, demandes de visites virtuelles de la diaspora et taux de clôture des ventes. N'oubliez pas la note de justification de 100 mots max.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Tableau de bord.pdf",
+                "size": 70525,
+                "mtime": "2026-09-21T20:58:26"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -3889,8 +3936,8 @@
       "prenom": "Samuel",
       "full_name": "ABLE Samuel",
       "projet": "AK Espace Numérique — Espace multiservices bureautiques, reprographie et formations informatiques à Bouaké (Côte d'Ivoire)",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "🔴 Retard critique. Seule la description a été soumise.",
       "synthesis": {
         "coherence": "Retard critique. L'espace multiservices est une activité concrète de terrain, mais aucun des livrables de stratégie, de gestion ou de tableau de bord n'a été produit.",
@@ -3926,10 +3973,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire d'urgence",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Samuel,\nEn cohérence avec votre espace à Bouaké, rédigez votre stratégie marketing (< 1000 mots) : définissez 2 personas (l'étudiant ayant besoin d'imprimer son mémoire et le commerçant pour ses devis), analysez 3 cybercafés ou espaces concurrents, fixez un objectif SMART (ex: 200 clients réguliers et 30 inscriptions aux formations en 60 jours) et détaillez vos actions de rentrée.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "DOCUMENT DE STRATÉGIE MARKETING.pdf",
+                "size": 139421,
+                "mtime": "2026-09-22T01:51:52"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4266,7 +4319,13 @@
             "submitted": true,
             "status": "✅ Soumis — Remarquable précision",
             "comment": "Bonjour Tranquilin,\nVotre budget prévisionnel (intégré dans votre document de 342 lignes) est minutieusement chiffré en FCFA par tâche opérationnelle. L'équilibre entre les charges de stock, les investissements publicitaires Meta Ads et les frais de conditionnement est irréprochable.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Diagramme de Gantt et Budget.pdf",
+                "size": 72490,
+                "mtime": "2026-09-20T14:41:16"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4485,8 +4544,8 @@
       "prenom": "Yesmina",
       "full_name": "AYOUBA IDE Yesmina",
       "projet": "Skin'Tech E-Commerce — Marque D2C de soins cosmétiques écoresponsables pour jeunes (18-30 ans) au Niger",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
       "status_priority": "🔴 Cadrage D2C très séduisant, mais **PP1, PP2 et PP4 à produire**.",
       "synthesis": {
         "coherence": "Concept de marque D2C très séduisant et en phase avec les tendances actuelles du e-commerce. La priorité absolue est désormais de traduire cette vision dans les 4 livrables officiels exigés par le barème de notation.",
@@ -4522,10 +4581,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Yesmina,\nEn cohérence avec votre positionnement D2C, rédigez votre document de stratégie marketing (< 1000 mots) : définissez 2 personas de jeunes nigériennes, analysez 3 marques cosmétiques concurrentes à Niamey, formulez un objectif SMART de commandes en ligne, et détaillez vos actions d'acquisition (TikTok, marketing d'influence locale) et de fidélisation (conseils personnalisés par chatbot WhatsApp).\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "rapport_campagne_2021-2.docx",
+                "size": 9941,
+                "mtime": "2026-09-21T14:38:42"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4540,10 +4605,16 @@
         "gest": {
           "id": "gest",
           "entrainement": {
-            "submitted": false,
-            "status": "🔴 Non soumis dans le dossier d'entraînement — À produire pour le rendu final",
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
             "comment": "Bonjour Yesmina,\nVous devez obligatoirement concevoir un diagramme de Gantt planifiant : la formulation des soins en laboratoire partenaire, la fabrication des emballages recyclables, le shooting de marque, la mise en ligne du site/catalogue et la campagne de lancement avec attribution des rôles.\nTon tuteur D-CLIC",
-            "files": []
+            "files": [
+              {
+                "name": "Gestion de projet Skin’Tech.docx",
+                "size": 10908,
+                "mtime": "2026-09-21T20:10:14"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4763,8 +4834,8 @@
       "prenom": "Eyitayo Adédoyin Sandrine Faridath",
       "full_name": "AMOUSSA Eyitayo Adédoyin Sandrine Faridath",
       "projet": "KDS School (École des métiers du numérique et création de contenu)",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "",
       "synthesis": {
         "coherence": "Dossier en cours de constitution.",
@@ -4800,10 +4871,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "Non soumis",
-            "comment": "",
-            "files": []
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Eyitayo Adédoyin Sandrine Faridath,\nVotre document pour « Stratégie Marketing (PP1) » a bien été reçu et pris en compte. Veillez à respecter scrupuleusement les critères de la grille officielle (faisabilité, cohérence avec vos personas et clarté des objectifs) pour votre version finale.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Stratégie Marketing KDS School.pdf",
+                "size": 127681,
+                "mtime": "2026-09-21T17:52:42"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -4896,8 +4973,8 @@
       "prenom": "Komi Ithiel",
       "full_name": "ATTIOGBE Komi Ithiel",
       "projet": "Santé Numérique / Télémédecine en Afrique de l'Ouest",
-      "category": "red",
-      "category_label": "En retard (1/4 livrables)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
       "status_priority": "",
       "synthesis": {
         "coherence": "Dossier en cours de constitution.",
@@ -4933,10 +5010,16 @@
         "strat": {
           "id": "strat",
           "entrainement": {
-            "submitted": false,
-            "status": "Non soumis",
-            "comment": "",
-            "files": []
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Komi Ithiel,\nVotre document pour « Stratégie Marketing (PP1) » a bien été reçu et pris en compte. Veillez à respecter scrupuleusement les critères de la grille officielle (faisabilité, cohérence avec vos personas et clarté des objectifs) pour votre version finale.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "ProjetProDclic_Livrable2_DocumentDeStratégieMarketing_KomiIthielAttiogbe.pdf",
+                "size": 910858,
+                "mtime": "2026-09-22T00:49:30"
+              }
+            ]
           },
           "final": {
             "submitted": false,
@@ -5227,6 +5310,452 @@
             "status": "Non soumis",
             "comment": "",
             "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-37",
+      "num": "37",
+      "nom": "AKA",
+      "prenom": "Ablan Marie",
+      "full_name": "AKA Ablan Marie",
+      "projet": "Spag'Chaud (Restauration rapide étudiante sur campus — Côte d'Ivoire)",
+      "category": "yellow",
+      "category_label": "Partiel (2/4 livrables)",
+      "status_priority": "🟡 Bon démarrage (Description + Stratégie). Finaliser PP2 (Gantt & Budget) et PP4 (Tableau de bord).",
+      "synthesis": {
+        "coherence": "Le concept de restauration rapide sur campus est limpide et la stratégie marketing cible adéquatement la communauté estudiantine. Les livrables de gestion de projet (PP2) et tableau de bord (PP4) sont attendus pour boucler le dispositif.",
+        "points_forts": "Projet pragmatique répondant à un besoin quotidien réel, proposition de valeur claire (prix abordable et rapidité).",
+        "chantiers": "- *Sur le fond* : Finaliser le planning Gantt et le budget (PP2), puis concevoir le tableau de bord (PP4).\n  - *Sur la forme* : Maintenir la clarté visuelle et respecter les limites de mots.",
+        "message": "Bonjour Ablan Marie,\nVotre projet Spag'Chaud démarre sur d'excellentes bases marketing. Poursuivez sur cette belle dynamique en structurant vos livrables de gestion de projet et vos indicateurs de suivi.\nTon tuteur D-CLIC"
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Ablan Marie,\nTrès belle initiative avec Spag'Chaud. Répondre au besoin des étudiants des campus ivoiriens avec une offre de repas chauds, rapides et abordables est une proposition de valeur forte. Pour le Livrable 1 (Stratégie marketing) : définissez 2 personas d'étudiants types, analysez au moins 3 offres concurrentes sur les campus, et détaillez vos canaux d'acquisition (notamment réseaux sociaux et commande par WhatsApp).\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Document sans titre (7).pdf",
+                "size": 61632,
+                "mtime": "2026-09-21T17:15:16"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Ablan Marie,\nTrès bon document de stratégie marketing pour Spag'Chaud. Vos personas étudiants sont pertinents et vos canaux de diffusion adaptés à la cible jeune. Pour votre version finale : assurez-vous de bien chiffrer vos objectifs SMART de vente et approfondissez vos actions de fidélisation sur le campus.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Spag_Chaud_Strategie_Marketing.pdf",
+                "size": 22582,
+                "mtime": "2026-09-21T18:41:52"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-38",
+      "num": "38",
+      "nom": "ADOU",
+      "prenom": "Sokhna",
+      "full_name": "ADOU Sokhna",
+      "projet": "COSNA Investments (Écoconstruction & Briques de Terre Compressée Stabilisée - BTCS)",
+      "category": "green",
+      "category_label": "Complet (4/4 livrables)",
+      "status_priority": "🟢 Parcours V1 complet (4/4). Préparer les créations de contenu (PP3) et la restitution finale.",
+      "synthesis": {
+        "coherence": "Parcours préparatoire V1 complet et exemplaire sur les 4 volets Moodle. L'alignement entre le produit écologique (BTCS), la stratégie d'acquisition, le Gantt/budget et les indicateurs KPIs est parfaitement maîtrisé.",
+        "points_forts": "Dossier très complet et professionnel, maîtrise des enjeux de la construction durable, planning et budget bien modélisés.",
+        "chantiers": "- *Sur le fond* : Produire les supports de communication (PP3 - flyer et vidéo < 1mn30).\n  - *Sur la forme* : Veiller au respect des limites de mots pour le rendu final.",
+        "message": "Bonjour Sokhna,\nToutes mes félicitations pour la complétude et la grande qualité de l'ensemble de vos livrables V1. Vous disposez d'un socle remarquable pour aborder vos créations de contenus (PP3) et viser l'excellence lors de la restitution finale !\nTon tuteur D-CLIC"
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Sokhna,\nExcellent cadrage de projet pour COSNA Investments. Le positionnement sur la construction écologique et les matériaux durables (BTCS) en Afrique de l'Ouest répond à un enjeu d'avenir majeur. Vos cibles (particuliers et promoteurs) sont clairement identifiées.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "PROJET PROFESSIONNEL.pdf",
+                "size": 156413,
+                "mtime": "2026-09-21T14:04:42"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Sokhna,\nRemarquable stratégie marketing pour COSNA Investments. Vos 2 personas (particulier constructeur et promoteur professionnel) sont bien documentés et le plan d'acquisition digitale valorise parfaitement les atouts écologiques et économiques de votre offre.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Strategie_Marketing_COSNA_Investments.pdf",
+                "size": 116057,
+                "mtime": "2026-09-21T14:22:56"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Sokhna,\nTrès bonne démarche de gestion de projet avec le planning Gantt et le budget prévisionnel associés. L'organisation des ressources humaines et le chiffrage par phases sont réalistes et bien articulés avec la stratégie marketing.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Document_Gestion_Projet_COSNA.pdf",
+                "size": 122307,
+                "mtime": "2026-09-21T14:56:20"
+              },
+              {
+                "name": "Gantt_Budget_COSNA.xlsx",
+                "size": 14503,
+                "mtime": "2026-09-21T14:56:20"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "budget": {
+          "id": "budget",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Soumis — Chiffrage budgétaire associé au Gantt",
+            "comment": "Bonjour Sokhna,\nVotre budget prévisionnel intégré aux documents de gestion de projet a bien été pris en compte.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Gantt_Budget_COSNA.xlsx",
+                "size": 14503,
+                "mtime": "2026-09-21T14:56:20"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "content": {
+          "id": "content",
+          "entrainement": {
+            "submitted": false,
+            "status": "Non soumis",
+            "comment": "",
+            "files": []
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "tdb": {
+          "id": "tdb",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Sokhna,\nTableau de bord bien structuré avec des indicateurs de suivi clairs (visibilité digitale, leads qualifiés, conversions). Les métriques choisies permettront un pilotage rigoureux de votre performance commerciale.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Tableau_de_bord_KPI_COSNA_Investments.pdf",
+                "size": 202440,
+                "mtime": "2026-09-21T17:12:20"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 4,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        }
+      }
+    },
+    {
+      "id": "learner-39",
+      "num": "39",
+      "nom": "AIGLO",
+      "prenom": "Sègla Gérald P.",
+      "full_name": "AIGLO Sègla Gérald P.",
+      "projet": "TikTok Prêt-à-Porter (Boutique physique connectée de mode et prêt-à-porter)",
+      "category": "yellow",
+      "category_label": "Partiel (3/4 livrables)",
+      "status_priority": "🟡 Bon avancement (3/4 livrables). Concevoir le Tableau de bord (PP4) et les contenus (PP3).",
+      "synthesis": {
+        "coherence": "Idée novatrice de commerce connecté en zone semi-rurale. La description, la stratégie et la gestion de projet sont posées. Reste à concevoir le tableau de bord (PP4) pour suivre la conversion magasin/digital.",
+        "points_forts": "Originalité du concept phygital (boutique physique + TikTok), ancrage commercial concret.",
+        "chantiers": "- *Sur le fond* : Élaborer le Tableau de bord (PP4) et produire les contenus promotionnels (PP3).\n  - *Sur la forme* : Structurer le Gantt sous format tabulaire et préciser le budget chiffré.",
+        "message": "Bonjour Sègla Gérald,\nVotre projet phygital TikTok Prêt-à-Porter est très prometteur. Continuez ainsi en finalisant vos indicateurs de performance (PP4) et vos supports de communication (PP3).\nTon tuteur D-CLIC"
+      },
+      "deliverables": {
+        "desc": {
+          "id": "desc",
+          "entrainement": {
+            "submitted": true,
+            "status": "✅ Projet cadré",
+            "comment": "Bonjour Sègla Gérald,\nConcept très original et stimulant de boutique connectée en milieu rural, alliant point de vente physique et leviers numériques (TikTok, Facebook, Mobile Money). La sélection d'articles tendance répond à une demande locale avérée.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Description projet PRO AÏGLO S GÉRARD .docx",
+                "size": 8651,
+                "mtime": "2026-09-22T04:56:44"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 0,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "strat": {
+          "id": "strat",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Sègla Gérald,\nBonne ébauche stratégique axée sur la visibilité TikTok. Pour le rendu final : veillez à bien structurer les 2 personas types, à benchmarquer 3 concurrents (boutiques physiques ou en ligne), et à préciser vos mécanismes de conversion et fidélisation en magasin.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Plan marketing TIKTOK PRÊT-À-PORTER .pdf",
+                "size": 230895,
+                "mtime": "2026-09-22T06:04:22"
+              }
+            ]
+          },
+          "final": {
+            "submitted": false,
+            "status": "En attente de remise finale",
+            "score": null,
+            "max_score": 6,
+            "comment": "",
+            "audit_v1": "",
+            "files": []
+          }
+        },
+        "gest": {
+          "id": "gest",
+          "entrainement": {
+            "submitted": true,
+            "status": "🟡 Soumis — Bon travail, ajustements requis",
+            "comment": "Bonjour Sègla Gérald,\nVotre plan opérationnel pose de bonnes bases. Pour le rendu final : formalisez un planning Gantt clair avec les étapes clés (approvisionnement, création de contenu TikTok, promotions) et détaillez le budget par tâche.\nTon tuteur D-CLIC",
+            "files": [
+              {
+                "name": "Plan marketing TIKTOK PRÊT-À-PORTER .pdf",
+                "size": 403706,
+                "mtime": "2026-09-22T06:50:54"
+              }
+            ]
           },
           "final": {
             "submitted": false,
