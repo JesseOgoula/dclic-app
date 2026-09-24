@@ -29,6 +29,8 @@ export interface Session {
   formation_type: 'bases' | 'projet' | 'specialisation';
 }
 
+export type FormationType = 'mn' | 'gp';
+
 export interface Activity {
   id: string;
   code: string;        // M1A, M2B, etc.
@@ -37,6 +39,7 @@ export interface Activity {
   type: 'exercise' | 'quiz' | 'devoir' | 'documentation';
   is_evaluated: boolean;
   display_order: number;
+  formation_type?: string;
 }
 
 export interface LearnerProgress {
@@ -113,6 +116,8 @@ export interface Alert {
 // ============================================================
 
 export interface DashboardStats {
+  formation?: string;
+  formation_name?: string;
   total_learners: number;
   active_learners: number;
   inactive_learners: number;

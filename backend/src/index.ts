@@ -40,17 +40,17 @@ import { store, supabase } from './services/store.js';
 
 // Start server
 app.listen(PORT, async () => {
-  console.log(`\n🚀 DCLIC Backend running on http://localhost:${PORT}`);
-  console.log(`📊 API available at http://localhost:${PORT}/api`);
+  console.log(`\n[DCLIC Backend] Running on http://localhost:${PORT}`);
+  console.log(`[DCLIC Backend] API available at http://localhost:${PORT}/api`);
   
   // Test Supabase connection
   try {
     const { error } = await supabase.from('learners').select('id').limit(1);
     if (error) throw error;
-    console.log(`✅ Connected to Supabase PostgreSQL successfully!`);
+    console.log(`[Supabase] Connected to Supabase PostgreSQL successfully.`);
   } catch (err) {
-    console.error(`❌ Failed to connect to Supabase:`, err);
+    console.error(`[Supabase] Failed to connect to Supabase:`, err);
   }
   
-  console.log(`\n✅ Ready! Dashboard stats: http://localhost:${PORT}/api/dashboard/stats`);
+  console.log(`[DCLIC Backend] Ready. Dashboard stats: http://localhost:${PORT}/api/dashboard/stats`);
 });

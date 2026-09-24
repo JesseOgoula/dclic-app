@@ -72,12 +72,17 @@ class DataStore {
     return inserted as Learner;
   }
 
-  async getLearners(): Promise<Learner[]> {
-    const { data } = await supabase
-      .from('learners')
-      .select('*')
-      .or('group_id.eq.G1_MN_072026,group_id.eq.UNKNOWN');
-    return data as Learner[] || [];
+  async getLearners(formation?: string): Promise<Learner[]> {
+    let query = supabase.from('learners').select('*');
+    if (formation === 'gp') {
+      query = query.or('group_id.eq.G1_GPM_092026,group_id.ilike.%GPM%');
+    } else if (formation === 'mn') {
+      query = query.or('group_id.eq.G1_MN_072026,group_id.ilike.%MN%,group_id.eq.UNKNOWN');
+    } else {
+      query = query.or('group_id.eq.G1_MN_072026,group_id.eq.G1_GPM_092026,group_id.ilike.%G1_%');
+    }
+    const { data } = await query;
+    return (data as Learner[]) || [];
   }
 
   async getLearnerByEmail(email: string): Promise<Learner | undefined> {
@@ -127,18 +132,23 @@ class DataStore {
     return inserted as Activity;
   }
 
-  async getActivities(): Promise<Activity[]> {
-    const { data } = await supabase
-      .from('activities')
-      .select('*')
-      .order('display_order', { ascending: true });
+  async getActivities(formation?: string): Promise<Activity[]> {
+    let query = supabase.from('activities').select('*');
+    if (formation === 'gp') {
+      query = query.eq('formation_type', 'gp');
+    } else if (formation === 'mn') {
+      query = query.or('formation_type.eq.mn,formation_type.is.null');
+    }
+    const { data } = await query.order('display_order', { ascending: true });
     const activities = (data as Activity[]) || [];
 
-    // Auto-alignement : veiller à ce que l'activité d'impressions soit bien séparée en "Phase d'impressions"
-    for (const act of activities) {
-      if (act.name.toLowerCase().includes('impression') && act.sequence !== "Phase d'impressions") {
-        act.sequence = "Phase d'impressions";
-        supabase.from('activities').update({ sequence: "Phase d'impressions" }).eq('id', act.id).then();
+    // Auto-alignement (spécifique formation initiale MN)
+    if (!formation || formation === 'mn') {
+      for (const act of activities) {
+        if (act.name.toLowerCase().includes('impression') && act.sequence !== "Phase d'impressions") {
+          act.sequence = "Phase d'impressions";
+          supabase.from('activities').update({ sequence: "Phase d'impressions" }).eq('id', act.id).then();
+        }
       }
     }
 
@@ -296,9 +306,9 @@ class DataStore {
   // Dashboard stats
   // ----------------------------------------------------------
 
-  async getDashboardStats(): Promise<DashboardStats> {
-    const allLearners = await this.getLearners();
-    const allActivities = await this.getActivities();
+  async getDashboardStats(formation: string = 'mn'): Promise<DashboardStats> {
+    const allLearners = await this.getLearners(formation);
+    const allActivities = await this.getActivities(formation);
     const allProgress = await this.getAllProgress();
     const now = new Date();
 
@@ -461,6 +471,10 @@ class DataStore {
     }
 
     return {
+      formation,
+      formation_name: formation === 'gp'
+        ? 'Module de spécialisation — Gestion de projet'
+        : 'Formation initiale — Marketing numérique',
       total_learners: allLearners.length,
       active_learners: activeLearners,
       inactive_learners: inactiveLearners,
@@ -482,12 +496,15 @@ class DataStore {
   // Learner Portal Data
   // ----------------------------------------------------------
 
-  async getLearnerPortalData(email: string): Promise<LearnerPortalData | null> {
+  async getLearnerPortalData(email: string, requestedFormation?: string): Promise<LearnerPortalData | null> {
     const cleanEmail = email.toLowerCase().trim();
     const learner = await this.getLearnerByEmail(cleanEmail);
     if (!learner) return null;
 
-    const allActivities = await this.getActivities();
+    const detectedFormation = (learner.group_id && learner.group_id.includes('GPM')) ? 'gp' : 'mn';
+    const formation = requestedFormation || detectedFormation;
+
+    const allActivities = await this.getActivities(formation);
     const progress = await this.getProgressByLearner(learner.id);
 
     const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
@@ -551,11 +568,13 @@ class DataStore {
   // Weekly Reports
   // ----------------------------------------------------------
 
-  async getWeeklyReports() {
+  async getWeeklyReports(formation: string = 'mn') {
     const allProgress = await this.getAllProgress();
-    const validProgress = allProgress.filter(p => p.completed_at && (p.status === 'completed' || p.status === 'passed'));
-    const allActivities = await this.getActivities();
-    const allLearners = await this.getLearners();
+    const allActivities = await this.getActivities(formation);
+    const allLearners = await this.getLearners(formation);
+    const learnerIdSet = new Set(allLearners.map(l => l.id));
+    const activityIdSet = new Set(allActivities.map(a => a.id));
+    const validProgress = allProgress.filter(p => p.completed_at && (p.status === 'completed' || p.status === 'passed') && learnerIdSet.has(p.learner_id) && activityIdSet.has(p.activity_id));
     
     const weeksMap = new Map<string, any>();
 
@@ -637,7 +656,12 @@ class DataStore {
   // Custom Reports
   // ----------------------------------------------------------
 
-  async getCustomReport(startStr: string, endStr: string) {
+  async getCustomReport(startStr: string, endStr: string, formation: string = 'mn') {
+    const allActivities = await this.getActivities(formation);
+    const allLearners = await this.getLearners(formation);
+    const learnerIdSet = new Set(allLearners.map(l => l.id));
+    const activityIdSet = new Set(allActivities.map(a => a.id));
+
     const allProgress = await this.getAllProgress();
     const startDate = new Date(startStr);
     startDate.setHours(0, 0, 0, 0);
@@ -646,13 +670,11 @@ class DataStore {
 
     const validProgress = allProgress.filter(p => {
       if (!p.completed_at || (p.status !== 'completed' && p.status !== 'passed')) return false;
+      if (!learnerIdSet.has(p.learner_id) || !activityIdSet.has(p.activity_id)) return false;
       const d = new Date(p.completed_at);
       if (isNaN(d.getTime())) return false;
       return d >= startDate && d <= endDate;
     });
-
-    const allActivities = await this.getActivities();
-    const allLearners = await this.getLearners();
 
     const report = {
       week_start: startDate.toISOString(),

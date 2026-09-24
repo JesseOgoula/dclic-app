@@ -140,18 +140,22 @@ const formatTimeAgo = (isoString: string | null) => {
   return `Il y a ${seconds} seconde(s)`;
 };
 
+import { useFormation } from '@/context/FormationContext';
+
 export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
+  const { currentFormation } = useFormation();
   const [learner, setLearner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      api.getLearner(id)
+      setLoading(true);
+      api.getLearner(id, currentFormation)
         .then(data => setLearner(data))
         .catch(console.error)
         .finally(() => setLoading(false));
     }
-  }, [id]);
+  }, [id, currentFormation]);
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Chargement...</div>;
   if (!learner) return <div className="p-8 text-center text-destructive">Apprenant non trouvé.</div>;

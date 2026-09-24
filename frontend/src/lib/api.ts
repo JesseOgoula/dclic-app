@@ -202,26 +202,72 @@ export interface UploadResult {
 // API functions
 // ============================================================
 
+export type FormationType = 'mn' | 'gp';
+
+export interface FormationInfo {
+  id: FormationType;
+  name: string;
+  subtitle: string;
+  group_id: string;
+  learner_count: number;
+  period: string;
+}
+
+const FORMATION_KEY = 'dclic_selected_formation';
+
+export const formationStorage = {
+  getFormation: (): FormationType | null => {
+    return (localStorage.getItem(FORMATION_KEY) as FormationType) || null;
+  },
+  setFormation: (formation: FormationType) => {
+    localStorage.setItem(FORMATION_KEY, formation);
+  },
+  hasSelectedFormation: (): boolean => {
+    return !!localStorage.getItem(FORMATION_KEY);
+  },
+  clearFormation: () => {
+    localStorage.removeItem(FORMATION_KEY);
+  },
+};
+
 export const api = {
+  // Formations
+  getFormations: () => request<FormationInfo[]>('/formations'),
+
   // Dashboard
-  getDashboardStats: () => request<DashboardStats>('/dashboard/stats'),
+  getDashboardStats: (formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<DashboardStats>(`/dashboard/stats${qs}`);
+  },
 
   // Learners
-  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }) => {
+  getLearners: (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string; formation?: string }) => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.set('search', params.search);
     if (params?.status) searchParams.set('status', params.status);
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortDir) searchParams.set('sortDir', params.sortDir);
+    if (params?.formation) searchParams.set('formation', params.formation);
     const qs = searchParams.toString();
     return request<LearnerWithProgress[]>(`/learners${qs ? `?${qs}` : ''}`);
   },
 
-  getLearner: (id: string) => request<LearnerDetail>(`/learners/${id}`),
-  getLearnerPortal: (email: string) => request<LearnerPortalData>(`/portal/learner?email=${encodeURIComponent(email)}`),
+  getLearner: (id: string, formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<LearnerDetail>(`/learners/${id}${qs}`);
+  },
+
+  getLearnerPortal: (email: string, formation?: string) => {
+    const params = new URLSearchParams({ email });
+    if (formation) params.set('formation', formation);
+    return request<LearnerPortalData>(`/portal/learner?${params.toString()}`);
+  },
 
   // Activities
-  getActivities: () => request<Activity[]>('/activities'),
+  getActivities: (formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<Activity[]>(`/activities${qs}`);
+  },
 
   // Heatmap
   getHeatmap: () => request<HeatmapData>('/progress/heatmap'),
@@ -272,9 +318,15 @@ export const api = {
   isAuthenticated: () => authStorage.isAuthenticated(),
 
   // Reports
-  getWeeklyReports: () => request<any[]>('/reports/weekly'),
-  getCustomReport: (startDate: string, endDate: string) => 
-    request<any>(`/reports/custom?start=${startDate}&end=${endDate}`),
+  getWeeklyReports: (formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<any[]>(`/reports/weekly${qs}`);
+  },
+  getCustomReport: (startDate: string, endDate: string, formation?: string) => {
+    const params = new URLSearchParams({ start: startDate, end: endDate });
+    if (formation) params.set('formation', formation);
+    return request<any>(`/reports/custom?${params.toString()}`);
+  },
 
   getUploads: () => request<any[]>('/uploads'),
   

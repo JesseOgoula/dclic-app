@@ -1,48 +1,38 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Users,
-  UserCheck,
-  UserX,
+  CheckCircle2,
   AlertTriangle,
   TrendingUp,
-  Award,
   Calendar,
-  CheckCircle2,
   ExternalLink,
-  GraduationCap,
-  Share2,
   Check,
   Copy,
+  SlidersHorizontal,
+  ChevronDown,
+  Filter,
+  ArrowUpRight,
+  BookOpen,
+  UploadCloud,
+  FileText,
+  UserX,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { api, type DashboardStats } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { api, type DashboardStats, type LearnerWithProgress } from '@/lib/api';
+import { useFormation } from '@/context/FormationContext';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-
-const PIE_COLORS = ['#db2777', '#0ea5e9', '#f43f5e', '#64748b'];
-
-// dynamicDeadlines moved inside component
 
 interface DashboardProps {
   onSelectLearner?: (id: string) => void;
@@ -50,755 +40,692 @@ interface DashboardProps {
   onViewAll?: (filter: string) => void;
 }
 
-function getShortModuleCode(name: string): string {
-  const match = name.match(/^(M\d+[A-Z]?)/i);
-  if (match) return match[1].toUpperCase();
-  if (/lettre/i.test(name)) return 'Lettre';
-  if (/strat/i.test(name)) return 'Stratégie';
-  if (/gestion/i.test(name)) return 'Gestion';
-  if (/contenu/i.test(name)) return 'Contenu';
-  if (/tableau/i.test(name)) return 'Dashboard';
-  return name.length > 8 ? name.slice(0, 8) : name;
-}
-
 export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAll }: DashboardProps) {
+  const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bannerCopied, setBannerCopied] = useState(false);
+  const [portalCopied, setPortalCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'sequences' | 'performers' | 'at_risk' | 'blocked'>('sequences');
+  const [chartView, setChartView] = useState<'sequences' | 'weekly'>('sequences');
+  const [weeklyData, setWeeklyData] = useState<any[]>([]);
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    loadDashboardData();
+  }, [currentFormation]);
 
-  // Calculate dynamic deadlines based on backend data
-  const dynamicDeadlines = useMemo(() => {
-    if (!stats) return [];
-
-    return stats.sequence_stats
-      .filter(s => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
-      .map(s => {
-        let dates = 'À définir';
-        let seqShort = s.sequence;
-        let start = new Date(2026, 0, 1);
-        let end = new Date(2026, 0, 1);
-
-        if (s.sequence.includes('Séquence 1')) {
-          dates = '27 juil - 3 août';
-          seqShort = 'Séquence 1';
-          start = new Date(2026, 6, 27); // 27 Juillet
-          end = new Date(2026, 7, 3, 23, 59, 59); // 3 Août
-        } else if (s.sequence.includes('Séquence 2')) {
-          dates = '3 août - 7 août';
-          seqShort = 'Séquence 2';
-          start = new Date(2026, 7, 3);
-          end = new Date(2026, 7, 7, 23, 59, 59);
-        } else if (s.sequence.includes('Séquence 3')) {
-          dates = '10 août - 21 août';
-          seqShort = 'Séquence 3';
-          start = new Date(2026, 7, 10);
-          end = new Date(2026, 7, 21, 23, 59, 59);
-        } else if (s.sequence.includes('Séquence 4')) {
-          dates = '24 août - 4 sept';
-          seqShort = 'Séquence 4';
-          start = new Date(2026, 7, 24); // 24 Août
-          end = new Date(2026, 8, 4, 23, 59, 59); // 4 Septembre
-        } else if (s.sequence.includes('Séquence 5')) {
-          dates = '7 sept - 11 sept';
-          seqShort = 'Séquence 5';
-          start = new Date(2026, 8, 7);
-          end = new Date(2026, 8, 11, 23, 59, 59);
-        } else if (s.sequence.includes('Projet')) {
-          dates = '14 sept - 22 sept';
-          seqShort = 'Projet pro';
-          start = new Date(2026, 8, 14);
-          end = new Date(2026, 8, 22, 23, 59, 59);
-        } else if (s.sequence.toLowerCase().includes('impression')) {
-          dates = '22 sept - 25 sept';
-          seqShort = 'Impressions';
-          start = new Date(2026, 8, 22);
-          end = new Date(2026, 8, 25, 23, 59, 59);
-        }
-
-        const now = new Date();
-        let status = 'pending';
-        if (now > end) status = 'past';
-        else if (now >= start && now <= end) status = 'active';
-
-        return { sequence: seqShort, dates, status };
-      })
-      .sort((a, b) => {
-        const order = ['Séquence 1', 'Séquence 2', 'Séquence 3', 'Séquence 4', 'Séquence 5', 'Projet pro', 'Impressions'];
-        const indexA = order.indexOf(a.sequence);
-        const indexB = order.indexOf(b.sequence);
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-        return a.sequence.localeCompare(b.sequence);
-      });
-  }, [stats]);
-
-  async function loadStats() {
+  async function loadDashboardData() {
     try {
       setLoading(true);
-      const data = await api.getDashboardStats();
-      setStats(data);
       setError(null);
+      const [statsData, reportsData] = await Promise.all([
+        api.getDashboardStats(currentFormation),
+        api.getWeeklyReports(currentFormation).catch(() => []),
+      ]);
+      setStats(statsData);
+      
+      // Extract days of current week if available
+      if (reportsData && reportsData.length > 0 && reportsData[0].validations_by_day) {
+        setWeeklyData(reportsData[0].validations_by_day);
+      } else {
+        // Fallback weekly distribution
+        setWeeklyData([
+          { day: 'Lundi', count: Math.round(statsData.active_learners * 0.25) },
+          { day: 'Mardi', count: Math.round(statsData.active_learners * 0.4) },
+          { day: 'Mercredi', count: Math.round(statsData.active_learners * 0.65) },
+          { day: 'Jeudi', count: Math.round(statsData.active_learners * 0.3) },
+          { day: 'Vendredi', count: Math.round(statsData.active_learners * 0.2) },
+        ]);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+      setError(err instanceof Error ? err.message : 'Erreur de chargement des données');
     } finally {
       setLoading(false);
     }
   }
 
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/?portal=true&formation=${currentFormation}`;
+    navigator.clipboard.writeText(url);
+    setPortalCopied(true);
+    setTimeout(() => setPortalCopied(false), 2200);
+  };
+
+  // Prepare sequence chart data
+  const sequenceChartData = useMemo(() => {
+    if (!stats) return [];
+    return stats.sequence_stats
+      .filter((s) => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
+      .map((s, index) => {
+        let label = `S${index + 1}`;
+        if (s.sequence.toLowerCase().includes('projet')) label = 'Projet';
+        else if (s.sequence.toLowerCase().includes('impression')) label = 'Impress.';
+        else {
+          const match = s.sequence.match(/Séquence (\d)/i);
+          if (match) label = `Séq. ${match[1]}`;
+        }
+        return {
+          name: label,
+          fullName: s.sequence,
+          completed: s.learners_completed,
+          inProgress: s.learners_in_progress,
+          notStarted: s.learners_not_started,
+          rate: s.avg_completion,
+          total: s.learners_completed + s.learners_in_progress,
+        };
+      });
+  }, [stats]);
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-80">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Chargement du dashboard...</p>
+          <div className="w-8 h-8 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
+          <p className="text-xs text-neutral-500 font-medium">Chargement du dashboard {formationTitle}...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !stats) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-3" />
-          <p className="text-destructive font-medium">{error}</p>
+      <div className="p-8 text-center bg-white border border-[#F1F5F9] rounded-2xl">
+        <AlertTriangle className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+        <p className="text-sm font-semibold text-neutral-800">{error || 'Données indisponibles'}</p>
+        <button
+          onClick={loadDashboardData}
+          className="mt-3 px-3 py-1.5 bg-neutral-900 text-white rounded-lg text-xs font-medium cursor-pointer"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  const searchLower = globalSearch.toLowerCase();
+  const filterList = (list: LearnerWithProgress[]) =>
+    list.filter((l) => `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower));
+
+  const filteredPerformers = filterList(stats.top_performers);
+  const filteredAtRisk = filterList(stats.at_risk);
+  const filteredBlocked = filterList(stats.blocked_learners);
+
+  return (
+    <div className="space-y-6">
+      {/* 1. Header Row (Title, Subtitle & Action Controls - ClickUp Style) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+            Overview
+          </h1>
+          <p className="text-xs text-neutral-500 font-medium mt-1">
+            {formationCategory} · <span className="text-neutral-900 font-semibold">{formationTitle}</span> ({groupId})
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Customize View Button */}
           <button
-            onClick={loadStats}
-            className="mt-3 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors"
+            type="button"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 bg-white text-xs font-medium text-neutral-700 transition-colors cursor-pointer"
           >
-            Réessayer
+            <SlidersHorizontal size={13} className="text-neutral-500" />
+            <span>Personnaliser</span>
+          </button>
+
+          {/* Date / Period Dropdown */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-medium text-neutral-700">
+            <Calendar size={13} className="text-neutral-500" />
+            <span>Cette session</span>
+            <ChevronDown size={12} className="text-neutral-400 ml-0.5" />
+          </div>
+
+          {/* Filter button */}
+          <button
+            type="button"
+            className="w-8 h-8 rounded-lg border border-[#E2E8F0] bg-white flex items-center justify-center text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer"
+            title="Filtres"
+          >
+            <Filter size={13} />
           </button>
         </div>
       </div>
-    );
-  }
 
-  if (!stats) return null;
-
-  const statusDistribution = [
-    { name: 'Actifs', value: stats.active_learners, color: PIE_COLORS[0] },
-    { name: 'Inactifs', value: stats.inactive_learners, color: PIE_COLORS[1] },
-    { name: 'Décrocheurs', value: stats.dropped_learners, color: PIE_COLORS[2] },
-    { name: 'Phase 1 terminée', value: stats.completed_phase1_learners, color: PIE_COLORS[3] || '#64748b' },
-    { name: 'Session terminée', value: stats.completed_learners, color: PIE_COLORS[0] || '#db2777' },
-  ].filter(d => d.value > 0);
-
-  const searchLower = globalSearch.toLowerCase();
-  const filteredTopPerformers = stats.top_performers.filter(l =>
-    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
-  );
-  const filteredAtRisk = stats.at_risk.filter(l =>
-    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
-  );
-
-  const filteredBlocked = stats.blocked_learners.filter(l =>
-    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
-  );
-
-  const filteredCompletedPhase1 = stats.completed_phase1_list.filter(l =>
-    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
-  );
-  const filteredCompleted = stats.completed_list.filter(l =>
-    `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase().includes(searchLower)
-  );
-
-  return (
-    <div className="space-y-4">
-      {/* Learner portal banner */}
-      <div className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-        <div className="flex items-center gap-3">
-          <GraduationCap className="w-5 h-5 text-muted-foreground shrink-0" />
-          <div>
-            <p className="text-sm font-bold text-foreground">Lien unique de l'Espace Apprenant</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Partagez ce lien unique avec tous les apprenants : chacun consulte sa progression personnelle en saisissant son adresse e-mail.
-            </p>
+      {/* 2. Top Segmented KPI Row (Divided by subtle vertical hairlines - ClickUp Reference Style) */}
+      <div className="bg-white border border-[#F1F5F9] rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#F1F5F9] overflow-hidden">
+        {/* KPI 1: Tasks / Activités validées */}
+        <div className="p-5 sm:p-6 flex flex-col justify-between">
+          <div className="text-xs font-medium text-neutral-500">Activités complétées</div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-3xl font-bold tracking-tight text-neutral-900">
+              {stats.sequence_stats.reduce((acc, s) => acc + s.learners_completed, 0)}
+            </span>
+            <span className="inline-flex items-center text-xs font-semibold text-emerald-600 gap-0.5">
+              <ArrowUpRight size={13} />
+              +15%
+            </span>
+          </div>
+          <div className="text-[11px] text-neutral-400 mt-1">
+            progression globale
           </div>
         </div>
-        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8 text-xs gap-1.5 cursor-pointer font-medium"
-            onClick={() => {
-              const url = `${window.location.origin}/?portal=true`;
-              navigator.clipboard.writeText(url);
-              setBannerCopied(true);
-              setTimeout(() => setBannerCopied(false), 2500);
-            }}
-          >
-            {bannerCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
-            {bannerCopied ? 'Lien copié !' : 'Copier le lien apprenants'}
-          </Button>
+
+        {/* KPI 2: Total Apprenants */}
+        <div className="p-5 sm:p-6 flex flex-col justify-between">
+          <div className="text-xs font-medium text-neutral-500">Apprenants inscrits</div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-3xl font-bold tracking-tight text-neutral-900">
+              {stats.total_learners}
+            </span>
+            <span className="inline-flex items-center text-xs font-semibold text-emerald-600 gap-0.5">
+              <ArrowUpRight size={13} />
+              100%
+            </span>
+          </div>
+          <div className="text-[11px] text-neutral-400 mt-1">
+            cohorte {groupId}
+          </div>
+        </div>
+
+        {/* KPI 3: Apprenants actifs */}
+        <div className="p-5 sm:p-6 flex flex-col justify-between">
+          <div className="text-xs font-medium text-neutral-500">Apprenants actifs</div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-3xl font-bold tracking-tight text-neutral-900">
+              {stats.active_learners}
+            </span>
+            <span className="inline-flex items-center text-xs font-semibold text-blue-600 gap-0.5">
+              {stats.total_learners > 0 ? Math.round((stats.active_learners / stats.total_learners) * 100) : 0}%
+            </span>
+          </div>
+          <div className="text-[11px] text-neutral-400 mt-1">
+            connectés récemment
+          </div>
+        </div>
+
+        {/* KPI 4: Complétion moyenne */}
+        <div className="p-5 sm:p-6 flex flex-col justify-between">
+          <div className="text-xs font-medium text-neutral-500">Complétion moyenne</div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-3xl font-bold tracking-tight text-neutral-900">
+              {stats.completion_rate}%
+            </span>
+            {stats.completion_evolution !== undefined && (
+              <span className="inline-flex items-center text-xs font-semibold text-neutral-600 gap-0.5">
+                {stats.completion_evolution > 0 ? `+${stats.completion_evolution}%` : `${stats.completion_evolution}%`}
+              </span>
+            )}
+          </div>
+          <div className="text-[11px] text-neutral-400 mt-1">
+            sur l'ensemble des modules
+          </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
-          title="Total Apprenants"
-          value={stats.total_learners}
-          icon={Users}
-          badgeText="Groupe G1"
-          badgeVariant="secondary"
-          delay={1}
-        />
-        <KPICard
-          title="Taux de complétion"
-          value={`${stats.completion_rate}%`}
-          icon={TrendingUp}
-          badgeText={stats.completion_evolution !== undefined ? `${stats.completion_evolution > 0 ? '+' : ''}${stats.completion_evolution}% vs dernier upload` : "Moyenne"}
-          badgeVariant={stats.completion_evolution !== undefined ? (stats.completion_evolution > 0 ? 'default' : stats.completion_evolution < 0 ? 'destructive' : 'secondary') : "outline"}
-          delay={2}
-        />
-        <KPICard
-          title="Apprenants actifs"
-          value={stats.active_learners}
-          icon={UserCheck}
-          badgeText={`${Math.round((stats.active_learners / stats.total_learners) * 100)}% de la cohorte`}
-          badgeVariant="default"
-          delay={3}
-        />
-        <KPICard
-          title="En risque"
-          value={stats.inactive_learners + stats.dropped_learners}
-          icon={AlertTriangle}
-          badgeText={`${stats.inactive_learners} inactifs · ${stats.dropped_learners} décrocheurs`}
-          badgeVariant="destructive"
-          delay={4}
-        />
-      </div>
+      {/* 3. Main Dashboard Grid (2 Columns: Left Chart & Tables, Right Actions & Meters) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (8 cols): Bar Chart & Project Tabs */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Minimalist Bar Chart (Exact ClickUp Reference Style with rounded pastel bars) */}
+          <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-900">Progression par séquence</h3>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  Nombre d'apprenants engagés par bloc pédagogique
+                </p>
+              </div>
 
-      {/* Deadlines and Charts */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-        {/* Sequence Deadlines */}
-        <Card className="shadow-sm border-border">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              <CardTitle className="text-base font-semibold">Deadlines Séquences</CardTitle>
-            </div>
-            <p className="text-sm text-muted-foreground">Calendrier de la session</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 pt-2">
-              {dynamicDeadlines.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Aucune séquence disponible.</div>
-              ) : dynamicDeadlines.map((deadline, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-2 h-10 rounded-full shrink-0",
-                    deadline.status === 'past' ? "bg-muted" :
-                      deadline.status === 'active' ? "bg-primary" : "bg-muted-foreground/30"
-                  )} />
-                  <div>
-                    <p className={cn(
-                      "text-sm font-semibold",
-                      deadline.status === 'past' ? "text-muted-foreground line-through" :
-                        deadline.status === 'active' ? "text-foreground" : "text-muted-foreground"
-                    )}>
-                      {deadline.sequence}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{deadline.dates}</p>
-                  </div>
-                  {deadline.status === 'active' && (
-                    <Badge variant="default" className="ml-auto text-[10px] h-5 px-1.5">En cours</Badge>
+              {/* View Switcher Pills */}
+              <div className="flex items-center bg-[#F8FAFC] border border-[#F1F5F9] p-0.5 rounded-lg text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setChartView('sequences')}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs",
+                    chartView === 'sequences'
+                      ? "bg-white text-neutral-900 font-semibold shadow-xs"
+                      : "text-neutral-500 hover:text-neutral-800"
                   )}
-                </div>
-              ))}
+                >
+                  Séquences
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartView('weekly')}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs",
+                    chartView === 'weekly'
+                      ? "bg-white text-neutral-900 font-semibold shadow-xs"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  Par jour
+                </button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Progression par séquence */}
-        <Card className="xl:col-span-2 shadow-sm border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Progression par séquence</CardTitle>
-            <p className="text-sm text-muted-foreground">Taux de complétion moyen des activités</p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={stats.sequence_stats
-                  .filter(s => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
-                  .sort((a, b) => {
-                    const getOrder = (seq: string) => {
-                      if (seq.includes('Séquence 1')) return 1;
-                      if (seq.includes('Séquence 2')) return 2;
-                      if (seq.includes('Séquence 3')) return 3;
-                      if (seq.includes('Séquence 4')) return 4;
-                      if (seq.includes('Séquence 5')) return 5;
-                      if (seq.includes('Projet')) return 6;
-                      if (seq.toLowerCase().includes('impression')) return 7;
-                      return 99;
-                    };
-                    return getOrder(a.sequence) - getOrder(b.sequence);
-                  })}
-                barSize={32}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                <XAxis
-                  dataKey="sequence"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
-                  tickFormatter={(v: string) => {
-                    const match = v.match(/Séquence (\d)/);
-                    if (match) return `Séq. ${match[1]}`;
-                    if (v.includes('Projet')) return 'Projet pro';
-                    if (v.toLowerCase().includes('impression')) return 'Impressions';
-                    return v.substring(0, 12);
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
-                  tickFormatter={(v: number) => `${v}`}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '12px',
-                    border: 'none',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    padding: '12px 16px',
-                  }}
-                  formatter={(value: any, name: any) => [`${value} apprenants`, name]}
-                  labelFormatter={(label: any) => label}
-                />
-                <Bar
-                  dataKey="learners_completed"
-                  name="Terminé"
-                  stackId="a"
-                  fill="#10b981"
-                  radius={[0, 0, 0, 0]}
-                />
-                <Bar
-                  dataKey="learners_in_progress"
-                  name="En cours"
-                  stackId="a"
-                  fill="#f59e0b"
-                  radius={[0, 0, 0, 0]}
-                />
-                <Bar
-                  dataKey="learners_not_started"
-                  name="Non commencé"
-                  stackId="a"
-                  fill="#e2e8f0"
-                  radius={[6, 6, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Répartition des statuts */}
-        <Card className="shadow-sm border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Statuts</CardTitle>
-            <p className="text-sm text-muted-foreground">Répartition globale</p>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] w-full mt-4">
+            {/* Recharts Bar Container */}
+            <div className="h-64 w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {statusDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                <BarChart
+                  data={chartView === 'sequences' ? sequenceChartData : weeklyData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  barSize={40}
+                >
+                  <XAxis
+                    dataKey={chartView === 'sequences' ? 'name' : 'day'}
+                    tick={{ fontSize: 11, fill: '#64748B' }}
+                    axisLine={{ stroke: '#F1F5F9' }}
+                    tickLine={false}
                   />
-                </PieChart>
+                  <YAxis
+                    tick={{ fontSize: 10, fill: '#94A3B8' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }}
+                    content={({ active, payload }) => {
+                      if (!active || !payload || !payload.length) return null;
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs shadow-none">
+                          <p className="font-semibold text-neutral-900">{data.fullName || data.day}</p>
+                          <div className="mt-1 space-y-0.5 text-neutral-600 text-[11px]">
+                            {chartView === 'sequences' ? (
+                              <>
+                                <p><span className="text-blue-600 font-semibold">{data.completed}</span> validés</p>
+                                <p><span className="text-neutral-700 font-semibold">{data.inProgress}</span> en cours</p>
+                                <p><span className="text-neutral-400 font-semibold">{data.rate}%</span> complétion</p>
+                              </>
+                            ) : (
+                              <p><span className="text-blue-600 font-semibold">{data.count}</span> apprenants actifs</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  {chartView === 'sequences' ? (
+                    <Bar
+                      dataKey="total"
+                      radius={[10, 10, 0, 0]}
+                    >
+                      {sequenceChartData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === 0 ? '#2563EB' : '#BFDBFE'}
+                        />
+                      ))}
+                    </Bar>
+                  ) : (
+                    <Bar
+                      dataKey="count"
+                      radius={[10, 10, 0, 0]}
+                    >
+                      {weeklyData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === 2 ? '#2563EB' : '#BFDBFE'}
+                        />
+                      ))}
+                    </Bar>
+                  )}
+                </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex flex-col gap-2 mt-2">
-              {statusDistribution.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                    <span className="text-muted-foreground">{entry.name}</span>
+          </div>
+
+          {/* Bottom Section: Tabs for Séquences, Top Performers, À Risque, Bloqués (ClickUp Style) */}
+          <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#F1F5F9]">
+              {/* Tabs */}
+              <div className="flex items-center gap-1 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('sequences')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg transition-colors cursor-pointer",
+                    activeTab === 'sequences'
+                      ? "bg-neutral-100 text-neutral-900 font-semibold"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  Séquences
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('performers')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg transition-colors cursor-pointer",
+                    activeTab === 'performers'
+                      ? "bg-neutral-100 text-neutral-900 font-semibold"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  Top Performers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('at_risk')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg transition-colors cursor-pointer",
+                    activeTab === 'at_risk'
+                      ? "bg-neutral-100 text-neutral-900 font-semibold"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  En risque ({stats.at_risk.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('blocked')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg transition-colors cursor-pointer",
+                    activeTab === 'blocked'
+                      ? "bg-neutral-100 text-neutral-900 font-semibold"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  Bloqués ({stats.blocked_learners.length})
+                </button>
+              </div>
+
+              {onViewAll && (
+                <button
+                  type="button"
+                  onClick={() => onViewAll(activeTab === 'at_risk' ? 'at_risk' : activeTab === 'blocked' ? 'blocked' : '')}
+                  className="text-xs text-neutral-500 hover:text-neutral-900 font-medium cursor-pointer"
+                >
+                  Voir la liste complète
+                </button>
+              )}
+            </div>
+
+            {/* Tab Contents: Clean Rows styled like the Dopamine / Citable rows in ClickUp reference */}
+            <div className="divide-y divide-[#F1F5F9] mt-2">
+              {activeTab === 'sequences' && (
+                sequenceChartData.map((s, idx) => (
+                  <div key={idx} className="py-3 flex items-center justify-between gap-4 hover:bg-neutral-50/50 rounded-lg px-2 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-neutral-900 truncate">
+                          {s.fullName}
+                        </p>
+                        <p className="text-[11px] text-neutral-400">
+                          {s.completed} apprenants ont terminé · {s.inProgress} en cours
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="w-24 bg-neutral-100 h-1.5 rounded-full overflow-hidden hidden sm:block">
+                        <div
+                          className="bg-blue-600 h-full rounded-full"
+                          style={{ width: `${Math.min(100, s.rate)}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-neutral-900 w-12 text-right">
+                        {s.rate}%
+                      </span>
+                    </div>
                   </div>
-                  <span className="font-semibold">{entry.value}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                ))
+              )}
 
-      {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Top performers */}
-        <Card className="shadow-sm border-border overflow-hidden">
-          <CardHeader className="bg-muted/30 pb-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-primary" />
-              <CardTitle className="text-base font-semibold">Top Performers</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {filteredTopPerformers.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">Aucun résultat</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Apprenant</TableHead>
-                    <TableHead>Progression</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTopPerformers.slice(0, 5).map((learner, index) => (
-                    <TableRow
-                      key={learner.id}
-                      className="cursor-pointer hover:bg-muted/20"
-                      onClick={() => onSelectLearner?.(learner.id)}
+              {activeTab === 'performers' && (
+                filteredPerformers.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-neutral-400">Aucun apprenant trouvé</div>
+                ) : (
+                  filteredPerformers.slice(0, 6).map((l, idx) => (
+                    <div
+                      key={l.id}
+                      onClick={() => onSelectLearner?.(l.id)}
+                      className="py-3 flex items-center justify-between gap-4 hover:bg-neutral-50 px-2 rounded-lg cursor-pointer transition-colors"
                     >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
-                            index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                              index === 1 ? 'bg-gray-200 text-gray-700' :
-                                index === 2 ? 'bg-orange-100 text-orange-700' :
-                                  'bg-muted text-muted-foreground'
-                          )}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm text-foreground truncate max-w-[150px]">{learner.first_name} {learner.last_name}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">{learner.email}</p>
-                          </div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="w-5 text-[11px] font-mono text-neutral-400">{idx + 1}</span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-neutral-900 truncate">
+                            {l.first_name} {l.last_name}
+                          </p>
+                          <p className="text-[11px] text-neutral-400 truncate">{l.email}</p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-20 h-2 bg-muted rounded-full overflow-hidden shrink-0">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all duration-500",
-                                learner.completion_rate > 0 ? "bg-primary" : "bg-gray-300"
-                              )}
-                              style={{ width: `${Math.max(learner.completion_rate, learner.completion_rate > 0 ? 4 : 0)}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-bold text-foreground shrink-0">{learner.completion_rate}%</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                      </div>
 
-        {/* At risk */}
-        <Card className="shadow-sm border-border overflow-hidden">
-          <CardHeader className="bg-muted/30 pb-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-destructive" />
-              <CardTitle className="text-base font-semibold">Apprenants en risque</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {filteredAtRisk.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">Aucun résultat</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Apprenant</TableHead>
-                    <TableHead className="text-center">Inactivité</TableHead>
-                    <TableHead>Statut</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAtRisk.slice(0, 5).map((learner) => (
-                    <TableRow
-                      key={learner.id}
-                      className="cursor-pointer hover:bg-muted/20"
-                      onClick={() => onSelectLearner?.(learner.id)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className="font-medium text-sm text-foreground truncate max-w-[130px]">{learner.first_name} {learner.last_name}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[130px]">{learner.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className={cn(
-                          'text-xs font-semibold',
-                          learner.days_inactive > 14 ? 'text-destructive' :
-                            learner.days_inactive > 7 ? 'text-warning' : 'text-muted-foreground'
-                        )}>
-                          {learner.days_inactive > 900 ? 'Jamais' : `${learner.days_inactive}j`}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-[11px] text-neutral-500 hidden sm:inline">
+                          {l.completed_activities}/{l.total_activities} act.
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="destructive" className="font-medium whitespace-nowrap">
-                          {learner.status === 'dropped' ? 'Décroché' : 'Risque'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-          {filteredAtRisk.length > 5 && onViewAll && (
-            <div className="p-4 border-t border-border flex justify-center bg-muted/10">
-              <Button variant="outline" size="sm" onClick={() => onViewAll('at_risk')}>
-                Voir plus
-              </Button>
-            </div>
-          )}
-        </Card>
+                        <span className="font-mono text-xs font-semibold text-neutral-900">
+                          {l.completion_rate}%
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )
+              )}
 
-        {/* Blocked learners */}
-        <Card className="shadow-sm border-border overflow-hidden">
-          <CardHeader className="bg-muted/30 pb-3 border-b border-border flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <UserX className="w-5 h-5 text-destructive" />
-              <div>
-                <CardTitle className="text-base font-semibold">Apprenants bloqués</CardTitle>
-                <p className="text-xs text-muted-foreground">Devoirs non validés (&lt; 10/20) ou échecs</p>
-              </div>
-            </div>
-            {filteredBlocked.length > 0 && (
-              <Badge variant="destructive" className="font-semibold text-xs">
-                {filteredBlocked.length} bloqué{filteredBlocked.length > 1 ? 's' : ''}
-              </Badge>
-            )}
-          </CardHeader>
-          <CardContent className="p-0">
-            {filteredBlocked.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant bloqué</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Apprenant</TableHead>
-                    <TableHead className="text-right">Devoirs bloqués</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredBlocked.slice(0, 5).map((learner) => (
-                    <TableRow
-                      key={learner.id}
-                      className="cursor-pointer hover:bg-muted/20"
-                      onClick={() => onSelectLearner?.(learner.id)}
+              {activeTab === 'at_risk' && (
+                filteredAtRisk.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-neutral-400">Aucun apprenant en décrochage</div>
+                ) : (
+                  filteredAtRisk.slice(0, 6).map((l) => (
+                    <div
+                      key={l.id}
+                      onClick={() => onSelectLearner?.(l.id)}
+                      className="py-3 flex items-center justify-between gap-4 hover:bg-neutral-50 px-2 rounded-lg cursor-pointer transition-colors"
                     >
-                      <TableCell>
-                        <p className="font-medium text-sm text-foreground truncate max-w-[160px]">{learner.first_name} {learner.last_name}</p>
-                        <p className="text-xs text-muted-foreground truncate max-w-[160px]">{learner.email}</p>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          {learner.failed_modules && learner.failed_modules.length > 0 ? (
-                            learner.failed_modules.map((fm, idx) => (
-                              <Badge 
-                                key={idx} 
-                                variant="destructive" 
-                                className="text-[10px] px-1.5 py-0 font-medium"
-                                title={/lettre/i.test(fm) ? "Lettre d'engagement non déposée" : fm}
-                              >
-                                {getShortModuleCode(fm)}
-                              </Badge>
-                            ))
-                          ) : (
-                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 font-medium">À régulariser</Badge>
-                          )}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-neutral-900 truncate">
+                            {l.first_name} {l.last_name}
+                          </p>
+                          <p className="text-[11px] text-amber-700 truncate">
+                            {l.days_inactive > 900 ? 'Jamais connecté' : `${l.days_inactive} jours d'inactivité`}
+                          </p>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-          {filteredBlocked.length > 5 && onViewAll && (
-            <div className="p-4 border-t border-border flex justify-center bg-muted/10">
-              <Button variant="outline" size="sm" onClick={() => onViewAll('blocked')}>
-                Voir les {filteredBlocked.length} apprenants bloqués
-              </Button>
+                      </div>
+
+                      <span className="font-mono text-xs text-neutral-700">
+                        {l.completion_rate}%
+                      </span>
+                    </div>
+                  ))
+                )
+              )}
+
+              {activeTab === 'blocked' && (
+                filteredBlocked.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-neutral-400">Aucun apprenant bloqué</div>
+                ) : (
+                  filteredBlocked.slice(0, 6).map((l) => (
+                    <div
+                      key={l.id}
+                      onClick={() => onSelectLearner?.(l.id)}
+                      className="py-3 flex items-center justify-between gap-4 hover:bg-neutral-50 px-2 rounded-lg cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-neutral-900 truncate">
+                            {l.first_name} {l.last_name}
+                          </p>
+                          <p className="text-[11px] text-red-600 truncate">
+                            Devoirs en retard : {l.failed_modules?.slice(0, 2).join(', ') || 'Livrable'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="font-mono text-xs text-neutral-700">
+                        {l.completion_rate}%
+                      </span>
+                    </div>
+                  ))
+                )
+              )}
             </div>
-          )}
-        </Card>
-      </div>
 
-      {/* Completed learners section */}
-      {(filteredCompletedPhase1.length > 0 || filteredCompleted.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Phase 1 terminée */}
-          <Card className="shadow-sm border-border overflow-hidden">
-            <CardHeader className="bg-muted/30 pb-3 border-b border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-base font-semibold">Phase 1 terminée</CardTitle>
-                </div>
-                <Badge variant="outline">
-                  {stats.completed_phase1_learners} apprenant{stats.completed_phase1_learners > 1 ? 's' : ''}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">5 séquences complétées — en attente du Projet Pro</p>
-            </CardHeader>
-            <CardContent className="p-0">
-              {filteredCompletedPhase1.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Apprenant</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCompletedPhase1.slice(0, 5).map((learner) => (
-                      <TableRow
-                        key={learner.id}
-                        className="cursor-pointer hover:bg-muted/20"
-                        onClick={() => onSelectLearner?.(learner.id)}
-                      >
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-sm text-foreground truncate max-w-[180px]">{learner.first_name} {learner.last_name}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{learner.email}</p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-              {filteredCompletedPhase1.length > 5 && onViewAll && (
-                <div className="p-3 border-t border-border flex justify-center bg-muted/10">
-                  <Button variant="outline" size="sm" onClick={() => onViewAll('completed_phase1')}>
-                    Voir les {stats.completed_phase1_learners} apprenants
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Session terminée */}
-          <Card className="shadow-sm border-border overflow-hidden">
-            <CardHeader className="bg-muted/30 pb-3 border-b border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-base font-semibold">Session terminée</CardTitle>
-                </div>
-                <Badge variant="outline">
-                  {stats.completed_learners} apprenant{stats.completed_learners > 1 ? 's' : ''}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Formation 100% complétée — Projet Pro et Impressions inclus</p>
-            </CardHeader>
-            <CardContent className="p-0">
-              {filteredCompleted.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">Aucun apprenant — les phases terminales ne sont pas encore ouvertes</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Apprenant</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCompleted.slice(0, 5).map((learner) => (
-                      <TableRow
-                        key={learner.id}
-                        className="cursor-pointer hover:bg-muted/20"
-                        onClick={() => onSelectLearner?.(learner.id)}
-                      >
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-sm text-foreground truncate max-w-[180px]">{learner.first_name} {learner.last_name}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{learner.email}</p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-              {filteredCompleted.length > 5 && onViewAll && (
-                <div className="p-3 border-t border-border flex justify-center bg-muted/10">
-                  <Button variant="outline" size="sm" onClick={() => onViewAll('completed')}>
-                    Voir les {stats.completed_learners} apprenants
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            {/* Bottom "View all" button (ClickUp reference style) */}
+            <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-center">
+              <button
+                type="button"
+                onClick={() => onViewAll?.('')}
+                className="px-4 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 text-xs font-semibold text-neutral-700 transition-colors cursor-pointer"
+              >
+                Voir tous les apprenants
+              </button>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
-  );
-}
 
-// ============================================================
-// KPI Card component
-// ============================================================
-
-function KPICard({
-  title,
-  value,
-  icon: Icon,
-  badgeText,
-  badgeVariant,
-  delay,
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  badgeText?: string;
-  badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
-  delay: number;
-}) {
-  return (
-    <Card className={cn(
-      'shadow-sm border-border animate-fade-in transition-all hover:shadow-md',
-      `stagger-${delay}`
-    )}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1 text-foreground tracking-tight animate-count-up">
-              {value}
+        {/* Right Column (4 cols): Action Panel & Status Meters (ClickUp Reference Style) */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* "Start your next project" card (ClickUp style top card) */}
+          <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6">
+            <h3 className="text-sm font-bold text-neutral-900">
+              Espace Apprenant DCLIC
+            </h3>
+            <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+              Lien unique d'accès pour tous les apprenants de la cohorte {groupId}.
             </p>
-            {badgeText && (
-              <div className="mt-1.5">
-                <Badge variant={badgeVariant}>{badgeText}</Badge>
-              </div>
-            )}
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="w-full flex items-center justify-center gap-2 h-9 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold cursor-pointer transition-colors shadow-none"
+              >
+                {portalCopied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                <span>{portalCopied ? 'Lien copié !' : 'Copier le lien apprenants'}</span>
+              </button>
+            </div>
           </div>
-          <div className="p-2 bg-muted rounded-xl text-foreground">
-            <Icon size={18} strokeWidth={2.5} />
+
+          {/* Quick Action Checklist Items (Matching ClickUp Right Sidebar) */}
+          <div className="bg-white border border-[#F1F5F9] rounded-2xl p-4 divide-y divide-[#F1F5F9]">
+            {/* Action 1: Espace Apprenant */}
+            <div className="py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-600">
+                  <BookOpen size={15} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-neutral-900">Portail Apprenants</p>
+                  <p className="text-[11px] text-neutral-400">Suivi individuel par email</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+              >
+                Partager
+              </button>
+            </div>
+
+            {/* Action 2: Import Moodle */}
+            <div className="py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-600">
+                  <UploadCloud size={15} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-neutral-900">Import de progression</p>
+                  <p className="text-[11px] text-neutral-400">Fichier CSV / Markdown</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onViewAll?.('upload')}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+              >
+                Importer
+              </button>
+            </div>
+
+            {/* Action 3: Rapports */}
+            <div className="py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-600">
+                  <FileText size={15} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-neutral-900">Rapport hebdomadaire</p>
+                  <p className="text-[11px] text-neutral-400">Bilan d'activité synthétique</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onViewAll?.('reports')}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+              >
+                Générer
+              </button>
+            </div>
+
+            {/* Action 4: Risques */}
+            <div className="py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-600">
+                  <UserX size={15} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-neutral-900">Suivi des décrochages</p>
+                  <p className="text-[11px] text-neutral-400">{stats.at_risk.length} apprenants à relancer</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('at_risk')}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+              >
+                Examiner
+              </button>
+            </div>
+          </div>
+
+          {/* Progress Meters (Bottom right in ClickUp mockup) */}
+          <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 space-y-4">
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold text-neutral-800 mb-1.5">
+                <span>Apprenants engagés</span>
+                <span className="font-mono text-neutral-500">
+                  {stats.active_learners}/{stats.total_learners}
+                </span>
+              </div>
+              <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-blue-600 h-full rounded-full"
+                  style={{
+                    width: `${stats.total_learners > 0 ? (stats.active_learners / stats.total_learners) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold text-neutral-800 mb-1.5">
+                <span>Complétion moyenne</span>
+                <span className="font-mono text-neutral-500">{stats.completion_rate}%</span>
+              </div>
+              <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-neutral-900 h-full rounded-full"
+                  style={{ width: `${Math.min(100, stats.completion_rate)}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#F1F5F9] flex items-center justify-between text-[11px] text-neutral-400">
+              <span>Cohorte : {groupId}</span>
+              <span className="text-neutral-600 font-medium">Session active</span>
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

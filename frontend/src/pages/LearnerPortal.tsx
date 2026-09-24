@@ -88,12 +88,36 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorL
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Sleek Minimalist Top Header */}
+      <header className="h-14 border-b border-border bg-white px-4 sm:px-8 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-sm shadow-none">
+            D
+          </div>
+          <div>
+            <span className="font-semibold text-sm text-foreground">DCLIC</span>
+            <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">Portail de suivi apprenant</span>
+          </div>
+        </div>
+
+        {onOpenCoordinatorLogin && (
+          <button
+            type="button"
+            onClick={onOpenCoordinatorLogin}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:border-neutral-300 bg-white text-xs font-medium text-neutral-700 hover:text-neutral-900 transition-colors cursor-pointer"
+          >
+            <Lock size={13} className="text-neutral-500" />
+            <span>Accès Coordinateur</span>
+          </button>
+        )}
+      </header>
+
       {/* Main Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* State 1: Email Form (Initial or Reset) */}
         {!portalData && (
           <div className="max-w-md mx-auto pt-8 sm:pt-16 pb-12">
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card shadow-none">
               <CardHeader className="text-center pb-4">
                 <UserCheck className="h-10 w-10 text-primary mx-auto mb-3" />
                 <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
@@ -126,7 +150,7 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorL
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-11 font-semibold gap-2 cursor-pointer"
+                    className="w-full h-11 font-semibold gap-2 cursor-pointer shadow-none"
                   >
                     {loading ? (
                       <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
@@ -145,9 +169,9 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorL
                 )}
 
                 <div className="text-center text-xs text-muted-foreground space-y-1.5 pt-2">
-                  <p className="font-semibold text-foreground">Information importante :</p>
+                  <p className="font-semibold text-foreground">Validation du parcours :</p>
                   <p className="leading-relaxed">
-                    Pour valider entièrement la Phase 1 et s'assurer que tout votre dossier est bien complet, vous devez atteindre une progression globale minimale de <strong>93,5%</strong>, avoir déposé votre lettre d'engagement et obtenu une note d'au moins 10/20 aux devoirs obligatoires.
+                    Assurez-vous de compléter toutes les activités et de valider les livrables obligatoires avec une note minimale de <strong>10/20</strong> pour valider votre certification.
                   </p>
                 </div>
               </CardContent>
@@ -175,7 +199,7 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = ({ onOpenCoordinatorL
             </div>
 
             {/* Learner Identity & Status Card */}
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card shadow-none">
               <CardHeader className="pb-4 border-b border-border bg-muted/10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>

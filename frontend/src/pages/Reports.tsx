@@ -57,7 +57,10 @@ function CustomSelect({ options, value, onChange }: { options: { value: string, 
   );
 }
 
+import { useFormation } from '@/context/FormationContext';
+
 export default function Reports() {
+  const { currentFormation, formationTitle } = useFormation();
   const [reports, setReports] = useState<any[]>([]);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -71,9 +74,10 @@ export default function Reports() {
   const [customError, setCustomError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      api.getWeeklyReports(),
-      api.getDashboardStats().catch(() => null)
+      api.getWeeklyReports(currentFormation),
+      api.getDashboardStats(currentFormation).catch(() => null)
     ])
       .then(([reportsData, statsData]) => {
         setReports(reportsData);
@@ -94,7 +98,7 @@ export default function Reports() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [currentFormation]);
 
   if (loading) return <div className="p-8">Chargement des rapports...</div>;
   if (reports.length === 0 && !isCustomMode) return <div className="p-8 text-muted-foreground">Aucun historique disponible.</div>;
@@ -115,7 +119,7 @@ export default function Reports() {
     setCustomError(null);
     setGeneratingCustom(true);
     try {
-      const report = await api.getCustomReport(startDate, endDate);
+      const report = await api.getCustomReport(startDate, endDate, currentFormation);
       setCustomReport(report);
     } catch (err: any) {
       console.error(err);
@@ -202,33 +206,33 @@ export default function Reports() {
       const dropoutRate = totalLearners > 0 ? Math.round((droppedCount / totalLearners) * 100) : 0;
       
       if (dropoutRate > 20) {
-        recommendations.push(`⚠️ **Alerte décrochage** : ${dropoutRate}% de la cohorte est en situation de décrochage (${droppedCount}/${totalLearners}). Une campagne de relance ciblée est recommandée.`);
+        recommendations.push(`**Alerte décrochage** : ${dropoutRate}% de la cohorte est en situation de décrochage (${droppedCount}/${totalLearners}). Une campagne de relance ciblée est recommandée.`);
       } else if (dropoutRate > 10) {
-        recommendations.push(`📋 **Vigilance décrochage** : ${dropoutRate}% de la cohorte est en décrochage. Continuer les relances individuelles.`);
+        recommendations.push(`**Vigilance décrochage** : ${dropoutRate}% de la cohorte est en décrochage. Continuer les relances individuelles.`);
       }
 
       if (blockedCount > 0) {
-        recommendations.push(`🔒 **${blockedCount} apprenant${blockedCount > 1 ? 's' : ''} bloqué${blockedCount > 1 ? 's' : ''}** : Des relances et un accompagnement personnalisé sur les activités évaluées sont nécessaires.`);
+        recommendations.push(`**${blockedCount} apprenant${blockedCount > 1 ? 's' : ''} bloqué${blockedCount > 1 ? 's' : ''}** : Des relances et un accompagnement personnalisé sur les activités évaluées sont nécessaires.`);
       }
 
       if (inactiveCount > 5) {
-        recommendations.push(`📧 **${inactiveCount} apprenants inactifs** : Planifier des relances par mail/WhatsApp pour les ramener sur la plateforme.`);
+        recommendations.push(`**${inactiveCount} apprenants inactifs** : Planifier des relances pour les remobiliser sur la plateforme.`);
       }
 
       if (phase1Count > 0) {
-        recommendations.push(`🎉 **${phase1Count} apprenant${phase1Count > 1 ? 's ont' : ' a'} terminé la Phase 1** : Envoyer un message de félicitations et les préparer pour le Projet Pro.`);
+        recommendations.push(`**${phase1Count} apprenant${phase1Count > 1 ? 's ont' : ' a'} terminé la Phase 1** : Préparer le passage au Projet Professionnel.`);
       }
 
       if (completedCount > 0) {
-        recommendations.push(`🏆 **${completedCount} apprenant${completedCount > 1 ? 's ont' : ' a'} terminé la session** : Préparer les certificats et la clôture.`);
+        recommendations.push(`**${completedCount} apprenant${completedCount > 1 ? 's ont' : ' a'} terminé la session** : Préparer les certificats et la clôture.`);
       }
 
       if (recommendations.length === 0) {
-        recommendations.push('✅ Pas d\'alerte particulière. La cohorte suit un rythme normal.');
+        recommendations.push('Aucune anomalie détectée. La cohorte suit un rythme régulier.');
       }
 
       globalSection = `
-## 🌍 Vue Globale de la Cohorte
+## Vue Globale de la Cohorte
 
 | Indicateur | Valeur |
 |---|---|
@@ -241,7 +245,7 @@ export default function Reports() {
 | Session terminée (100%) | **${completedCount}** |
 | Bloqués (note minimale non atteinte) | **${blockedCount}** |
 
-### 📈 Progression par Séquence
+### Progression par Séquence
 ${dashboardStats.sequence_stats
   .filter((s: any) => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
   .sort((a: any, b: any) => {
@@ -259,22 +263,22 @@ ${dashboardStats.sequence_stats
   })
   .map((s: any) => `- **${s.sequence}** : ${s.learners_completed} terminés, ${s.learners_in_progress} en cours, ${s.learners_not_started} non commencés (Moyenne : ${s.avg_completion}%)`).join('\n')}
 
-### ✅ Apprenants ayant terminé la Phase 1 (${phase1Count})
+### Apprenants ayant terminé la Phase 1 (${phase1Count})
 ${phase1List}
 
-### 🏆 Apprenants ayant terminé la Session (${completedCount})
+### Apprenants ayant terminé la Session (${completedCount})
 ${completedList}
 
-### 🔒 Apprenants Bloqués (${blockedCount})
+### Apprenants Bloqués (${blockedCount})
 ${blockedList}
 
-### 🏅 Top 5 Performers
+### Top Performers
 ${topPerformersList}
 
-### ⚠️ Apprenants en Risque de Décrochage
+### Apprenants en Risque de Décrochage
 ${atRiskList}
 
-### 💡 Recommandations
+### Recommandations
 ${recommendations.map(r => `- ${r}`).join('\n')}
 
 `;
@@ -283,16 +287,16 @@ ${recommendations.map(r => `- ${r}`).join('\n')}
     const mdContent = `# Rapport ${isCustomMode ? 'Personnalisé' : 'Hebdomadaire'} - Cohorte DCLIC
 **Période :** Du ${formatDate(currentReport.week_start)} au ${formatDate(currentReport.week_end)}
 ${globalSection}
-## 📊 Indicateurs Hebdomadaires Clés
+## Indicateurs Clés de la Période
 - **Total des validations :** ${currentReport.total_validations}
 - **Apprenants actifs cette semaine :** ${currentReport.active_learners}
 - **Séquence la plus active :** ${topSequence?.sequence || 'N/A'} (${topSequence?.count || 0} validations)
 - **Jour le plus actif :** ${topDay?.day || 'N/A'} (${topDay?.count || 0} validations)
 
-## 📚 Validations par Séquence
+## Validations par Séquence
 ${currentReport.validations_by_sequence.map((s: any) => `- **${s.sequence}** : ${s.count} validations`).join('\n')}
 
-## 📅 Activité Quotidienne
+## Activité Quotidienne
 ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} validations`).join('\n')}
 
 ---

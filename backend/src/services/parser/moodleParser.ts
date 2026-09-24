@@ -241,13 +241,18 @@ export function filterByGroup(participants: ParsedParticipant[], groupId: string
 }
 
 /**
- * Identifie si une activité est un Devoir officiel (selon le programme DCLIC).
+ * Identifie si une activité est un Devoir officiel (selon le programme DCLIC MN ou GP).
  */
 export function isAssignment(name: string): boolean {
   const lower = name.toLowerCase();
   if (lower.includes('correction') || lower.includes('exercice évalué sur les débouchés') || lower.includes('exercice evalue sur les debouches')) {
     return false;
   }
+  // GP Livrables (Module de spécialisation)
+  if (lower.includes('livrable')) {
+    return true;
+  }
+  // MN Livrables & Devoirs (Formation initiale)
   return (
     lower.includes("lettre d'engagement") ||
     lower.includes("lettre d") ||
@@ -268,16 +273,130 @@ export function isAssignment(name: string): boolean {
 
 /**
  * Extract activity metadata from the parsed CSV column names.
- * Maps activity codes (M1A, M2B, etc.) to sequences and types.
+ * Maps activity codes to sequences and types for both MN and GP.
  */
-export function extractActivityMetadata(activityNames: string[]): Array<{
+export function extractActivityMetadata(
+  activityNames: string[],
+  forcedFormationType?: 'mn' | 'gp'
+): Array<{
   code: string;
   name: string;
   sequence: string;
   type: 'exercise' | 'quiz' | 'devoir' | 'documentation';
   is_evaluated: boolean;
   display_order: number;
+  formation_type: string;
 }> {
+  const isGP = forcedFormationType === 'gp' || activityNames.some(n =>
+    n.includes('posture stratégique') ||
+    n.includes('diagramme de Gantt') ||
+    n.includes('Mission direction de projet') ||
+    n.includes('plan de lancement 360')
+  );
+
+  if (isGP) {
+    return activityNames.map((name, index) => {
+      const lowerName = name.toLowerCase();
+      let sequence = 'Autre';
+      let code = `GP_ACT_${index}`;
+      let type: 'exercise' | 'quiz' | 'devoir' | 'documentation' = 'exercise';
+      let isEvaluated = false;
+
+      // Group 1: 0 to 6
+      if (index <= 6) {
+        sequence = 'Séquence 1 : Cadrage stratégique et audit';
+        if (index <= 4) {
+          code = `GP_S1_M${index + 1}`;
+          type = 'exercise';
+        } else {
+          code = `GP_S1_L${index - 4}`;
+          type = 'devoir';
+          isEvaluated = true;
+        }
+      }
+      // Group 2: 7 to 13
+      else if (index <= 13) {
+        sequence = 'Séquence 2 : Planification et budgétisation';
+        if (index <= 11) {
+          code = `GP_S2_M${index - 6}`;
+          type = 'exercise';
+        } else {
+          code = `GP_S2_L${index - 11}`;
+          type = 'devoir';
+          isEvaluated = true;
+        }
+      }
+      // Group 3: 14 to 21
+      else if (index <= 21) {
+        sequence = 'Séquence 3 : Pilotage de projet et prestataires';
+        if (index <= 18) {
+          code = `GP_S3_M${index - 13}`;
+          type = 'exercise';
+        } else {
+          code = `GP_S3_L${index - 18}`;
+          type = 'devoir';
+          isEvaluated = true;
+        }
+      }
+      // Group 4: 22 to 28
+      else if (index <= 28) {
+        sequence = 'Séquence 4 : Stratégie de lancement 360°';
+        if (index <= 26) {
+          code = `GP_S4_M${index - 21}`;
+          type = 'exercise';
+        } else {
+          code = `GP_S4_L${index - 26}`;
+          type = 'devoir';
+          isEvaluated = true;
+        }
+      }
+      // Group 5: 29 to 35
+      else if (index <= 35) {
+        sequence = 'Séquence 5 : Mesure de performance et reporting';
+        if (index <= 33) {
+          code = `GP_S5_M${index - 28}`;
+          type = 'exercise';
+        } else {
+          code = `GP_S5_L${index - 33}`;
+          type = 'devoir';
+          isEvaluated = true;
+        }
+      }
+      // Projet Pro: 36 to 48
+      else {
+        sequence = 'Projet professionnel';
+        if (index === 36) {
+          code = 'GP_PP_DESC';
+          type = 'documentation';
+        } else if (index <= 42) {
+          code = `GP_PP_ENT_${index - 36}`;
+          type = 'devoir';
+          isEvaluated = true;
+        } else {
+          code = `GP_PP_FIN_${index - 42}`;
+          type = 'devoir';
+          isEvaluated = true;
+        }
+      }
+
+      if (isAssignment(name)) {
+        type = 'devoir';
+        isEvaluated = true;
+      }
+
+      return {
+        code,
+        name: name.trim(),
+        sequence,
+        type,
+        is_evaluated: isEvaluated,
+        display_order: index,
+        formation_type: 'gp',
+      };
+    });
+  }
+
+  // Formation Initiale - Marketing Numérique (MN)
   const seqMap: Record<string, string> = {
     '1': 'Séquence 1 : Introduction au marketing numérique',
     '2': 'Séquence 2 : Découverte des méthodes et outils',
@@ -335,6 +454,7 @@ export function extractActivityMetadata(activityNames: string[]): Array<{
       type,
       is_evaluated: isEvaluated,
       display_order: index,
+      formation_type: 'mn',
     };
   });
 }

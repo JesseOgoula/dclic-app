@@ -16,11 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
+import { useFormation } from '@/context/FormationContext';
+
 interface UploadPageProps {
   onNavigate?: (page: 'dashboard' | 'learners' | 'upload' | 'reports') => void;
 }
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
+  const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
@@ -38,7 +41,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   }, []);
 
   const handleResetData = async () => {
-    if (window.confirm("Êtes-vous sûr de vouloir effacer TOUTES les données (apprenants, progrès, activités, historique) ? Cette action est irréversible.")) {
+    if (window.confirm("Êtes-vous sûr de vouloir effacer TOUTES les données ? Cette action est irréversible.")) {
       try {
         await api.resetData();
         fetchHistory();
@@ -108,15 +111,15 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-xl font-semibold">Importer des données Moodle</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Uploadez vos exports CSV (progression) ou Excel (participants) depuis Moodle.
-            Seul le <strong>Groupe G1</strong> sera traité.
+          <h2 className="text-xl font-bold tracking-tight text-neutral-900">Importer des données Moodle</h2>
+          <p className="text-xs text-neutral-500 mt-1">
+            Uploadez vos exports CSV (progression) ou Markdown / Excel (participants).
+            Cohortes prises en charge : <strong className="text-neutral-800">Gestion de projet ({groupId})</strong> et <strong className="text-neutral-800">Marketing numérique</strong>.
           </p>
         </div>
-        <Button variant="destructive" size="sm" onClick={handleResetData} className="gap-2">
-          <Trash2 className="w-4 h-4" />
-          Reset Données
+        <Button variant="outline" size="sm" onClick={handleResetData} className="gap-1.5 text-xs text-neutral-600 border-neutral-200 hover:text-red-600 hover:border-red-200 shadow-none cursor-pointer">
+          <Trash2 className="w-3.5 h-3.5" />
+          Réinitialiser
         </Button>
       </div>
 

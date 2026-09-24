@@ -28,6 +28,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { useFormation } from '@/context/FormationContext';
+
 interface LearnersListProps {
   onSelectLearner?: (id: string) => void;
   globalSearch?: string;
@@ -35,6 +37,7 @@ interface LearnersListProps {
 }
 
 export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '' }: LearnersListProps) {
+  const { currentFormation, formationTitle, groupId } = useFormation();
   const [learners, setLearners] = useState<LearnerWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -46,13 +49,14 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
   const loadLearners = useCallback(async () => {
     try {
-      if (learners.length === 0) setLoading(true);
+      setLoading(true);
       const effectiveSearch = search || globalSearch || undefined;
       const data = await api.getLearners({
         search: effectiveSearch,
         status: statusFilter || undefined,
         sortBy,
         sortDir,
+        formation: currentFormation,
       });
       setLearners(data);
     } catch (err) {
@@ -60,15 +64,14 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
     } finally {
       setLoading(false);
     }
-  }, [search, globalSearch, statusFilter, sortBy, sortDir, learners.length]);
+  }, [search, globalSearch, statusFilter, sortBy, sortDir, currentFormation]);
 
   useEffect(() => {
     setStatusFilter(initialFilter);
   }, [initialFilter]);
 
   useEffect(() => {
-    // Load stats once to get the counts for the filters
-    api.getDashboardStats().then(data => {
+    api.getDashboardStats(currentFormation).then(data => {
       setStats({
         total: data.total_learners,
         active: data.active_learners,
@@ -79,7 +82,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
         completed: data.completed_learners,
       });
     }).catch(console.error);
-  }, []);
+  }, [currentFormation]);
 
   useEffect(() => {
     loadLearners();

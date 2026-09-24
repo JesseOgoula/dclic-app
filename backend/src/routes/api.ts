@@ -38,15 +38,49 @@ router.get('/auth/check', (req: Request, res: Response): void => {
   }
 });
 
+router.get('/formations', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const [gpLearners, mnLearners] = await Promise.all([
+      store.getLearners('gp'),
+      store.getLearners('mn'),
+    ]);
+
+    const formations = [
+      {
+        id: 'gp',
+        title: 'Gestion de projet',
+        category: 'Module de spécialisation',
+        subtitle: 'Cohorte G1_GPM_092026',
+        group_id: 'G1_GPM_092026',
+        learner_count: gpLearners.length,
+        period: 'Septembre — Octobre 2026',
+      },
+      {
+        id: 'mn',
+        title: 'Marketing numérique',
+        category: 'Formation initiale',
+        subtitle: 'Cohorte G1_MN_072026',
+        group_id: 'G1_MN_072026',
+        learner_count: mnLearners.length,
+        period: '27 juil — 25 sept 2026',
+      },
+    ];
+    res.json({ success: true, data: formations });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 router.get('/portal/learner', async (req: Request, res: Response): Promise<void> => {
   try {
     const email = (req.query.email as string || '').trim();
+    const formation = (req.query.formation as string || '').trim() || undefined;
     if (!email) {
       res.status(400).json({ error: 'Adresse de courriel requise.' });
       return;
     }
 
-    const data = await store.getLearnerPortalData(email);
+    const data = await store.getLearnerPortalData(email, formation);
     if (!data) {
       res.status(404).json({ error: 'Aucun apprenant trouvé avec cette adresse de courriel.' });
       return;
@@ -128,12 +162,47 @@ router.delete('/reset', async (_req: Request, res: Response): Promise<void> => {
 });
 
 // ============================================================
+// Formations endpoint
+// ============================================================
+
+router.get('/formations', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const mnLearners = await store.getLearners('mn');
+    const gpLearners = await store.getLearners('gp');
+    res.json({
+      success: true,
+      data: [
+        {
+          id: 'mn',
+          name: 'Formation Initiale',
+          subtitle: 'Marketing Numérique',
+          group_id: 'G1_MN_072026',
+          learner_count: mnLearners.length,
+          period: '27 juil — 25 sept 2026',
+        },
+        {
+          id: 'gp',
+          name: 'Module de Spécialisation',
+          subtitle: 'Gestion de Projet',
+          group_id: 'G1_GPM_092026',
+          learner_count: gpLearners.length,
+          period: 'Septembre — Octobre 2026',
+        },
+      ],
+    });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+// ============================================================
 // Reports endpoints
 // ============================================================
 
-router.get('/reports/weekly', async (_req: Request, res: Response): Promise<void> => {
+router.get('/reports/weekly', async (req: Request, res: Response): Promise<void> => {
   try {
-    const reports = await store.getWeeklyReports();
+    const formation = (req.query.formation as string || 'mn').trim();
+    const reports = await store.getWeeklyReports(formation);
     res.json({ success: true, data: reports });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -143,11 +212,12 @@ router.get('/reports/weekly', async (_req: Request, res: Response): Promise<void
 router.get('/reports/custom', async (req: Request, res: Response): Promise<void> => {
   try {
     const { start, end } = req.query;
+    const formation = (req.query.formation as string || 'mn').trim();
     if (!start || !end) {
       res.status(400).json({ error: 'Missing start or end date' });
       return;
     }
-    const report = await store.getCustomReport(start as string, end as string);
+    const report = await store.getCustomReport(start as string, end as string, formation);
     res.json({ success: true, data: report });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -158,9 +228,10 @@ router.get('/reports/custom', async (req: Request, res: Response): Promise<void>
 // Dashboard endpoints
 // ============================================================
 
-router.get('/dashboard/stats', async (_req: Request, res: Response): Promise<void> => {
+router.get('/dashboard/stats', async (req: Request, res: Response): Promise<void> => {
   try {
-    const stats = await store.getDashboardStats();
+    const formation = (req.query.formation as string || 'mn').trim();
+    const stats = await store.getDashboardStats(formation);
     res.json({ success: true, data: stats });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -173,7 +244,8 @@ router.get('/dashboard/stats', async (_req: Request, res: Response): Promise<voi
 
 router.get('/learners', async (req: Request, res: Response): Promise<void> => {
   try {
-    let learners = await store.getLearners();
+    const formation = (req.query.formation as string || 'mn').trim();
+    let learners = await store.getLearners(formation);
 
     // Search by name or email
     const search = (req.query.search as string || '').toLowerCase();
@@ -186,7 +258,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Enrich with progress
-    const activities = await store.getActivities();
+    const activities = await store.getActivities(formation);
     const allProgress = await store.getAllProgress();
     const seq5Activities = activities.filter(a => a.sequence.includes('Séquence 5'));
     const phase1Activities = activities.filter(a => a.sequence.startsWith('Séquence '));
@@ -280,7 +352,9 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
     }
 
     const progress = await store.getProgressByLearner(learner.id);
-    const activities = await store.getActivities();
+    const learnerFormation = learner.group_id?.includes('GPM') ? 'gp' : 'mn';
+    const formation = (req.query.formation as string || learnerFormation).trim();
+    const activities = await store.getActivities(formation);
     const communications = await store.getCommunicationsByLearner(learner.id);
 
     // Merge progress with activity details

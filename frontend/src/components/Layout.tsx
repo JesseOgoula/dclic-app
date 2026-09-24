@@ -1,45 +1,41 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
+  LayoutGrid,
   Users,
-  Upload,
-  BarChart,
-  ChevronLeft,
+  BarChart3,
+  UploadCloud,
   Bell,
   Search,
   AlertTriangle,
   UserX,
   X,
   ExternalLink,
-  Share2,
   Check,
   Copy,
   LogOut,
+  ChevronDown,
+  Layers,
+  Briefcase,
+  SlidersHorizontal,
+  Command,
 } from 'lucide-react';
-import { api, type Alert } from '@/lib/api';
+import { api, type Alert, type FormationType } from '@/lib/api';
+import { useFormation } from '@/context/FormationContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
+export type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
 
 interface LayoutProps {
   children: React.ReactNode;
   currentPage: Page;
   onNavigate: (page: Page) => void;
   onSelectLearner?: (id: string) => void;
-  alertCount?: number;
   globalSearch?: string;
   onSearch?: (value: string) => void;
   onLogout?: () => void;
 }
-
-const NAV_ITEMS: { id: Page; label: string; icon: React.ElementType }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'reports', label: 'Rapports', icon: BarChart },
-  { id: 'learners', label: 'Apprenants', icon: Users },
-  { id: 'upload', label: 'Import', icon: Upload },
-];
 
 export default function Layout({
   children,
@@ -50,339 +46,404 @@ export default function Layout({
   onSearch,
   onLogout,
 }: LayoutProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const { currentFormation, setFormation, formationTitle, formationCategory, setShowSelector } = useFormation();
+  const [formationDropdownOpen, setFormationDropdownOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [unreadAlertCount, setUnreadAlertCount] = useState<number>(0);
   const [portalLinkCopied, setPortalLinkCopied] = useState(false);
+
   const alertsRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const calculateUnread = (items: Alert[]) => {
-    try {
-      const seenIds = new Set<string>(JSON.parse(localStorage.getItem('dclic_seen_alert_ids') || '[]'));
-      const unread = items.filter(a => !a.acknowledged && !seenIds.has(a.id));
-      setUnreadAlertCount(unread.length);
-    } catch {
-      setUnreadAlertCount(items.filter(a => !a.acknowledged).length);
-    }
-  };
-
+  // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
   useEffect(() => {
-    // Load active alerts or generate from dashboard at-risk data
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Fetch alerts for active formation
+  useEffect(() => {
     async function fetchAlerts() {
       try {
-        const data = await api.getAlerts();
-        if (data && data.length > 0) {
-          setAlerts(data);
-          calculateUnread(data);
-        } else {
-          // Fallback: check dashboard stats for at-risk/blocked learners
-          const stats = await api.getDashboardStats();
-          const generated: Alert[] = [];
-          
-          stats.blocked_learners.slice(0, 5).forEach((b) => {
-            generated.push({
-              id: `blocked-${b.id}`,
-              learner_id: b.id,
-              learner_name: `${b.first_name} ${b.last_name}`,
-              type: 'blocked',
-              message: `Bloqué sur : ${b.failed_modules?.join(', ') || 'activité'}`,
-              acknowledged: false,
-              triggered_at: new Date().toISOString(),
-            });
-          });
+        const stats = await api.getDashboardStats(currentFormation);
+        const generated: Alert[] = [];
 
-          stats.at_risk.slice(0, 5).forEach((r) => {
-            generated.push({
-              id: `risk-${r.id}`,
-              learner_id: r.id,
-              learner_name: `${r.first_name} ${r.last_name}`,
-              type: 'dropout_risk',
-              message: `${r.days_inactive > 900 ? 'Jamais connecté' : `${r.days_inactive} jours d'inactivité`}`,
-              acknowledged: false,
-              triggered_at: new Date().toISOString(),
-            });
+        stats.blocked_learners.slice(0, 5).forEach((b) => {
+          generated.push({
+            id: `blocked-${b.id}`,
+            learner_id: b.id,
+            learner_name: `${b.first_name} ${b.last_name}`,
+            type: 'blocked',
+            message: `Retard / devoir non validé : ${b.failed_modules?.join(', ') || 'activité'}`,
+            acknowledged: false,
+            triggered_at: new Date().toISOString(),
           });
+        });
 
-          setAlerts(generated);
-          calculateUnread(generated);
-        }
+        stats.at_risk.slice(0, 5).forEach((r) => {
+          generated.push({
+            id: `risk-${r.id}`,
+            learner_id: r.id,
+            learner_name: `${r.first_name} ${r.last_name}`,
+            type: 'dropout_risk',
+            message: `${r.days_inactive > 900 ? 'Jamais connecté' : `${r.days_inactive} jours d'inactivité`}`,
+            acknowledged: false,
+            triggered_at: new Date().toISOString(),
+          });
+        });
+
+        setAlerts(generated);
+        setUnreadAlertCount(generated.length);
       } catch (err) {
         console.warn('Could not load alerts:', err);
       }
     }
 
     fetchAlerts();
-  }, [currentPage]);
+  }, [currentFormation, currentPage]);
 
-  // Click outside listener for alerts dropdown
+  // Click outside listener for dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (alertsRef.current && !alertsRef.current.contains(event.target as Node)) {
         setAlertsOpen(false);
       }
-    }
-    if (alertsOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [alertsOpen]);
-
-  const handleToggleAlerts = () => {
-    const nextState = !alertsOpen;
-    setAlertsOpen(nextState);
-    if (nextState) {
-      // When drawer is opened, mark current alerts as seen so badge disappears
-      try {
-        const currentIds = alerts.map(a => a.id);
-        const existingSeen = new Set<string>(JSON.parse(localStorage.getItem('dclic_seen_alert_ids') || '[]'));
-        currentIds.forEach(id => existingSeen.add(id));
-        localStorage.setItem('dclic_seen_alert_ids', JSON.stringify(Array.from(existingSeen)));
-      } catch (e) {
-        console.warn('Could not persist seen alerts:', e);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setFormationDropdownOpen(false);
       }
-      setUnreadAlertCount(0);
     }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleCopyPortalLink = () => {
+    const portalUrl = `${window.location.origin}/?portal=true&formation=${currentFormation}`;
+    navigator.clipboard.writeText(portalUrl);
+    setPortalLinkCopied(true);
+    setTimeout(() => setPortalLinkCopied(false), 2200);
   };
 
+  const navTabs: { id: Page; label: string; icon: React.ElementType }[] = [
+    { id: 'dashboard', label: 'Overview', icon: LayoutGrid },
+    { id: 'learners', label: 'Apprenants', icon: Users },
+    { id: 'reports', label: 'Rapports', icon: BarChart3 },
+    { id: 'upload', label: 'Import', icon: UploadCloud },
+  ];
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          'flex flex-col bg-sidebar border-r border-border transition-all duration-300 ease-in-out shrink-0',
-          collapsed ? 'w-[72px]' : 'w-[200px]'
-        )}
-      >
-        {/* Logo */}
-        <div className={cn("flex items-center gap-3 py-6 shrink-0", collapsed ? "justify-center px-0" : "px-6")}>
-          <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white font-bold text-xl shrink-0">
-            D
-          </div>
-          {!collapsed && (
-            <div className="animate-fade-in font-bold text-lg text-foreground tracking-tight flex items-center gap-1">
-              <span className="text-muted-foreground text-sm font-normal">Monitoring</span>
-            </div>
-          )}
+    <div className="flex h-screen overflow-hidden bg-[#FAFAFA]">
+      {/* 1. Left Slim Navigation Rail (ClickUp Reference Style) */}
+      <aside className="w-16 border-r border-[#F1F5F9] bg-white flex flex-col items-center py-4 shrink-0 select-none z-20">
+        {/* Brand Mark */}
+        <div 
+          onClick={() => setShowSelector(true)}
+          className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold text-base cursor-pointer hover:bg-neutral-800 transition-colors mb-6 shadow-none"
+          title="Changer de formation / Espace"
+        >
+          D
         </div>
 
-        {/* Navigation */}
-        <nav className={cn("flex-1 py-4 space-y-2 overflow-y-auto", collapsed ? "px-2" : "px-4")}>
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPage === item.id;
-
+        {/* Vertical Icon Rail */}
+        <nav className="flex flex-col items-center gap-2 w-full px-2">
+          {navTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = currentPage === tab.id;
             return (
               <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
+                key={tab.id}
+                onClick={() => onNavigate(tab.id)}
                 className={cn(
-                  'w-full flex items-center rounded-xl text-sm font-medium transition-all duration-200 group',
-                  collapsed ? 'justify-center py-3' : 'gap-3 px-3 py-2.5',
+                  "w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer",
                   isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? "bg-neutral-100 text-neutral-900"
+                    : "text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50"
                 )}
-                title={collapsed ? item.label : undefined}
+                title={tab.label}
               >
-                <div className={cn(
-                  "flex items-center justify-center rounded-lg transition-colors shrink-0",
-                  collapsed ? "p-2.5" : "p-1.5",
-                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
-                )}>
-                  <Icon size={20} strokeWidth={2.5} />
-                </div>
-                {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+                <Icon size={19} strokeWidth={isActive ? 2.2 : 1.8} />
               </button>
             );
           })}
         </nav>
 
-        {/* Collapse toggle */}
-        <div className={cn("p-4 mt-auto", collapsed && "px-2")}>
+        {/* Bottom Rail Actions */}
+        <div className="mt-auto flex flex-col items-center gap-3">
           <button
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(
-              "w-full flex items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
-              collapsed ? "py-3" : "gap-2 px-3 py-2"
-            )}
+            type="button"
+            onClick={() => setShowSelector(true)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50 transition-colors cursor-pointer"
+            title="Sélecteur de formation"
           >
-            <ChevronLeft
-              size={20}
-              className={cn('transition-transform', collapsed && 'rotate-180')}
-            />
-            {!collapsed && <span className="text-sm font-medium">Réduire</span>}
+            <SlidersHorizontal size={18} />
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-background flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-foreground tracking-tight">
-                {NAV_ITEMS.find(n => n.id === currentPage)?.label || 'Dashboard'}
-              </h2>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="hidden md:flex relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={globalSearch}
-                onChange={(e) => onSearch?.(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-white rounded-full border border-border shadow-sm text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-64 transition-all"
-              />
-            </div>
-
-            {/* Copy Unique Learner Portal Link */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const portalUrl = `${window.location.origin}/?portal=true`;
-                navigator.clipboard.writeText(portalUrl);
-                setPortalLinkCopied(true);
-                setTimeout(() => setPortalLinkCopied(false), 2500);
-              }}
-              className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg border-border hover:bg-muted text-xs font-medium cursor-pointer shadow-xs text-foreground bg-card"
-              title="Copier le lien unique à partager avec tous les apprenants"
-            >
-              {portalLinkCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} className="text-muted-foreground" />}
-              <span>{portalLinkCopied ? 'Lien copié !' : 'Copier le lien apprenants'}</span>
-            </Button>
-
-            {/* Alerts bell & Popover */}
-            <div className="relative" ref={alertsRef}>
+        {/* Top Navigation Bar */}
+        <header className="h-14 bg-white border-b border-[#F1F5F9] px-6 flex items-center justify-between shrink-0 z-10">
+          {/* Left: Formation Switcher & Horizontal Navigation Tabs */}
+          <div className="flex items-center gap-6">
+            {/* Formation Switcher Dropdown */}
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={handleToggleAlerts}
-                className="relative p-2 rounded-full hover:bg-white hover:shadow-sm border border-transparent hover:border-border transition-all bg-white shadow-sm cursor-pointer"
-                title="Alertes"
+                type="button"
+                onClick={() => setFormationDropdownOpen(!formationDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-neutral-300 bg-white text-xs font-semibold text-neutral-900 transition-all cursor-pointer"
               >
-                <Bell size={18} className="text-foreground" />
-                {unreadAlertCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                    {unreadAlertCount > 99 ? '99+' : unreadAlertCount}
-                  </span>
-                )}
+                <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
+                <span className="truncate max-w-[150px] sm:max-w-[200px]">
+                  {formationTitle}
+                </span>
+                <span className="text-[10px] text-neutral-400 font-normal hidden md:inline">
+                  ({formationCategory})
+                </span>
+                <ChevronDown size={13} className="text-neutral-400 ml-0.5" />
               </button>
 
-              {alertsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-xl border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
-                  <div className="p-3.5 bg-muted/40 border-b border-border flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-foreground">Alertes et Risques</span>
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                        {alerts.length}
-                      </Badge>
-                    </div>
-                    <button
-                      onClick={() => setAlertsOpen(false)}
-                      className="text-muted-foreground hover:text-foreground p-1 rounded-md cursor-pointer"
-                    >
-                      <X size={14} />
-                    </button>
+              {/* Dropdown Menu */}
+              {formationDropdownOpen && (
+                <div className="absolute left-0 mt-1.5 w-64 bg-white border border-[#E2E8F0] rounded-xl p-1.5 shadow-none z-50 animate-fade-in">
+                  <div className="px-2.5 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                    Espaces de formation
                   </div>
-
-                  <div className="max-h-[320px] overflow-y-auto divide-y divide-border">
-                    {alerts.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-muted-foreground">
-                        Aucune alerte active
-                      </div>
-                    ) : (
-                      alerts.map((alert) => (
-                        <div
-                          key={alert.id}
-                          className={cn(
-                            "p-3 flex items-start justify-between gap-3 hover:bg-muted/20 transition-colors",
-                            alert.acknowledged ? "opacity-60" : ""
-                          )}
-                        >
-                          <div className="flex items-start gap-2.5 min-w-0">
-                            <div className="p-1 rounded bg-destructive/10 text-destructive mt-0.5 shrink-0">
-                              {alert.type === 'blocked' ? <UserX size={14} /> : <AlertTriangle size={14} />}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-xs text-foreground truncate">
-                                {alert.learner_name || 'Apprenant'}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
-                                {alert.message}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            {onSelectLearner && (
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                onClick={() => {
-                                  onSelectLearner(alert.learner_id);
-                                  setAlertsOpen(false);
-                                }}
-                                className="h-7 w-7 p-0"
-                                title="Voir profil"
-                              >
-                                <ExternalLink size={12} />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))
+                  
+                  {/* Gestion de Projet */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormation('gp');
+                      setFormationDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer",
+                      currentFormation === 'gp'
+                        ? "bg-neutral-100 text-neutral-900 font-semibold"
+                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
                     )}
-                  </div>
+                  >
+                    <div className="flex items-center gap-2">
+                      <Briefcase size={14} className="text-neutral-500" />
+                      <div>
+                        <p className="leading-tight">Gestion de projet</p>
+                        <p className="text-[10px] text-neutral-400">Module de spécialisation</p>
+                      </div>
+                    </div>
+                    {currentFormation === 'gp' && <Check size={14} className="text-neutral-900" />}
+                  </button>
 
-                  <div className="p-2 border-t border-border bg-muted/20 text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                  {/* Marketing Numérique */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormation('mn');
+                      setFormationDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer mt-0.5",
+                      currentFormation === 'mn'
+                        ? "bg-neutral-100 text-neutral-900 font-semibold"
+                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Layers size={14} className="text-neutral-500" />
+                      <div>
+                        <p className="leading-tight">Marketing numérique</p>
+                        <p className="text-[10px] text-neutral-400">Formation initiale</p>
+                      </div>
+                    </div>
+                    {currentFormation === 'mn' && <Check size={14} className="text-neutral-900" />}
+                  </button>
+
+                  <div className="border-t border-[#F1F5F9] mt-1.5 pt-1.5">
+                    <button
+                      type="button"
                       onClick={() => {
-                        onNavigate('learners');
-                        setAlertsOpen(false);
+                        setFormationDropdownOpen(false);
+                        setShowSelector(true);
                       }}
-                      className="text-xs text-primary font-medium w-full h-8"
+                      className="w-full text-center px-2 py-1.5 text-[11px] text-neutral-500 hover:text-neutral-900 font-medium cursor-pointer"
                     >
-                      Voir tous les apprenants en risque
-                    </Button>
+                      Vue d'ensemble des cohortes...
+                    </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Date range */}
-            <div className="px-4 py-2 rounded-full bg-white border border-border shadow-sm text-sm font-medium text-foreground flex items-center gap-2">
-              <span className="w-8 h-4 rounded-full bg-foreground flex items-center justify-end px-1">
-                <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+            {/* Horizontal Tabs (ClickUp Style) */}
+            <div className="hidden sm:flex items-center gap-1 border-l border-[#F1F5F9] pl-6">
+              {navTabs.map((tab) => {
+                const isActive = currentPage === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => onNavigate(tab.id)}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer",
+                      isActive
+                        ? "text-neutral-900 bg-neutral-100 font-semibold"
+                        : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Controls: Search, Quick Actions, Alerts, Avatar */}
+          <div className="flex items-center gap-3">
+            {/* Search Input with shortcut */}
+            <div className="hidden md:flex relative items-center">
+              <Search size={14} className="absolute left-3 text-neutral-400 pointer-events-none" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Rechercher..."
+                value={globalSearch}
+                onChange={(e) => onSearch?.(e.target.value)}
+                className="pl-8.5 pr-8 py-1.5 bg-[#F8FAFC] border border-transparent focus:border-[#E2E8F0] focus:bg-white rounded-lg text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none w-52 transition-all"
+              />
+              <span className="absolute right-2.5 flex items-center gap-0.5 text-[10px] text-neutral-400 bg-neutral-200/60 px-1 py-0.5 rounded font-mono pointer-events-none">
+                <Command size={9} />K
               </span>
-              27 Jul — 25 Sep 2026
+            </div>
+
+            {/* Quick Action: Share Portal Link */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyPortalLink}
+              className="h-8 px-2.5 text-xs font-medium border-[#E2E8F0] text-neutral-700 bg-white hover:bg-neutral-50 rounded-lg gap-1.5 shadow-none cursor-pointer"
+              title="Copier le lien d'accès apprenant pour ce module"
+            >
+              {portalLinkCopied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+              <span className="hidden lg:inline">{portalLinkCopied ? 'Lien copié' : 'Lien apprenant'}</span>
+            </Button>
+
+            {/* Quick Action: Import Button */}
+            <button
+              type="button"
+              onClick={() => onNavigate('upload')}
+              className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer transition-colors"
+            >
+              <UploadCloud size={13} />
+              <span>Importer</span>
+            </button>
+
+            {/* Notifications Bell */}
+            <div className="relative" ref={alertsRef}>
+              <button
+                type="button"
+                onClick={() => setAlertsOpen(!alertsOpen)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer relative"
+                title="Alertes pédagogiques"
+              >
+                <Bell size={16} />
+                {unreadAlertCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600" />
+                )}
+              </button>
+
+              {alertsOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-xl p-3 shadow-none z-50 animate-fade-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#F1F5F9]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-neutral-900">Alertes apprenants</span>
+                      <Badge variant="secondary" className="text-[10px] h-4.5 px-1.5 font-mono">
+                        {alerts.length}
+                      </Badge>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAlertsOpen(false)}
+                      className="text-neutral-400 hover:text-neutral-700 p-0.5 cursor-pointer"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto divide-y divide-[#F1F5F9] my-1">
+                    {alerts.length === 0 ? (
+                      <div className="py-6 text-center text-xs text-neutral-400">
+                        Aucune alerte pour cette formation
+                      </div>
+                    ) : (
+                      alerts.map((alert) => (
+                        <div key={alert.id} className="py-2.5 flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-neutral-900 truncate">
+                              {alert.learner_name}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 line-clamp-1 mt-0.5">
+                              {alert.message}
+                            </p>
+                          </div>
+                          {onSelectLearner && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onSelectLearner(alert.learner_id);
+                                setAlertsOpen(false);
+                              }}
+                              className="text-neutral-400 hover:text-neutral-900 p-1 shrink-0 cursor-pointer"
+                              title="Voir détails"
+                            >
+                              <ExternalLink size={12} />
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-[#F1F5F9]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onNavigate('learners');
+                        setAlertsOpen(false);
+                      }}
+                      className="w-full text-center text-[11px] text-neutral-600 hover:text-neutral-900 font-medium cursor-pointer"
+                    >
+                      Voir tous les apprenants
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Logout button */}
             {onLogout && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
                 onClick={onLogout}
-                className="h-9 px-3 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs gap-1.5 cursor-pointer"
-                title="Quitter le mode coordinateur"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-red-600 hover:bg-neutral-100 transition-colors cursor-pointer"
+                title="Déconnexion"
               >
                 <LogOut size={15} />
-                <span className="hidden md:inline">Déconnexion</span>
-              </Button>
+              </button>
             )}
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto px-6 pb-6">
-          {children}
+        {/* Content View */}
+        <main className="flex-1 overflow-y-auto p-6 sm:p-8 bg-[#FAFAFA]">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

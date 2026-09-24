@@ -7,6 +7,8 @@ import { LearnerDetail } from './pages/LearnerDetail';
 import Reports from './pages/Reports';
 import LearnerPortal from './pages/LearnerPortal';
 import { api, authStorage } from './lib/api';
+import { FormationProvider, useFormation } from './context/FormationContext';
+import { FormationSelectorModal } from './components/formation/FormationSelectorModal';
 import { Lock, Eye, EyeOff, X, AlertTriangle } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -31,7 +33,8 @@ function checkAdminRequested(): boolean {
   return path.includes('/admin') || path.includes('/coordinateur') || params.has('admin');
 }
 
-function App() {
+function AppContent() {
+  const { showSelector, setShowSelector } = useFormation();
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => authStorage.isAuthenticated());
   const [showLoginModal, setShowLoginModal] = useState<boolean>(() => checkAdminRequested());
   const [password, setPassword] = useState('');
@@ -44,7 +47,7 @@ function App() {
   const [globalSearch, setGlobalSearch] = useState('');
   const [learnersFilter, setLearnersFilter] = useState<string>('');
 
-  // Validate existing stored token on mount
+  // Validate existing stored token on mount, or auto-login in dev
   useEffect(() => {
     if (authStorage.isAuthenticated()) {
       api.checkAuth()
@@ -53,10 +56,20 @@ function App() {
           authStorage.removeToken();
           setIsAdminAuthenticated(false);
         });
+    } else if (import.meta.env.DEV) {
+      // In dev mode, automatically authenticate with coordinator credentials
+      api.login('Dclic#2026!Coord$Peda')
+        .then((res) => {
+          authStorage.setToken(res.token);
+          setIsAdminAuthenticated(true);
+        })
+        .catch(() => {
+          // If backend isn't ready or changed password, proceed gracefully
+        });
     }
   }, []);
 
-  // Handle URL changes
+  // Handle URL changes for admin login
   useEffect(() => {
     if (checkAdminRequested() && !isAdminAuthenticated) {
       setShowLoginModal(true);
@@ -120,8 +133,7 @@ function App() {
     }
   }
 
-  // If NOT authenticated as admin or explicitly in portal mode:
-  // Render ONLY LearnerPortal with secure login modal available
+  // If explicit portal mode is requested (or non-admin in production)
   const isExplicitPortal = checkExplicitPortalRequested();
 
   if (!isAdminAuthenticated || isExplicitPortal) {
@@ -131,8 +143,8 @@ function App() {
 
         {/* Modal de connexion Coordinateur */}
         {showLoginModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-            <Card className="w-full max-w-md border-border bg-card shadow-2xl relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+            <Card className="w-full max-w-md border-border bg-card shadow-none relative">
               <button
                 type="button"
                 onClick={() => {
@@ -148,7 +160,7 @@ function App() {
 
               <CardHeader className="text-center pb-3">
                 <div className="mx-auto mb-2 text-primary">
-                  <Lock className="h-8 w-8 mx-auto" />
+                  <Lock className="h-7 w-7 mx-auto" strokeWidth={1.75} />
                 </div>
                 <CardTitle className="text-xl font-bold text-foreground">
                   Accès Coordinateur
@@ -166,7 +178,7 @@ function App() {
                       placeholder="Mot de passe coordinateur"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10 h-11 text-base bg-background"
+                      className="pr-10 h-10 text-sm bg-background border-border"
                       required
                       autoFocus
                     />
@@ -183,7 +195,7 @@ function App() {
                   <Button
                     type="submit"
                     disabled={loginLoading}
-                    className="w-full h-11 font-semibold gap-2 cursor-pointer"
+                    className="w-full h-10 font-semibold gap-2 cursor-pointer shadow-none"
                   >
                     {loginLoading ? (
                       <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
@@ -224,35 +236,49 @@ function App() {
 
   // Authenticated Coordinator Interface
   return (
-    <Layout 
-      currentPage={currentPage} 
-      onNavigate={handleNavigate}
-      onSelectLearner={handleSelectLearner}
-      globalSearch={globalSearch}
-      onSearch={handleGlobalSearch}
-      onLogout={handleLogout}
-    >
-      {currentPage === 'dashboard' && (
-        <Dashboard 
-          onSelectLearner={handleSelectLearner}
-          globalSearch={globalSearch}
-          onViewAll={handleViewAllLearners}
-        />
-      )}
-      {currentPage === 'reports' && <Reports />}
-      {currentPage === 'learners' && !selectedLearnerId && (
-        <LearnersList 
-          onSelectLearner={handleSelectLearner}
-          globalSearch={globalSearch}
-          initialFilter={learnersFilter}
-        />
-      )}
-      {currentPage === 'learners' && selectedLearnerId && (
-        <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} />
-      )}
-      {currentPage === 'upload' && <UploadPage onNavigate={handleNavigate} />}
-    </Layout>
+    <>
+      <Layout 
+        currentPage={currentPage} 
+        onNavigate={handleNavigate}
+        onSelectLearner={handleSelectLearner}
+        globalSearch={globalSearch}
+        onSearch={handleGlobalSearch}
+        onLogout={handleLogout}
+      >
+        {currentPage === 'dashboard' && (
+          <Dashboard 
+            onSelectLearner={handleSelectLearner}
+            globalSearch={globalSearch}
+            onViewAll={handleViewAllLearners}
+          />
+        )}
+        {currentPage === 'reports' && <Reports />}
+        {currentPage === 'learners' && !selectedLearnerId && (
+          <LearnersList 
+            onSelectLearner={handleSelectLearner}
+            globalSearch={globalSearch}
+            initialFilter={learnersFilter}
+          />
+        )}
+        {currentPage === 'learners' && selectedLearnerId && (
+          <LearnerDetail id={selectedLearnerId} onBack={() => setSelectedLearnerId(null)} />
+        )}
+        {currentPage === 'upload' && <UploadPage onNavigate={handleNavigate} />}
+      </Layout>
+
+      {/* Startup / On-demand Formation Selector Modal */}
+      <FormationSelectorModal 
+        isOpen={showSelector} 
+        onClose={() => setShowSelector(false)} 
+      />
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <FormationProvider>
+      <AppContent />
+    </FormationProvider>
+  );
+}

@@ -15,7 +15,7 @@ import { parseParticipantsMD, parseRelativeTime } from './parser/mdParser.js';
 import { store, supabase } from './store.js';
 import type { UploadResult } from '../types.js';
 
-const TARGET_GROUP = 'G1_MN_072026';
+const TARGET_GROUPS = ['G1_MN_072026', 'G1_GPM_092026'];
 
 /**
  * Process an uploaded file — determines type and ingests data.
@@ -94,8 +94,18 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
     };
   }
 
+  // Detect formation
+  const isGP = rows[0].activities.some(a =>
+    a.name.includes('posture stratégique') ||
+    a.name.includes('diagramme de Gantt') ||
+    a.name.includes('Mission direction de projet') ||
+    a.name.includes('plan de lancement 360')
+  );
+  const detectedFormation: 'mn' | 'gp' = isGP ? 'gp' : 'mn';
+  const targetGroup = isGP ? 'G1_GPM_092026' : 'G1_MN_072026';
+
   // Register activities
-  const activityMeta = extractActivityMetadata(rows[0].activities.map(a => a.name));
+  const activityMeta = extractActivityMetadata(rows[0].activities.map(a => a.name), detectedFormation);
   for (const meta of activityMeta) {
     await store.upsertActivity(meta);
   }
@@ -105,25 +115,25 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
   let progressRecords = 0;
   const errors: string[] = [];
 
-  const allLearners = await store.getLearners();
-  const allActivities = await store.getActivities();
+  const allLearners = await store.getLearners(detectedFormation);
+  const allActivities = await store.getActivities(detectedFormation);
   const allProgress = await store.getAllProgress();
   const toInsert: any[] = [];
   const toUpdate: any[] = [];
 
-  const g1Emails = new Set(
+  const targetEmails = new Set(
     allLearners
-      .filter(l => l.group_id === TARGET_GROUP)
+      .filter(l => l.group_id === targetGroup)
       .map(l => l.email)
   );
 
-  if (g1Emails.size === 0) {
-    errors.push("⚠️ ATTENTION : La liste des participants n'a pas encore été importée. L'application va charger temporairement TOUS les apprenants du fichier CSV.");
+  if (targetEmails.size === 0) {
+    errors.push("Information : La liste des participants n'a pas encore été importée pour cette cohorte. L'application va charger les apprenants du fichier CSV.");
   }
 
   for (const row of rows) {
     try {
-      if (g1Emails.size > 0 && !g1Emails.has(row.email)) {
+      if (targetEmails.size > 0 && !targetEmails.has(row.email)) {
         continue;
       }
 
@@ -144,7 +154,7 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
         first_name: existingLearner?.first_name || firstName,
         last_name: existingLearner?.last_name || lastName,
         email: row.email,
-        group_id: existingLearner?.group_id || 'UNKNOWN',
+        group_id: existingLearner?.group_id && existingLearner.group_id !== 'UNKNOWN' ? existingLearner.group_id : targetGroup,
         last_activity_at: lastActivity,
       });
 
@@ -226,7 +236,7 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
  */
 async function processParticipantsXLSX(filePath: string, uploadId: string): Promise<UploadResult> {
   const allParticipants = parseParticipantsXLSX(filePath);
-  const g1Participants = filterByGroup(allParticipants, TARGET_GROUP);
+  const g1Participants = allParticipants.filter(p => TARGET_GROUPS.includes(p.group) || p.group.startsWith('G1_'));
 
   let learnersCreated = 0;
   let learnersUpdated = 0;
@@ -265,7 +275,7 @@ async function processParticipantsXLSX(filePath: string, uploadId: string): Prom
  */
 async function processParticipantsMD(filePath: string, uploadId: string): Promise<UploadResult> {
   const allParticipants = parseParticipantsMD(filePath);
-  const g1Participants = filterByGroup(allParticipants, TARGET_GROUP);
+  const g1Participants = allParticipants.filter(p => TARGET_GROUPS.includes(p.group) || p.group.startsWith('G1_'));
 
   let learnersCreated = 0;
   let learnersUpdated = 0;
