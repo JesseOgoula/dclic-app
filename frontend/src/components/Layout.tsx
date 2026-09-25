@@ -135,80 +135,39 @@ export default function Layout({
     { id: 'dashboard', label: 'Overview', icon: LayoutGrid },
     { id: 'learners', label: 'Apprenants', icon: Users },
     { id: 'reports', label: 'Rapports', icon: BarChart3 },
-    { id: 'upload', label: 'Import', icon: UploadCloud },
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FAFAFA]">
-      {/* 1. Left Slim Navigation Rail (ClickUp Reference Style) */}
-      <aside className="w-16 border-r border-[#F1F5F9] bg-white flex flex-col items-center py-4 shrink-0 select-none z-20">
-        {/* Brand Mark */}
-        <div 
-          onClick={() => setShowSelector(true)}
-          className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold text-base cursor-pointer hover:bg-neutral-800 transition-colors mb-6 shadow-none"
-          title="Changer de formation / Espace"
-        >
-          D
-        </div>
-
-        {/* Vertical Icon Rail */}
-        <nav className="flex flex-col items-center gap-2 w-full px-2">
-          {navTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = currentPage === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onNavigate(tab.id)}
-                className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer",
-                  isActive
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50"
-                )}
-                title={tab.label}
-              >
-                <Icon size={19} strokeWidth={isActive ? 2.2 : 1.8} />
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Bottom Rail Actions */}
-        <div className="mt-auto flex flex-col items-center gap-3">
-          <button
-            type="button"
+    <div className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
+      {/* Top Navigation Bar */}
+      <header className="h-14 bg-white border-b border-[#F1F5F9] px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
+        {/* Left: Brand Monogram + Formation Switcher & Horizontal Navigation Tabs */}
+        <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+          {/* Brand Mark (Click to open formation selector) */}
+          <div 
             onClick={() => setShowSelector(true)}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50 transition-colors cursor-pointer"
-            title="Sélecteur de formation"
+            className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-neutral-800 transition-colors shrink-0 select-none shadow-none"
+            title="Changer de formation / Espace"
           >
-            <SlidersHorizontal size={18} />
-          </button>
-        </div>
-      </aside>
+            D
+          </div>
 
-      {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navigation Bar */}
-        <header className="h-14 bg-white border-b border-[#F1F5F9] px-6 flex items-center justify-between shrink-0 z-10">
-          {/* Left: Formation Switcher & Horizontal Navigation Tabs */}
-          <div className="flex items-center gap-6">
-            {/* Formation Switcher Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setFormationDropdownOpen(!formationDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-neutral-300 bg-white text-xs font-semibold text-neutral-900 transition-all cursor-pointer"
-              >
-                <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
-                <span className="truncate max-w-[150px] sm:max-w-[200px]">
-                  {formationTitle}
-                </span>
-                <span className="text-[10px] text-neutral-400 font-normal hidden md:inline">
-                  ({formationCategory})
-                </span>
-                <ChevronDown size={13} className="text-neutral-400 ml-0.5" />
-              </button>
+          {/* Formation Switcher Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setFormationDropdownOpen(!formationDropdownOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-neutral-300 bg-white text-xs font-semibold text-neutral-900 transition-all cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
+              <span className="truncate max-w-[130px] sm:max-w-[200px]">
+                {formationTitle}
+              </span>
+              <span className="text-[10px] text-neutral-400 font-normal hidden md:inline">
+                ({formationCategory})
+              </span>
+              <ChevronDown size={13} className="text-neutral-400 ml-0.5" />
+            </button>
 
               {/* Dropdown Menu */}
               {formationDropdownOpen && (
@@ -439,13 +398,12 @@ export default function Layout({
           </div>
         </header>
 
-        {/* Content View */}
-        <main className="flex-1 overflow-y-auto p-6 sm:p-8 bg-[#FAFAFA]">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
+      {/* Content View */}
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#FAFAFA]">
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

@@ -34,13 +34,16 @@ import { useFormation } from '@/context/FormationContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
+type Page = 'dashboard' | 'learners' | 'upload' | 'reports';
+
 interface DashboardProps {
+  onNavigate?: (page: Page) => void;
   onSelectLearner?: (id: string) => void;
   globalSearch?: string;
   onViewAll?: (filter: string) => void;
 }
 
-export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAll }: DashboardProps) {
+export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = '', onViewAll }: DashboardProps) {
   const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +52,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
   const [activeTab, setActiveTab] = useState<'sequences' | 'performers' | 'at_risk' | 'blocked'>('sequences');
   const [chartView, setChartView] = useState<'sequences' | 'weekly'>('sequences');
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
+  const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -268,40 +272,56 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
         <div className="lg:col-span-8 space-y-6">
           {/* Minimalist Bar Chart (Exact ClickUp Reference Style with rounded pastel bars) */}
           <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900">Progression par séquence</h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Nombre d'apprenants engagés par bloc pédagogique
+                  Répartition des apprenants validés et en cours par bloc pédagogique
                 </p>
               </div>
 
-              {/* View Switcher Pills */}
-              <div className="flex items-center bg-[#F8FAFC] border border-[#F1F5F9] p-0.5 rounded-lg text-xs font-medium">
-                <button
-                  type="button"
-                  onClick={() => setChartView('sequences')}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs",
-                    chartView === 'sequences'
-                      ? "bg-white text-neutral-900 font-semibold shadow-xs"
-                      : "text-neutral-500 hover:text-neutral-800"
-                  )}
-                >
-                  Séquences
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartView('weekly')}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs",
-                    chartView === 'weekly'
-                      ? "bg-white text-neutral-900 font-semibold shadow-xs"
-                      : "text-neutral-500 hover:text-neutral-800"
-                  )}
-                >
-                  Par jour
-                </button>
+              <div className="flex items-center gap-4">
+                {/* Visual Legend for Validé vs En cours when in sequences view */}
+                {chartView === 'sequences' && (
+                  <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-xs bg-[#2563EB] inline-block" />
+                      <span className="text-neutral-600 font-medium">Validé</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-xs bg-[#93C5FD] inline-block" />
+                      <span className="text-neutral-600 font-medium">En cours</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* View Switcher Pills */}
+                <div className="flex items-center bg-[#F8FAFC] border border-[#F1F5F9] p-0.5 rounded-lg text-xs font-medium">
+                  <button
+                    type="button"
+                    onClick={() => setChartView('sequences')}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs",
+                      chartView === 'sequences'
+                        ? "bg-white text-neutral-900 font-semibold shadow-xs"
+                        : "text-neutral-500 hover:text-neutral-800"
+                    )}
+                  >
+                    Séquences
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartView('weekly')}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs",
+                      chartView === 'weekly'
+                        ? "bg-white text-neutral-900 font-semibold shadow-xs"
+                        : "text-neutral-500 hover:text-neutral-800"
+                    )}
+                  >
+                    Par jour
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -311,7 +331,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                 <BarChart
                   data={chartView === 'sequences' ? sequenceChartData : weeklyData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                  barSize={40}
+                  barSize={36}
+                  onMouseMove={(state: any) => {
+                    if (state && state.activeTooltipIndex !== undefined) {
+                      setHoveredBarIndex(state.activeTooltipIndex);
+                    }
+                  }}
+                  onMouseLeave={() => setHoveredBarIndex(null)}
                 >
                   <XAxis
                     dataKey={chartView === 'sequences' ? 'name' : 'day'}
@@ -325,48 +351,89 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
                     tickLine={false}
                   />
                   <Tooltip
-                    cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }}
+                    cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
                     content={({ active, payload }) => {
                       if (!active || !payload || !payload.length) return null;
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-white border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs shadow-none">
-                          <p className="font-semibold text-neutral-900">{data.fullName || data.day}</p>
-                          <div className="mt-1 space-y-0.5 text-neutral-600 text-[11px]">
-                            {chartView === 'sequences' ? (
-                              <>
-                                <p><span className="text-blue-600 font-semibold">{data.completed}</span> validés</p>
-                                <p><span className="text-neutral-700 font-semibold">{data.inProgress}</span> en cours</p>
-                                <p><span className="text-neutral-400 font-semibold">{data.rate}%</span> complétion</p>
-                              </>
-                            ) : (
-                              <p><span className="text-blue-600 font-semibold">{data.count}</span> apprenants actifs</p>
-                            )}
-                          </div>
+                        <div className="bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs shadow-none min-w-[200px]">
+                          <p className="font-semibold text-neutral-900 border-b border-[#F1F5F9] pb-1.5 mb-2">
+                            {data.fullName || data.day}
+                          </p>
+                          {chartView === 'sequences' ? (
+                            <div className="space-y-1.5 text-xs">
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="flex items-center gap-1.5 text-neutral-600">
+                                  <span className="w-2.5 h-2.5 rounded-xs bg-[#2563EB] shrink-0 inline-block" />
+                                  Personnes validées :
+                                </span>
+                                <span className="font-semibold text-neutral-900 font-mono">
+                                  {data.completed}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="flex items-center gap-1.5 text-neutral-600">
+                                  <span className="w-2.5 h-2.5 rounded-xs bg-[#93C5FD] shrink-0 inline-block" />
+                                  Personnes en cours :
+                                </span>
+                                <span className="font-semibold text-neutral-900 font-mono">
+                                  {data.inProgress}
+                                </span>
+                              </div>
+                              <div className="pt-1.5 border-t border-[#F1F5F9] flex items-center justify-between text-[11px] text-neutral-500">
+                                <span>Complétion moyenne :</span>
+                                <span className="font-semibold text-neutral-800">{data.rate}%</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between gap-4 text-xs">
+                              <span className="text-neutral-600">Apprenants actifs :</span>
+                              <span className="font-semibold text-blue-600 font-mono">{data.count}</span>
+                            </div>
+                          )}
                         </div>
                       );
                     }}
                   />
                   {chartView === 'sequences' ? (
-                    <Bar
-                      dataKey="total"
-                      radius={[10, 10, 0, 0]}
-                    >
-                      {sequenceChartData.map((_, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={index === 0 ? '#2563EB' : '#BFDBFE'}
-                        />
-                      ))}
-                    </Bar>
+                    <>
+                      <Bar
+                        dataKey="completed"
+                        name="Validé"
+                        stackId="seq"
+                        radius={[0, 0, 4, 4]}
+                      >
+                        {sequenceChartData.map((_, index) => (
+                          <Cell
+                            key={`cell-comp-${index}`}
+                            fill="#2563EB"
+                            opacity={hoveredBarIndex === null || hoveredBarIndex === index ? 1 : 0.65}
+                          />
+                        ))}
+                      </Bar>
+                      <Bar
+                        dataKey="inProgress"
+                        name="En cours"
+                        stackId="seq"
+                        radius={[6, 6, 0, 0]}
+                      >
+                        {sequenceChartData.map((_, index) => (
+                          <Cell
+                            key={`cell-prog-${index}`}
+                            fill="#93C5FD"
+                            opacity={hoveredBarIndex === null || hoveredBarIndex === index ? 1 : 0.65}
+                          />
+                        ))}
+                      </Bar>
+                    </>
                   ) : (
                     <Bar
                       dataKey="count"
-                      radius={[10, 10, 0, 0]}
+                      radius={[6, 6, 0, 0]}
                     >
                       {weeklyData.map((_, index) => (
                         <Cell
-                          key={`cell-${index}`}
+                          key={`cell-wk-${index}`}
                           fill={index === 2 ? '#2563EB' : '#BFDBFE'}
                         />
                       ))}
@@ -378,7 +445,7 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
           </div>
 
           {/* Bottom Section: Tabs for Séquences, Top Performers, À Risque, Bloqués (ClickUp Style) */}
-          <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6">
+          <div id="dashboard-tabs-section" className="bg-white border border-[#F1F5F9] rounded-2xl p-6">
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#F1F5F9]">
               {/* Tabs */}
               <div className="flex items-center gap-1 text-xs font-medium">
@@ -446,33 +513,58 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
             {/* Tab Contents: Clean Rows styled like the Dopamine / Citable rows in ClickUp reference */}
             <div className="divide-y divide-[#F1F5F9] mt-2">
               {activeTab === 'sequences' && (
-                sequenceChartData.map((s, idx) => (
-                  <div key={idx} className="py-3 flex items-center justify-between gap-4 hover:bg-neutral-50/50 rounded-lg px-2 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-neutral-900 truncate">
-                          {s.fullName}
-                        </p>
-                        <p className="text-[11px] text-neutral-400">
-                          {s.completed} apprenants ont terminé · {s.inProgress} en cours
-                        </p>
-                      </div>
-                    </div>
+                sequenceChartData.map((s, idx) => {
+                  const totalCohort = stats.total_learners || 1;
+                  const completedPct = Math.round((s.completed / totalCohort) * 100);
+                  const inProgressPct = Math.round((s.inProgress / totalCohort) * 100);
 
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="w-24 bg-neutral-100 h-1.5 rounded-full overflow-hidden hidden sm:block">
-                        <div
-                          className="bg-blue-600 h-full rounded-full"
-                          style={{ width: `${Math.min(100, s.rate)}%` }}
-                        />
+                  return (
+                    <div
+                      key={idx}
+                      className="group py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-neutral-50/80 rounded-xl px-3 transition-all cursor-default"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-neutral-900 truncate">
+                            {s.fullName}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5 text-[11px]">
+                            <span className="flex items-center gap-1 text-blue-700 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                              {s.completed} validés
+                            </span>
+                            <span className="text-neutral-300">·</span>
+                            <span className="flex items-center gap-1 text-sky-700 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#93C5FD]" />
+                              {s.inProgress} en cours
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <span className="font-mono text-xs font-semibold text-neutral-900 w-12 text-right">
-                        {s.rate}%
-                      </span>
+
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+                        {/* Segmented bi-color progress bar with tooltip */}
+                        <div
+                          className="w-32 sm:w-40 bg-neutral-100 h-2 rounded-full overflow-hidden flex relative"
+                          title={`${s.completed} validés (${completedPct}%) · ${s.inProgress} en cours (${inProgressPct}%)`}
+                        >
+                          <div
+                            className="bg-[#2563EB] h-full transition-all duration-300"
+                            style={{ width: `${completedPct}%` }}
+                          />
+                          <div
+                            className="bg-[#93C5FD] h-full transition-all duration-300"
+                            style={{ width: `${inProgressPct}%` }}
+                          />
+                        </div>
+                        <span className="font-mono text-xs font-semibold text-neutral-900 w-12 text-right">
+                          {s.rate}%
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
 
               {activeTab === 'performers' && (
@@ -620,9 +712,16 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+                className={cn(
+                  "px-2.5 py-1 rounded-md border text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1",
+                  portalCopied
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : "border-[#E2E8F0] hover:bg-neutral-50 text-neutral-700 hover:text-neutral-900"
+                )}
+                title="Copier le lien d'accès apprenant pour cette cohorte"
               >
-                Partager
+                {portalCopied && <Check size={11} className="text-emerald-600" />}
+                <span>{portalCopied ? 'Lien copié' : 'Partager'}</span>
               </button>
             </div>
 
@@ -639,8 +738,9 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
               </div>
               <button
                 type="button"
-                onClick={() => onViewAll?.('upload')}
-                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+                onClick={() => onNavigate?.('upload')}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 hover:text-neutral-900 text-[11px] font-medium text-neutral-700 cursor-pointer transition-colors"
+                title="Ouvrir la page d'importation de fichiers"
               >
                 Importer
               </button>
@@ -659,8 +759,9 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
               </div>
               <button
                 type="button"
-                onClick={() => onViewAll?.('reports')}
-                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+                onClick={() => onNavigate?.('reports')}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 hover:text-neutral-900 text-[11px] font-medium text-neutral-700 cursor-pointer transition-colors"
+                title="Générer et exporter un rapport"
               >
                 Générer
               </button>
@@ -679,8 +780,13 @@ export default function Dashboard({ onSelectLearner, globalSearch = '', onViewAl
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTab('at_risk')}
-                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 text-[11px] font-medium text-neutral-700 cursor-pointer"
+                onClick={() => {
+                  setActiveTab('at_risk');
+                  const el = document.getElementById('dashboard-tabs-section');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-2.5 py-1 rounded-md border border-[#E2E8F0] hover:bg-neutral-50 hover:text-neutral-900 text-[11px] font-medium text-neutral-700 cursor-pointer transition-colors"
+                title="Afficher et examiner les apprenants en situation de décrochage"
               >
                 Examiner
               </button>

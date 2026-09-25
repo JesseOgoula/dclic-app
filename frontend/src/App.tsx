@@ -247,6 +247,7 @@ function AppContent() {
       >
         {currentPage === 'dashboard' && (
           <Dashboard 
+            onNavigate={handleNavigate}
             onSelectLearner={handleSelectLearner}
             globalSearch={globalSearch}
             onViewAll={handleViewAllLearners}
