@@ -4,7 +4,6 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
-  Loader2,
   FileText,
   Trash2,
   RefreshCcw,
@@ -12,10 +11,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type UploadResult } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-
 import { useFormation } from '@/context/FormationContext';
 
 interface UploadPageProps {
@@ -23,7 +18,7 @@ interface UploadPageProps {
 }
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
-  const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
+  const { formationTitle, formationCategory, groupId } = useFormation();
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
@@ -41,11 +36,11 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   }, []);
 
   const handleResetData = async () => {
-    if (window.confirm("Êtes-vous sûr de vouloir effacer TOUTES les données ? Cette action est irréversible.")) {
+    if (window.confirm('Êtes-vous sûr de vouloir effacer TOUTES les données ? Cette action est irréversible.')) {
       try {
         await api.resetData();
         fetchHistory();
-        alert("Les données ont été effacées avec succès.");
+        alert('Les données ont été effacées avec succès.');
       } catch (err) {
         alert("Erreur lors de l'effacement : " + err);
       }
@@ -58,7 +53,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
         await api.clearHistory();
         fetchHistory();
       } catch (err) {
-        alert("Erreur : " + err);
+        alert('Erreur : ' + err);
       }
     }
   };
@@ -67,21 +62,24 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     fetchHistory();
   }, [fetchHistory]);
 
-  const uploadFile = useCallback(async (file: File) => {
-    setUploading(true);
-    setError(null);
-    setResult(null);
+  const uploadFile = useCallback(
+    async (file: File) => {
+      setUploading(true);
+      setError(null);
+      setResult(null);
 
-    try {
-      const data = await api.uploadFile(file);
-      setResult(data);
-      fetchHistory(); // Refresh history after upload
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
-  }, [fetchHistory]);
+      try {
+        const data = await api.uploadFile(file);
+        setResult(data);
+        fetchHistory();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Upload failed');
+      } finally {
+        setUploading(false);
+      }
+    },
+    [fetchHistory]
+  );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -93,43 +91,59 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     }
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
 
-    const file = e.dataTransfer.files?.[0];
-    if (file) await uploadFile(file);
-  }, [uploadFile]);
+      const file = e.dataTransfer.files?.[0];
+      if (file) await uploadFile(file);
+    },
+    [uploadFile]
+  );
 
-  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await uploadFile(file);
-  }, [uploadFile]);
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) await uploadFile(file);
+    },
+    [uploadFile]
+  );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* 1. Header (Clean ClickUp Title & Subtitle) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900">Importer des données Moodle</h2>
-          <p className="text-xs text-neutral-500 mt-1">
-            Uploadez vos exports CSV (progression) ou Markdown / Excel (participants).
-            Cohortes prises en charge : <strong className="text-neutral-800">Gestion de projet ({groupId})</strong> et <strong className="text-neutral-800">Marketing numérique</strong>.
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+            Importation Moodle
+          </h1>
+          <p className="text-xs text-neutral-500 font-medium mt-1">
+            {formationCategory} · <span className="text-neutral-900 font-semibold">{formationTitle}</span> ({groupId})
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleResetData} className="gap-1.5 text-xs text-neutral-600 border-neutral-200 hover:text-red-600 hover:border-red-200 shadow-none cursor-pointer">
-          <Trash2 className="w-3.5 h-3.5" />
-          Réinitialiser
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleResetData}
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E2E8F0] hover:bg-red-50 hover:text-red-700 hover:border-red-200 bg-white text-xs font-medium text-neutral-700 transition-colors shadow-none cursor-pointer"
+            title="Effacer toutes les données de la base"
+          >
+            <Trash2 size={13} className="text-neutral-400" />
+            <span>Réinitialiser la base</span>
+          </button>
+        </div>
       </div>
 
-      {/* Drop zone */}
+      {/* 2. Drop Zone */}
       <div
         className={cn(
-          'relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 cursor-pointer',
+          'relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer bg-white shadow-none',
           dragActive
-            ? 'border-primary bg-primary/5 scale-[1.02]'
-            : 'border-gray-200 hover:border-primary/50 hover:bg-muted/30',
+            ? 'border-neutral-900 bg-neutral-50'
+            : 'border-[#E2E8F0] hover:border-neutral-400 hover:bg-[#FAFAFA]',
           uploading && 'pointer-events-none opacity-60'
         )}
         onDragEnter={handleDrag}
@@ -147,189 +161,179 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
         />
 
         {uploading ? (
-          <div className="flex flex-col items-center gap-4 w-full max-w-[200px] mx-auto">
-            <Loader2 className="w-10 h-10 text-primary animate-spin" />
-            <div className="w-full h-2 bg-primary/20 rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-full animate-pulse origin-left" style={{ animation: "progress 2s infinite ease-in-out" }}></div>
-            </div>
-            <p className="text-sm font-medium text-primary text-center">Envoi et traitement du fichier...</p>
+          <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto py-4">
+            <div className="w-6 h-6 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs font-semibold text-neutral-800">Traitement du fichier en cours...</p>
+            <p className="text-[11px] text-neutral-400">Analyse de la cohorte et mise à jour des progressions</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-3">
-            <UploadIcon className="w-10 h-10 text-primary" />
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+              <UploadIcon className="w-5 h-5 text-neutral-700" />
+            </div>
             <div>
-              <p className="font-medium text-foreground">
-                Glissez votre fichier ici ou <span className="text-primary">parcourez</span>
+              <p className="text-sm font-semibold text-neutral-900">
+                Déposez vos fichiers Moodle ici ou <span className="underline">parcourez vos dossiers</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Formats acceptés : CSV, XLSX, MD (max 50 MB)
+              <p className="text-xs text-neutral-400 mt-1">
+                Formats acceptés : CSV (Progression), XLSX / XLS / MD (Participants) · Max 50 MB
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Result */}
+      {/* 3. Upload Result */}
       {result && (
-        <Card className="shadow-sm border-border animate-fade-in">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <CheckCircle2 className="w-6 h-6 text-success" />
-              <div>
-                <h3 className="font-semibold text-success">Import réussi !</h3>
-                <p className="text-xs text-muted-foreground">{result.filename}</p>
-              </div>
+        <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 shadow-none space-y-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div>
+              <h3 className="font-semibold text-sm text-neutral-900">Importation réussie avec succès</h3>
+              <p className="text-xs text-neutral-400">{result.filename}</p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatBox label="Lignes traitées" value={result.rows_processed} />
-              <StatBox label="Apprenants créés" value={result.learners_created} />
-              <StatBox label="Apprenants MàJ" value={result.learners_updated} />
-              <StatBox label="Progressions" value={result.progress_records} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+            <div className="p-4 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl text-center">
+              <p className="text-2xl font-bold tracking-tight text-neutral-900">{result.rows_processed}</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">Lignes traitées</p>
             </div>
-
-            {result.errors.length > 0 && (
-              <div className="mt-4 p-3 bg-warning/5 rounded-lg border border-warning/20">
-                <p className="text-xs font-medium text-warning mb-1">
-                  {result.errors.length} avertissement(s)
-                </p>
-                <ul className="text-xs text-muted-foreground space-y-0.5">
-                  {result.errors.slice(0, 5).map((e, i) => <li key={i}>• {e}</li>)}
-                </ul>
-              </div>
-            )}
-            
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => onNavigate ? onNavigate('dashboard') : (window.location.href = '/')} variant="default">
-                Aller au Dashboard
-              </Button>
+            <div className="p-4 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl text-center">
+              <p className="text-2xl font-bold tracking-tight text-neutral-900">{result.learners_created}</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">Apprenants créés</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div className="p-4 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl text-center">
+              <p className="text-2xl font-bold tracking-tight text-neutral-900">{result.learners_updated}</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">Apprenants mis à jour</p>
+            </div>
+            <div className="p-4 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl text-center">
+              <p className="text-2xl font-bold tracking-tight text-neutral-900">{result.progress_records}</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">Notes & activités</p>
+            </div>
+          </div>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-center gap-3 animate-fade-in">
-          <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-destructive">Erreur lors de l'import</p>
-            <p className="text-xs text-muted-foreground">{error}</p>
+          {result.errors.length > 0 && (
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/60 text-xs">
+              <p className="font-semibold text-amber-900 mb-1">{result.errors.length} avertissement(s)</p>
+              <ul className="text-amber-800/80 space-y-0.5">
+                {result.errors.slice(0, 5).map((e, i) => (
+                  <li key={i}>· {e}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => (onNavigate ? onNavigate('dashboard') : (window.location.href = '/'))}
+              className="h-8 px-4 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium transition-colors shadow-none cursor-pointer"
+            >
+              Voir le Tableau de bord
+            </button>
           </div>
         </div>
       )}
 
-      {/* Supported formats */}
-      <Card className="shadow-sm border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Formats supportés</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 pt-2">
-            <FormatCard
-              icon={FileText}
-              title="CSV — Progression des activités"
-              description="Export depuis Moodle > Course Management > Achèvement des activités (TSV, UTF-16)"
-              variant="primary"
-            />
-            <FormatCard
-              icon={Users}
-              title="MD — Liste des participants"
-              description="Fichier courseid.md (Markdown table avec les participants)"
-              variant="secondary"
-            />
-            <FormatCard
-              icon={FileSpreadsheet}
-              title="XLSX — Liste des participants"
-              description="Export depuis Moodle > Participants (colonnes: Prénom, Nom, Email, Groupes)"
-              variant="success"
-            />
+      {/* 4. Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200/60 rounded-2xl p-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-red-900">Erreur lors de l'import</p>
+            <p className="text-xs text-red-700/80 mt-0.5">{error}</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* History */}
+      {/* 5. Supported formats */}
+      <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 shadow-none space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-neutral-900">Formats supportés</h3>
+          <p className="text-xs text-neutral-400 mt-0.5">Exportez vos rapports bruts directement depuis la plateforme Moodle</p>
+        </div>
+
+        <div className="space-y-2 pt-1">
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
+            <FileText size={18} className="text-blue-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-neutral-900">CSV — Progression des activités</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Export depuis Moodle &gt; Course Management &gt; Achèvement des activités (TSV ou CSV UTF-16 / UTF-8)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
+            <Users size={18} className="text-neutral-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-neutral-900">MD — Liste des participants</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Table Markdown avec colonnes Nom, Prénom, Email, Groupe
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
+            <FileSpreadsheet size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-neutral-900">XLSX / XLS — Participants Moodle</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Export depuis Moodle &gt; Participants (colonnes : Prénom, Nom, Email, Groupes)
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. History */}
       {history.length > 0 && (
-        <Card className="shadow-sm border-border">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Historique des imports</CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleClearHistory} className="h-8 text-muted-foreground hover:text-destructive">
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Vider
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 pt-2">
-              {history.map((h, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    {h.file_type === 'csv' ? (
-                      <FileText className="w-5 h-5 text-primary" />
-                    ) : (
-                      <FileSpreadsheet className="w-5 h-5 text-success" />
-                    )}
-                    <div>
-                      <p className="text-sm font-medium truncate max-w-[200px] sm:max-w-[300px]">
-                        {h.filename}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(h.uploaded_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant={h.status === 'processed' ? 'default' : 'secondary'} className={h.status === 'processed' ? 'bg-success hover:bg-success/80' : ''}>
-                      {h.status === 'processed' ? 'Terminé' : h.status}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {h.rows_processed} lignes
-                    </p>
+        <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 shadow-none space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900">Historique des imports</h3>
+              <p className="text-xs text-neutral-400 mt-0.5">Dernières données intégrées dans l'application</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearHistory}
+              className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 bg-white text-xs font-medium text-neutral-600 transition-colors shadow-none cursor-pointer"
+            >
+              <RefreshCcw size={12} className="text-neutral-400" />
+              <span>Vider</span>
+            </button>
+          </div>
+
+          <div className="space-y-2 pt-1">
+            {history.map((h, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {h.file_type === 'csv' ? (
+                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                  ) : (
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-neutral-900 truncate max-w-xs">{h.filename}</p>
+                    <p className="text-[11px] text-neutral-400">{new Date(h.uploaded_at).toLocaleString('fr-FR')}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-[11px] text-neutral-500 font-medium">{h.rows_processed} lignes</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    {h.status === 'processed' ? 'Terminé' : h.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
-    </div>
-  );
-}
-
-function StatBox({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="text-center p-3 bg-muted/30 rounded-lg">
-      <p className="text-2xl font-bold text-primary">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-function FormatCard({
-  icon: Icon,
-  title,
-  description,
-  variant = 'primary',
-}: {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  variant?: 'primary' | 'secondary' | 'success';
-}) {
-  const colorMap = {
-    primary: 'text-primary',
-    secondary: 'text-muted-foreground',
-    success: 'text-emerald-600',
-  };
-
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
-      <div className="mt-0.5 shrink-0">
-        <Icon size={18} className={colorMap[variant] || colorMap.primary} />
-      </div>
-      <div>
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </div>
     </div>
   );
 }

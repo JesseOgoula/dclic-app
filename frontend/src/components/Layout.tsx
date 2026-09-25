@@ -141,17 +141,8 @@ export default function Layout({
     <div className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
       {/* Top Navigation Bar */}
       <header className="h-14 bg-white border-b border-[#F1F5F9] px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
-        {/* Left: Brand Monogram + Formation Switcher & Horizontal Navigation Tabs */}
+        {/* Left: Formation Switcher & Horizontal Navigation Tabs */}
         <div className="flex items-center gap-3 sm:gap-6 min-w-0">
-          {/* Brand Mark (Click to open formation selector) */}
-          <div 
-            onClick={() => setShowSelector(true)}
-            className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-neutral-800 transition-colors shrink-0 select-none shadow-none"
-            title="Changer de formation / Espace"
-          >
-            D
-          </div>
-
           {/* Formation Switcher Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button

@@ -3,31 +3,13 @@ import {
   Search,
   ChevronUp,
   ChevronDown,
-  Award,
-  Filter,
-  UserX,
-  UserCheck,
-  Users as UsersIcon,
-  CheckCircle2,
   Download,
   AlertTriangle,
-  ExternalLink,
+  ArrowUpDown,
+  Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type LearnerWithProgress } from '@/lib/api';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
 import { useFormation } from '@/context/FormationContext';
 
 interface LearnersListProps {
@@ -37,7 +19,7 @@ interface LearnersListProps {
 }
 
 export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '' }: LearnersListProps) {
-  const { currentFormation, formationTitle, groupId } = useFormation();
+  const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
   const [learners, setLearners] = useState<LearnerWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -45,7 +27,15 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
   const [sortBy, setSortBy] = useState('last_name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const [stats, setStats] = useState<{ active: number, inactive: number, dropped: number, blocked: number, completed_phase1: number, completed: number, total: number } | null>(null);
+  const [stats, setStats] = useState<{
+    active: number;
+    inactive: number;
+    dropped: number;
+    blocked: number;
+    completed_phase1: number;
+    completed: number;
+    total: number;
+  } | null>(null);
 
   const loadLearners = useCallback(async () => {
     try {
@@ -98,304 +88,351 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
   }
 
   const SortIcon = ({ field }: { field: string }) => {
-    if (sortBy !== field) return null;
-    return sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+    if (sortBy !== field) return <ArrowUpDown size={12} className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    return sortDir === 'asc' ? <ChevronUp size={13} className="text-neutral-900" /> : <ChevronDown size={13} className="text-neutral-900" />;
   };
 
-  const statusBadge = (status: string, isBlocked?: boolean) => {
+  const renderStatusBadge = (status: string, isBlocked?: boolean) => {
     if (isBlocked && status !== 'dropped') {
       return (
-        <Badge variant="destructive" className="font-medium bg-red-600 hover:bg-red-700">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-700 border border-red-200/60">
           Bloqué
-        </Badge>
+        </span>
       );
     }
-    const config = ({
-      active: { label: 'Actif', variant: 'default' as const },
-      inactive: { label: 'Inactif', variant: 'secondary' as const },
-      dropped: { label: 'Décroché', variant: 'destructive' as const },
-      at_risk: { label: 'Risque', variant: 'destructive' as const },
-      blocked: { label: 'Bloqué', variant: 'destructive' as const },
-      completed_phase1: { label: 'Phase 1 terminée', variant: 'outline' as const },
-      completed: { label: 'Session terminée', variant: 'outline' as const },
-    } as Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>)[status] || { label: status, variant: 'outline' as const };
 
-    return (
-      <Badge
-        variant={config.variant}
-        className="font-medium"
-      >
-        {config.label}
-      </Badge>
-    );
+    switch (status) {
+      case 'active':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
+            Actif
+          </span>
+        );
+      case 'inactive':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200/60">
+            Inactif
+          </span>
+        );
+      case 'dropped':
+      case 'at_risk':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/60">
+            Décroché
+          </span>
+        );
+      case 'completed':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+            Terminé
+          </span>
+        );
+      case 'completed_phase1':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+            Phase 1
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-50 text-neutral-600 border border-neutral-200/60">
+            {status}
+          </span>
+        );
+    }
   };
 
+  const handleExportCSV = () => {
+    if (learners.length === 0) return;
+    const headers = ['Nom', 'Prénom', 'Email', 'Groupe', 'Statut', 'Complétion (%)', 'Activités complétées', 'Total activités', 'Jours inactif'];
+    const rows = learners.map(l => [
+      `"${l.last_name}"`,
+      `"${l.first_name}"`,
+      `"${l.email}"`,
+      `"${l.group_id}"`,
+      `"${l.status}"`,
+      l.completion_rate,
+      l.completed_activities,
+      l.total_activities,
+      l.days_inactive > 900 ? 'Jamais' : l.days_inactive,
+    ]);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Apprenants_${statusFilter || 'tous'}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const filterTabs = [
+    { id: '', label: 'Tous', count: stats?.total },
+    { id: 'active', label: 'Actifs', count: stats?.active },
+    { id: 'inactive', label: 'Inactifs', count: stats?.inactive },
+    { id: 'dropped', label: 'Décrochés', count: stats?.dropped },
+    { id: 'blocked', label: 'Bloqués', count: stats?.blocked },
+    { id: 'completed', label: 'Terminés', count: stats?.completed },
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Filters bar */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Rechercher un apprenant..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-white"
-          />
+    <div className="space-y-6">
+      {/* 1. Header (Clean ClickUp Title & Subtitle) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+            Apprenants
+          </h1>
+          <p className="text-xs text-neutral-500 font-medium mt-1">
+            {formationCategory} · <span className="text-neutral-900 font-semibold">{formationTitle}</span> ({groupId})
+          </p>
         </div>
 
-        {/* Status filter */}
-        <div className="flex items-center gap-1 bg-white rounded-lg border p-1">
-          <FilterButton
-            label="Tous"
-            icon={UsersIcon}
-            active={statusFilter === ''}
-            onClick={() => setStatusFilter('')}
-            count={stats?.total}
-          />
-          <FilterButton
-            label="Actifs"
-            icon={UserCheck}
-            active={statusFilter === 'active'}
-            onClick={() => setStatusFilter('active')}
-            color="success"
-            count={stats?.active}
-          />
-          <FilterButton
-            label="Inactifs"
-            icon={UserX}
-            active={statusFilter === 'inactive'}
-            onClick={() => setStatusFilter('inactive')}
-            color="warning"
-            count={stats?.inactive}
-          />
-          <FilterButton
-            icon={UserX}
-            label="Décrochés"
-            active={statusFilter === 'dropped'}
-            onClick={() => setStatusFilter('dropped')}
-            color="destructive"
-            count={stats?.dropped}
-          />
-          <FilterButton
-            icon={Filter}
-            label="Bloqués"
-            active={statusFilter === 'blocked'}
-            onClick={() => setStatusFilter('blocked')}
-            color="destructive"
-            count={stats?.blocked}
-          />
-          <FilterButton
-            icon={CheckCircle2}
-            label="Phase 1"
-            active={statusFilter === 'completed_phase1'}
-            onClick={() => setStatusFilter('completed_phase1')}
-            count={stats?.completed_phase1}
-          />
-          <FilterButton
-            icon={Award}
-            label="Terminé"
-            active={statusFilter === 'completed'}
-            onClick={() => setStatusFilter('completed')}
-            count={stats?.completed}
-          />
+        <div className="flex items-center gap-2">
+          {/* Export CSV Button */}
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            disabled={learners.length === 0}
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 bg-white text-xs font-medium text-neutral-700 transition-colors shadow-none cursor-pointer disabled:opacity-50"
+            title="Exporter la liste des apprenants au format CSV"
+          >
+            <Download size={13} className="text-neutral-500" />
+            <span>Exporter CSV</span>
+          </button>
         </div>
-
-        {/* Export CSV button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            if (learners.length === 0) return;
-            const headers = ['Nom', 'Prénom', 'Email', 'Groupe', 'Statut', 'Complétion (%)', 'Activités complétées', 'Total activités', 'Jours inactif'];
-            const rows = learners.map(l => [
-              `"${l.last_name}"`,
-              `"${l.first_name}"`,
-              `"${l.email}"`,
-              `"${l.group_id}"`,
-              `"${l.status}"`,
-              l.completion_rate,
-              l.completed_activities,
-              l.total_activities,
-              l.days_inactive > 900 ? 'Jamais' : l.days_inactive,
-            ]);
-            const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Apprenants_${statusFilter || 'tous'}_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }}
-          className="ml-auto gap-2 bg-white"
-        >
-          <Download size={14} />
-          Export CSV
-        </Button>
       </div>
 
-      {/* Table */}
-      <Card className="shadow-sm border-border overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead
-                  className="cursor-pointer hover:text-foreground transition-colors"
+      {/* 2. KPI Metrics Bar (Minimalist Segmented Row) */}
+      {stats && (
+        <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#F1F5F9]">
+          <div>
+            <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Effectif Total
+            </div>
+            <div className="text-3xl font-bold tracking-tight text-neutral-900">
+              {stats.total}
+            </div>
+            <div className="text-[11px] text-neutral-400 mt-1">
+              inscrits dans la cohorte
+            </div>
+          </div>
+
+          <div className="pt-4 md:pt-0 md:pl-6">
+            <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Apprenants Actifs
+            </div>
+            <div className="text-3xl font-bold tracking-tight text-neutral-900">
+              {stats.active}
+            </div>
+            <div className="text-[11px] text-neutral-400 mt-1">
+              {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}% de mobilisation
+            </div>
+          </div>
+
+          <div className="pt-4 md:pt-0 md:pl-6">
+            <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Décrochage
+            </div>
+            <div className="text-3xl font-bold tracking-tight text-amber-600">
+              {stats.dropped}
+            </div>
+            <div className="text-[11px] text-neutral-400 mt-1">
+              inactivité prolongée
+            </div>
+          </div>
+
+          <div className="pt-4 md:pt-0 md:pl-6">
+            <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Bloqués
+            </div>
+            <div className="text-3xl font-bold tracking-tight text-red-600">
+              {stats.blocked}
+            </div>
+            <div className="text-[11px] text-neutral-400 mt-1">
+              devoir / note &lt; 10
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Search and Status Filter Pills */}
+      <div className="bg-white border border-[#F1F5F9] rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        {/* ClickUp Pills for Status Filters */}
+        <div className="flex flex-wrap items-center gap-1">
+          {filterTabs.map((tab) => {
+            const isActive = statusFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setStatusFilter(tab.id)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5",
+                  isActive
+                    ? "bg-neutral-100 text-neutral-900 font-semibold"
+                    : "text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50"
+                )}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span className={cn(
+                    "text-[10px] font-mono px-1 py-0.2 rounded",
+                    isActive ? "text-neutral-700 bg-neutral-200/60" : "text-neutral-400"
+                  )}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search input with shortcut badge */}
+        <div className="relative flex items-center min-w-[240px]">
+          <Search size={14} className="absolute left-3 text-neutral-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Filtrer par nom ou courriel..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8.5 pr-3 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] focus:border-neutral-400 focus:bg-white rounded-lg text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all"
+          />
+        </div>
+      </div>
+
+      {/* 4. Table Container (Exact ClickUp Style) */}
+      <div className="bg-white border border-[#F1F5F9] rounded-2xl overflow-hidden shadow-none">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#F1F5F9] text-[11px] font-semibold text-neutral-400 uppercase tracking-wider bg-white">
+                <th
                   onClick={() => toggleSort('last_name')}
+                  className="py-3 px-6 cursor-pointer hover:text-neutral-700 group transition-colors select-none"
                 >
-                  <div className="flex items-center gap-1">
-                    Apprenant <SortIcon field="last_name" />
+                  <div className="flex items-center gap-1.5">
+                    <span>Apprenant</span>
+                    <SortIcon field="last_name" />
                   </div>
-                </TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead
-                  className="cursor-pointer hover:text-foreground transition-colors"
+                </th>
+                <th className="py-3 px-6 hidden sm:table-cell">Courriel</th>
+                <th
                   onClick={() => toggleSort('completion_rate')}
+                  className="py-3 px-6 cursor-pointer hover:text-neutral-700 group transition-colors select-none"
                 >
-                  <div className="flex items-center gap-1">
-                    Progression <SortIcon field="completion_rate" />
+                  <div className="flex items-center gap-1.5">
+                    <span>Progression</span>
+                    <SortIcon field="completion_rate" />
                   </div>
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:text-foreground transition-colors text-center"
+                </th>
+                <th
                   onClick={() => toggleSort('days_inactive')}
+                  className="py-3 px-6 text-center cursor-pointer hover:text-neutral-700 group transition-colors select-none"
                 >
-                  <div className="flex items-center justify-center gap-1">
-                    Inactivité <SortIcon field="days_inactive" />
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span>Inactivité</span>
+                    <SortIcon field="days_inactive" />
                   </div>
-                </TableHead>
-                <TableHead>Statut</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className={cn("transition-opacity duration-300", loading && learners.length > 0 ? "opacity-50" : "")}>
+                </th>
+                <th className="py-3 px-6 text-right">Statut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#F1F5F9] text-xs">
               {loading && learners.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    Chargement...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={5} className="text-center py-16 text-neutral-400">
+                    <div className="w-5 h-5 border-2 border-neutral-300 border-t-neutral-800 rounded-full animate-spin mx-auto mb-2" />
+                    Chargement des apprenants...
+                  </td>
+                </tr>
               ) : learners.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center">
-                      <Search className="w-8 h-8 text-muted-foreground/50 mb-3" />
-                      <p className="text-sm font-medium text-foreground">Aucun apprenant trouvé</p>
-                      {(search || globalSearch) && (
-                        <p className="text-xs mt-1">
-                          Aucun résultat pour la recherche "{search || globalSearch}"
-                        </p>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={5} className="text-center py-16 text-neutral-400">
+                    <p className="text-sm font-medium text-neutral-700">Aucun apprenant trouvé</p>
+                    <p className="text-xs text-neutral-400 mt-1">
+                      Ajustez vos filtres de recherche pour afficher des résultats
+                    </p>
+                  </td>
+                </tr>
               ) : (
                 learners.map((learner) => (
-                  <TableRow
+                  <tr
                     key={learner.id}
-                    className="hover:bg-muted/20 cursor-pointer"
                     onClick={() => onSelectLearner?.(learner.id)}
+                    className="hover:bg-neutral-50/80 transition-colors cursor-pointer group"
                   >
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <p className="font-medium text-foreground">{learner.first_name} {learner.last_name}</p>
+                    {/* Nom & Alertes */}
+                    <td className="py-3.5 px-6">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
+                          {learner.first_name} {learner.last_name}
+                        </p>
                         {learner.unvalidated_assignments && learner.unvalidated_assignments.length > 0 && (
-                          <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5" title={learner.unvalidated_assignments.map(u => u.name).join(', ')}>
-                            <AlertTriangle className="w-3 h-3 text-destructive shrink-0" />
-                            <span>À régulariser : {learner.unvalidated_assignments.map(u => u.name.toLowerCase().includes("lettre d") ? "Lettre" : (u.code?.startsWith("ACT") ? (u.name.split('.')[0].trim() || u.name) : (u.code || u.name.split('.')[0].trim()))).join(', ')}</span>
+                          <p
+                            className="text-[11px] text-red-600 flex items-center gap-1 mt-0.5 truncate max-w-md"
+                            title={learner.unvalidated_assignments.map((u) => u.name).join(', ')}
+                          >
+                            <AlertTriangle size={11} className="shrink-0" />
+                            <span>
+                              À régulariser : {learner.unvalidated_assignments.map((u) => (u.name.toLowerCase().includes('lettre') ? 'Lettre' : u.name.split('.')[0].trim())).join(', ')}
+                            </span>
                           </p>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">{learner.email}</TableCell>
-                    <TableCell>
+                    </td>
+
+                    {/* Email */}
+                    <td className="py-3.5 px-6 text-neutral-400 font-mono text-[11px] hidden sm:table-cell">
+                      {learner.email}
+                    </td>
+
+                    {/* Progression bar */}
+                    <td className="py-3.5 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="w-28 sm:w-36 bg-neutral-100 h-1.5 rounded-full overflow-hidden">
                           <div
-                            className={cn(
-                              'h-full rounded-full transition-all duration-500',
-                              learner.completion_rate > 0 ? 'bg-primary' : 'bg-gray-300'
-                            )}
-                            style={{ width: `${Math.max(learner.completion_rate, learner.completion_rate > 0 ? 4 : 0)}%` }}
+                            className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(100, Math.max(learner.completion_rate, learner.completion_rate > 0 ? 4 : 0))}%` }}
                           />
                         </div>
-                        <span className="text-xs font-bold text-foreground w-12">
+                        <span className="font-mono text-xs font-semibold text-neutral-900 w-10">
                           {learner.completion_rate}%
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-center">
+                    </td>
+
+                    {/* Inactivité */}
+                    <td className="py-3.5 px-6 text-center">
                       <span className={cn(
                         'text-xs font-medium',
-                        learner.days_inactive > 14 ? 'text-destructive' :
-                          learner.days_inactive > 7 ? 'text-warning' :
-                            learner.days_inactive > 900 ? 'text-destructive' : 'text-muted-foreground'
+                        learner.days_inactive > 14 ? 'text-red-600 font-semibold' :
+                        learner.days_inactive > 7 ? 'text-amber-600' :
+                        learner.days_inactive > 900 ? 'text-red-600' : 'text-neutral-400'
                       )}>
                         {learner.days_inactive > 900 ? 'Jamais' : `${learner.days_inactive}j`}
                       </span>
-                    </TableCell>
-                    <TableCell>{statusBadge(learner.status, learner.is_blocked)}</TableCell>
-                  </TableRow>
+                    </td>
+
+                    {/* Statut */}
+                    <td className="py-3.5 px-6 text-right">
+                      {renderStatusBadge(learner.status, learner.is_blocked)}
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
+        </div>
 
-          {/* Footer */}
-          <div className="px-4 py-3 border-t bg-muted/20 text-xs text-muted-foreground">
-            {learners.length} apprenant{learners.length > 1 ? 's' : ''} affiché{learners.length > 1 ? 's' : ''}
-          </div>
-        </CardContent>
-      </Card>
+        {/* Footer */}
+        <div className="px-6 py-3.5 bg-white border-t border-[#F1F5F9] text-xs text-neutral-400 flex items-center justify-between">
+          <span>{learners.length} apprenant{learners.length > 1 ? 's' : ''} affiché{learners.length > 1 ? 's' : ''}</span>
+          <span className="font-mono text-[11px] text-neutral-400">{groupId}</span>
+        </div>
+      </div>
     </div>
-  );
-}
-
-function FilterButton({
-  label,
-  icon: Icon,
-  active,
-  onClick,
-  color,
-  count,
-}: {
-  label: string;
-  icon: React.ElementType;
-  active: boolean;
-  onClick: () => void;
-  color?: string;
-  count?: number;
-}) {
-  const activeColorClasses: Record<string, string> = {
-    success: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    warning: 'bg-amber-500 text-white hover:bg-amber-600',
-    destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-  };
-
-  return (
-    <Button
-      variant={active ? "default" : "ghost"}
-      size="sm"
-      onClick={onClick}
-      className={cn(
-        'gap-1.5 h-8',
-        active && color && activeColorClasses[color],
-        !active && 'text-muted-foreground'
-      )}
-    >
-      <Icon size={14} />
-      {label}
-      {count !== undefined && (
-        <Badge variant={active ? "secondary" : "outline"} className="ml-1 px-1.5 py-0 text-[10px]">
-          {count}
-        </Badge>
-      )}
-    </Button>
   );
 }
