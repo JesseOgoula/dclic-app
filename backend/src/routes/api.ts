@@ -135,28 +135,31 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
   }
 });
 
-router.get('/uploads', async (_req: Request, res: Response): Promise<void> => {
+router.get('/uploads', async (req: Request, res: Response): Promise<void> => {
   try {
-    const uploads = await store.getUploads();
+    const formation = (req.query?.formation as string) || undefined;
+    const uploads = await store.getUploads(formation);
     res.json({ success: true, data: uploads });
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }
 });
 
-router.delete('/uploads', async (_req: Request, res: Response): Promise<void> => {
+router.delete('/uploads', async (req: Request, res: Response): Promise<void> => {
   try {
-    await store.clearUploadHistory();
+    const formation = (req.query?.formation as string) || undefined;
+    await store.clearUploadHistory(formation);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }
 });
 
-router.delete('/reset', async (_req: Request, res: Response): Promise<void> => {
+router.delete('/reset', async (req: Request, res: Response): Promise<void> => {
   try {
-    await store.clearAllData();
-    res.json({ success: true });
+    const formation = ((req.query?.formation || req.body?.formation) as string) || undefined;
+    const result = await store.clearData(formation);
+    res.json({ success: true, data: result });
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }

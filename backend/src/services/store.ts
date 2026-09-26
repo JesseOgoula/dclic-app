@@ -755,9 +755,20 @@ class DataStore {
     await supabase.from('uploads').update(data).eq('id', id);
   }
 
-  async getUploads(): Promise<Upload[]> {
+  async getUploads(formation?: string): Promise<Upload[]> {
     const { data } = await supabase.from('uploads').select('*').order('uploaded_at', { ascending: false });
-    return data as Upload[] || [];
+    const all = (data as Upload[]) || [];
+    if (!formation) return all;
+
+    return all.filter(u => {
+      const fn = u.filename.toLowerCase();
+      if (formation === 'gp') {
+        return fn.includes('gp') || fn.includes('gpm') || fn.includes('gestion');
+      } else if (formation === 'mn') {
+        return fn.includes('mn') || fn.includes('marketing') || fn.includes('courseid');
+      }
+      return true;
+    });
   }
 
   // ----------------------------------------------------------
@@ -810,21 +821,110 @@ class DataStore {
   }
 
   // ----------------------------------------------------------
-  // Danger Zone
+  // Danger Zone — Reset data (scoped by formation or all)
   // ----------------------------------------------------------
 
-  async clearAllData(): Promise<void> {
-    await supabase.from('progress').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('communications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('learners').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  async clearData(formation?: string): Promise<{ deletedLearners: number; deletedActivities: number }> {
+    if (!formation || formation === 'all') {
+      await supabase.from('progress').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('communications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('learners').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      return { deletedLearners: 0, deletedActivities: 0 };
+    }
+
+    const targetFormation = formation.toLowerCase() as 'mn' | 'gp';
+
+    // 1. Fetch learners belonging to this specific formation
+    const targetLearners = await this.getLearners(targetFormation);
+    const targetLearnerIds = targetLearners.map(l => l.id);
+
+    // 2. Fetch activities belonging to this specific formation
+    const targetActivities = await this.getActivities(targetFormation);
+    const targetActivityIds = targetActivities.map(a => a.id);
+
+    // 3. Delete progress for these learners
+    if (targetLearnerIds.length > 0) {
+      for (let i = 0; i < targetLearnerIds.length; i += 200) {
+        const chunk = targetLearnerIds.slice(i, i + 200);
+        await supabase.from('progress').delete().in('learner_id', chunk);
+      }
+    }
+
+    // 4. Delete progress for these activities
+    if (targetActivityIds.length > 0) {
+      for (let i = 0; i < targetActivityIds.length; i += 200) {
+        const chunk = targetActivityIds.slice(i, i + 200);
+        await supabase.from('progress').delete().in('activity_id', chunk);
+      }
+    }
+
+    // 5. Delete communications for these learners
+    if (targetLearnerIds.length > 0) {
+      for (let i = 0; i < targetLearnerIds.length; i += 200) {
+        const chunk = targetLearnerIds.slice(i, i + 200);
+        await supabase.from('communications').delete().in('learner_id', chunk);
+      }
+    }
+
+    // 6. Delete alerts for these learners
+    if (targetLearnerIds.length > 0) {
+      for (let i = 0; i < targetLearnerIds.length; i += 200) {
+        const chunk = targetLearnerIds.slice(i, i + 200);
+        await supabase.from('alerts').delete().in('learner_id', chunk);
+      }
+    }
+
+    // 7. Delete activities belonging to this formation
+    if (targetFormation === 'gp') {
+      await supabase.from('activities').delete().eq('formation_type', 'gp');
+    } else if (targetFormation === 'mn') {
+      await supabase.from('activities').delete().or('formation_type.eq.mn,formation_type.is.null');
+    }
+
+    // 8. Delete learners belonging to this formation
+    if (targetLearnerIds.length > 0) {
+      for (let i = 0; i < targetLearnerIds.length; i += 200) {
+        const chunk = targetLearnerIds.slice(i, i + 200);
+        await supabase.from('learners').delete().in('id', chunk);
+      }
+    }
+
+    // 9. Delete upload history for this formation
+    await this.clearUploadHistory(targetFormation);
+
+    return { deletedLearners: targetLearners.length, deletedActivities: targetActivities.length };
   }
 
-  async clearUploadHistory(): Promise<void> {
-    await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  async clearAllData(): Promise<void> {
+    await this.clearData('all');
+  }
+
+  async clearUploadHistory(formation?: string): Promise<void> {
+    if (formation) {
+      const { data: all } = await supabase.from('uploads').select('*');
+      if (all) {
+        const toDelete = all.filter(u => {
+          const fn = u.filename.toLowerCase();
+          if (formation === 'gp') {
+            return fn.includes('gp') || fn.includes('gpm') || fn.includes('gestion');
+          } else {
+            return fn.includes('mn') || fn.includes('marketing') || fn.includes('courseid');
+          }
+        }).map(u => u.id);
+
+        if (toDelete.length > 0) {
+          for (let i = 0; i < toDelete.length; i += 100) {
+            await supabase.from('uploads').delete().in('id', toDelete.slice(i, i + 100));
+          }
+        }
+      }
+    } else {
+      await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    }
   }
 }
 

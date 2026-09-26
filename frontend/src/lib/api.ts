@@ -332,8 +332,17 @@ export const api = {
     return request<any>(`/reports/custom?${params.toString()}`);
   },
 
-  getUploads: () => request<any[]>('/uploads'),
+  getUploads: (formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<any[]>(`/uploads${qs}`);
+  },
   
-  clearHistory: () => request<void>('/uploads', { method: 'DELETE' }),
-  resetData: () => request<void>('/reset', { method: 'DELETE' }),
+  clearHistory: (formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<void>(`/uploads${qs}`, { method: 'DELETE' });
+  },
+  resetData: (formation?: string) => {
+    const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
+    return request<{ deletedLearners: number; deletedActivities: number }>(`/reset${qs}`, { method: 'DELETE' });
+  },
 };

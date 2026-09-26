@@ -29,29 +29,38 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
 
   const fetchHistory = useCallback(async () => {
     try {
-      const data = await api.getUploads();
+      const data = await api.getUploads(currentFormation);
       setHistory(data);
     } catch (err) {
       console.error(err);
     }
-  }, []);
+  }, [currentFormation]);
 
   const handleResetData = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir effacer TOUTES les données ? Cette action est irréversible.')) {
+    const otherFormationName =
+      currentFormation === 'gp'
+        ? 'Marketing numérique (Formation initiale)'
+        : 'Gestion de projet (Module de spécialisation)';
+
+    const confirmMsg =
+      `Êtes-vous sûr de vouloir réinitialiser UNIQUEMENT les données de la cohorte « ${formationTitle} » (${groupId}) ?\n\n` +
+      `Les données de l'autre formation (${otherFormationName}) resteront totalement préservées et intactes.`;
+
+    if (window.confirm(confirmMsg)) {
       try {
-        await api.resetData();
+        await api.resetData(currentFormation);
         fetchHistory();
-        alert('Les données ont été effacées avec succès.');
+        alert(`Les données de « ${formationTitle} » ont été réinitialisées avec succès.`);
       } catch (err) {
-        alert("Erreur lors de l'effacement : " + err);
+        alert("Erreur lors de la réinitialisation : " + err);
       }
     }
   };
 
   const handleClearHistory = async () => {
-    if (window.confirm("Voulez-vous vraiment vider l'historique des imports ?")) {
+    if (window.confirm(`Voulez-vous vraiment vider l'historique des imports pour « ${formationTitle} » ?`)) {
       try {
-        await api.clearHistory();
+        await api.clearHistory(currentFormation);
         fetchHistory();
       } catch (err) {
         alert('Erreur : ' + err);
@@ -131,10 +140,10 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
             type="button"
             onClick={handleResetData}
             className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E2E8F0] hover:bg-red-50 hover:text-red-700 hover:border-red-200 bg-white text-xs font-medium text-neutral-700 transition-colors shadow-none cursor-pointer"
-            title="Effacer toutes les données de la base"
+            title={`Effacer uniquement les données de ${formationTitle}`}
           >
             <Trash2 size={13} className="text-neutral-400" />
-            <span>Réinitialiser la base</span>
+            <span>Réinitialiser ({formationTitle})</span>
           </button>
         </div>
       </div>
