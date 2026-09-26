@@ -18,9 +18,60 @@ import type { UploadResult } from '../types.js';
 const TARGET_GROUPS = ['G1_MN_072026', 'G1_GPM_092026'];
 
 /**
+ * Helper to resolve formation if not provided:
+ * 1. Checks explicit targetFormation
+ * 2. Checks filename markers
+ * 3. Checks distinctive activity names (excluding false positives like Gantt)
+ */
+function resolveFormation(
+  targetFormation?: 'mn' | 'gp',
+  filename?: string,
+  activityNames?: string[]
+): 'mn' | 'gp' {
+  if (targetFormation === 'gp' || targetFormation === 'mn') {
+    return targetFormation;
+  }
+
+  const lowerName = (filename || '').toLowerCase();
+  if (lowerName.includes('gpm') || lowerName.includes('gp_2026') || lowerName.includes('gp_') || lowerName.includes('gestion')) {
+    return 'gp';
+  }
+  if (lowerName.includes('mn_') || lowerName.includes('marketing') || lowerName.includes('courseid')) {
+    return 'mn';
+  }
+
+  if (activityNames && activityNames.length > 0) {
+    const isGP = activityNames.some(n =>
+      n.includes('posture stratégique') ||
+      n.includes('Mission direction de projet') ||
+      n.includes('plan de lancement 360') ||
+      n.includes("Livrable d'entraînement") ||
+      n.includes("Livrable d’entraînement") ||
+      n.startsWith('Module 1 :')
+    );
+    if (isGP) return 'gp';
+
+    const isMN = activityNames.some(n =>
+      n.startsWith('M1A.') ||
+      n.startsWith('M1B.') ||
+      n.startsWith('M2A.') ||
+      n.startsWith('M3A.') ||
+      n.includes('marketing numérique')
+    );
+    if (isMN) return 'mn';
+  }
+
+  return 'mn'; // Default fallback
+}
+
+/**
  * Process an uploaded file — determines type and ingests data.
  */
-export async function processUpload(filePath: string, filename: string): Promise<UploadResult> {
+export async function processUpload(
+  filePath: string,
+  filename: string,
+  targetFormation?: 'mn' | 'gp'
+): Promise<UploadResult> {
   const ext = path.extname(filename).toLowerCase();
   const fileTypeMap: Record<string, 'csv' | 'xlsx' | 'md'> = {
     '.csv': 'csv',
@@ -43,16 +94,17 @@ export async function processUpload(filePath: string, filename: string): Promise
     let result: UploadResult;
 
     if (ext === '.csv') {
-      result = await processProgressCSV(filePath, upload.id);
+      result = await processProgressCSV(filePath, upload.id, targetFormation, filename);
     } else if (ext === '.xlsx' || ext === '.xls') {
-      result = await processParticipantsXLSX(filePath, upload.id);
+      result = await processParticipantsXLSX(filePath, upload.id, targetFormation, filename);
     } else if (ext === '.md') {
-      result = await processParticipantsMD(filePath, upload.id);
+      result = await processParticipantsMD(filePath, upload.id, targetFormation, filename);
     } else {
       throw new Error(`Unsupported file type: ${ext}`);
     }
 
-    const stats = await store.getDashboardStats();
+    const resolvedFormation = result.formation || targetFormation || 'mn';
+    const stats = await store.getDashboardStats(resolvedFormation);
 
     await store.updateUpload(upload.id, {
       rows_processed: result.rows_processed,
@@ -79,33 +131,34 @@ export async function processUpload(filePath: string, filename: string): Promise
 /**
  * Process the Moodle progress CSV.
  */
-async function processProgressCSV(filePath: string, uploadId: string): Promise<UploadResult> {
+async function processProgressCSV(
+  filePath: string,
+  uploadId: string,
+  targetFormation?: 'mn' | 'gp',
+  originalFilename?: string
+): Promise<UploadResult> {
   const rows = parseProgressCSV(filePath);
 
   if (rows.length === 0) {
     return {
       upload_id: uploadId,
-      filename: path.basename(filePath),
+      filename: originalFilename || path.basename(filePath),
       rows_processed: 0,
       learners_created: 0,
       learners_updated: 0,
       progress_records: 0,
       errors: ['No data rows found in CSV'],
+      formation: targetFormation,
     };
   }
 
-  // Detect formation
-  const isGP = rows[0].activities.some(a =>
-    a.name.includes('posture stratégique') ||
-    a.name.includes('diagramme de Gantt') ||
-    a.name.includes('Mission direction de projet') ||
-    a.name.includes('plan de lancement 360')
-  );
-  const detectedFormation: 'mn' | 'gp' = isGP ? 'gp' : 'mn';
-  const targetGroup = isGP ? 'G1_GPM_092026' : 'G1_MN_072026';
+  // Detect formation accurately
+  const rawActivityNames = rows[0].activities.map(a => a.name);
+  const detectedFormation = resolveFormation(targetFormation, originalFilename || filePath, rawActivityNames);
+  const targetGroup = detectedFormation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
 
-  // Register activities
-  const activityMeta = extractActivityMetadata(rows[0].activities.map(a => a.name), detectedFormation);
+  // Register activities with explicit detectedFormation
+  const activityMeta = extractActivityMetadata(rawActivityNames, detectedFormation);
   for (const meta of activityMeta) {
     await store.upsertActivity(meta);
   }
@@ -128,7 +181,7 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
   );
 
   if (targetEmails.size === 0) {
-    errors.push("Information : La liste des participants n'a pas encore été importée pour cette cohorte. L'application va charger les apprenants du fichier CSV.");
+    errors.push(`Information : La liste des participants n'a pas encore été importée pour cette cohorte (${targetGroup}). L'application va charger les apprenants du fichier CSV.`);
   }
 
   for (const row of rows) {
@@ -162,10 +215,9 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
       else learnersCreated++;
 
       for (const act of row.activities) {
-        const activityCode = activityMeta.find(m => m.name === act.name)?.code;
-        if (!activityCode) continue;
-
-        const activity = allActivities.find(a => a.code === activityCode);
+        const meta = activityMeta.find(m => m.name === act.name);
+        const activity = allActivities.find(a => a.name === act.name) ||
+                         (meta ? allActivities.find(a => a.code === meta.code) : undefined);
         if (!activity) continue;
 
         const status = act.status as 'completed' | 'not_completed' | 'passed';
@@ -222,21 +274,35 @@ async function processProgressCSV(filePath: string, uploadId: string): Promise<U
 
   return {
     upload_id: uploadId,
-    filename: path.basename(filePath),
+    filename: originalFilename || path.basename(filePath),
     rows_processed: rows.length,
     learners_created: learnersCreated,
     learners_updated: learnersUpdated,
     progress_records: progressRecords,
     errors,
+    formation: detectedFormation,
   };
 }
 
 /**
  * Process the participants XLSX
  */
-async function processParticipantsXLSX(filePath: string, uploadId: string): Promise<UploadResult> {
+async function processParticipantsXLSX(
+  filePath: string,
+  uploadId: string,
+  targetFormation?: 'mn' | 'gp',
+  originalFilename?: string
+): Promise<UploadResult> {
   const allParticipants = parseParticipantsXLSX(filePath);
-  const g1Participants = allParticipants.filter(p => TARGET_GROUPS.includes(p.group) || p.group.startsWith('G1_'));
+  const detectedFormation = resolveFormation(targetFormation, originalFilename || filePath);
+  const targetGroup = detectedFormation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
+
+  const g1Participants = allParticipants.filter(p =>
+    TARGET_GROUPS.includes(p.group) ||
+    p.group.startsWith('G1_') ||
+    !p.group ||
+    p.group.includes(detectedFormation.toUpperCase())
+  );
 
   let learnersCreated = 0;
   let learnersUpdated = 0;
@@ -245,11 +311,12 @@ async function processParticipantsXLSX(filePath: string, uploadId: string): Prom
   for (const p of g1Participants) {
     try {
       const existing = await store.getLearnerByEmail(p.email);
+      const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
       await store.upsertLearner({
         first_name: p.first_name,
         last_name: p.last_name,
         email: p.email,
-        group_id: p.group,
+        group_id: groupToAssign,
         last_activity_at: null,
       });
       if (existing) learnersUpdated++;
@@ -261,21 +328,35 @@ async function processParticipantsXLSX(filePath: string, uploadId: string): Prom
 
   return {
     upload_id: uploadId,
-    filename: path.basename(filePath),
+    filename: originalFilename || path.basename(filePath),
     rows_processed: g1Participants.length,
     learners_created: learnersCreated,
     learners_updated: learnersUpdated,
     progress_records: 0,
     errors,
+    formation: detectedFormation,
   };
 }
 
 /**
  * Process the participants MD
  */
-async function processParticipantsMD(filePath: string, uploadId: string): Promise<UploadResult> {
+async function processParticipantsMD(
+  filePath: string,
+  uploadId: string,
+  targetFormation?: 'mn' | 'gp',
+  originalFilename?: string
+): Promise<UploadResult> {
   const allParticipants = parseParticipantsMD(filePath);
-  const g1Participants = allParticipants.filter(p => TARGET_GROUPS.includes(p.group) || p.group.startsWith('G1_'));
+  const detectedFormation = resolveFormation(targetFormation, originalFilename || filePath);
+  const targetGroup = detectedFormation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
+
+  const g1Participants = allParticipants.filter(p =>
+    TARGET_GROUPS.includes(p.group) ||
+    p.group.startsWith('G1_') ||
+    !p.group ||
+    p.group.includes(detectedFormation.toUpperCase())
+  );
 
   let learnersCreated = 0;
   let learnersUpdated = 0;
@@ -284,11 +365,12 @@ async function processParticipantsMD(filePath: string, uploadId: string): Promis
   for (const p of g1Participants) {
     try {
       const existing = await store.getLearnerByEmail(p.email);
+      const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
       await store.upsertLearner({
         first_name: p.first_name,
         last_name: p.last_name,
         email: p.email,
-        group_id: p.group,
+        group_id: groupToAssign,
         last_activity_at: p.last_access ? parseRelativeTime(p.last_access) : null,
       });
       if (existing) learnersUpdated++;
@@ -300,11 +382,12 @@ async function processParticipantsMD(filePath: string, uploadId: string): Promis
 
   return {
     upload_id: uploadId,
-    filename: path.basename(filePath),
+    filename: originalFilename || path.basename(filePath),
     rows_processed: g1Participants.length,
     learners_created: learnersCreated,
     learners_updated: learnersUpdated,
     progress_records: 0,
     errors,
+    formation: detectedFormation,
   };
 }

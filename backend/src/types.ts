@@ -227,4 +227,5 @@ export interface UploadResult {
   learners_updated: number;
   progress_records: number;
   errors: string[];
+  formation?: 'mn' | 'gp';
 }

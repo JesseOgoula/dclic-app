@@ -108,11 +108,22 @@ class DataStore {
   // ----------------------------------------------------------
 
   async upsertActivity(data: Omit<Activity, 'id'>): Promise<Activity> {
-    const { data: existing } = await supabase
+    // First try to match by exact activity name
+    let { data: existing } = await supabase
       .from('activities')
       .select('*')
-      .eq('code', data.code)
-      .single();
+      .eq('name', data.name)
+      .maybeSingle();
+
+    // Fallback: match by code if not found by name
+    if (!existing && data.code) {
+      const { data: byCode } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('code', data.code)
+        .maybeSingle();
+      existing = byCode;
+    }
 
     if (existing) {
       const { data: updated } = await supabase

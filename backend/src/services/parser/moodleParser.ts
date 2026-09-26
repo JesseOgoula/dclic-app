@@ -287,12 +287,19 @@ export function extractActivityMetadata(
   display_order: number;
   formation_type: string;
 }> {
-  const isGP = forcedFormationType === 'gp' || activityNames.some(n =>
-    n.includes('posture stratégique') ||
-    n.includes('diagramme de Gantt') ||
-    n.includes('Mission direction de projet') ||
-    n.includes('plan de lancement 360')
-  );
+  let isGP = false;
+  if (forcedFormationType) {
+    isGP = forcedFormationType === 'gp';
+  } else {
+    isGP = activityNames.some(n =>
+      n.includes('posture stratégique') ||
+      n.includes('Mission direction de projet') ||
+      n.includes('plan de lancement 360') ||
+      n.includes("Livrable d'entraînement") ||
+      n.includes("Livrable d’entraînement") ||
+      n.startsWith('Module 1 : La posture')
+    );
+  }
 
   if (isGP) {
     return activityNames.map((name, index) => {

@@ -18,10 +18,11 @@ interface UploadPageProps {
 }
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
-  const { formationTitle, formationCategory, groupId } = useFormation();
+  const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const [history, setHistory] = useState<any[]>([]);
@@ -67,9 +68,10 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
       setUploading(true);
       setError(null);
       setResult(null);
+      setUploadedFileName(file.name);
 
       try {
-        const data = await api.uploadFile(file);
+        const data = await api.uploadFile(file, currentFormation);
         setResult(data);
         fetchHistory();
       } catch (err) {
@@ -78,7 +80,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
         setUploading(false);
       }
     },
-    [fetchHistory]
+    [fetchHistory, currentFormation]
   );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -190,7 +192,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <div>
               <h3 className="font-semibold text-sm text-neutral-900">Importation réussie avec succès</h3>
-              <p className="text-xs text-neutral-400">{result.filename}</p>
+              <p className="text-xs text-neutral-400">{uploadedFileName || result.filename}</p>
             </div>
           </div>
 

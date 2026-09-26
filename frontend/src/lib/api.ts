@@ -196,6 +196,7 @@ export interface UploadResult {
   learners_updated: number;
   progress_records: number;
   errors: string[];
+  formation?: 'mn' | 'gp';
 }
 
 // ============================================================
@@ -285,9 +286,12 @@ export const api = {
     request<CommunicationLog>('/communications', { method: 'POST', body: JSON.stringify(data) }),
 
   // Upload
-  uploadFile: async (file: File): Promise<UploadResult> => {
+  uploadFile: async (file: File, formation?: string): Promise<UploadResult> => {
     const formData = new FormData();
     formData.append('file', file);
+    if (formation) {
+      formData.append('formation', formation);
+    }
 
     const token = authStorage.getToken();
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};

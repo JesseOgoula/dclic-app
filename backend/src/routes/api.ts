@@ -123,7 +123,8 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       return;
     }
 
-    const result = await processUpload(req.file.path, req.file.originalname);
+    const formation = ((req.body?.formation || req.query?.formation) as 'mn' | 'gp') || undefined;
+    const result = await processUpload(req.file.path, req.file.originalname, formation);
     res.json({ success: true, data: result });
   } catch (error) {
     console.error('Upload error:', error);
