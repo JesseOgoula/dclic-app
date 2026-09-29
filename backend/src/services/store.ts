@@ -305,6 +305,31 @@ class DataStore {
       });
     }
 
+    // Inclure également toute activité évaluée / devoir ayant reçu un échec (status === 'failed')
+    sortedActivities.forEach(act => {
+      const p = learnerProgress.find(x => x.activity_id === act.id);
+      if (p && p.status === 'failed') {
+        const isDevoir = act.type === 'devoir' || isAssignment(act.name);
+        if (!unvalidatedAssignments.some(u => u.activity_id === act.id)) {
+          const hole: ProgressionHole = {
+            activity_id: act.id,
+            code: act.code,
+            name: act.name,
+            sequence: act.sequence,
+            type: isDevoir ? 'devoir' : act.type,
+            is_evaluated: act.is_evaluated || isDevoir,
+            status: 'failed',
+            completed_at: p.completed_at,
+            display_order: act.display_order,
+          };
+          unvalidatedAssignments.push(hole);
+          if (!progressionHoles.some(h => h.activity_id === act.id)) {
+            progressionHoles.push(hole);
+          }
+        }
+      }
+    });
+
     return {
       maxValidOrder,
       progressionHoles,
@@ -512,8 +537,10 @@ class DataStore {
     const learner = await this.getLearnerByEmail(cleanEmail);
     if (!learner) return null;
 
-    const detectedFormation = (learner.group_id && learner.group_id.includes('GPM')) ? 'gp' : 'mn';
-    const formation = requestedFormation || detectedFormation;
+    const detectedFormation: 'mn' | 'gp' = (learner.group_id && learner.group_id.includes('GPM')) ? 'gp' : 'mn';
+    const formation: 'mn' | 'gp' = (requestedFormation === 'gp' || requestedFormation === 'mn')
+      ? requestedFormation
+      : detectedFormation;
 
     const allActivities = await this.getActivities(formation);
     const progress = await this.getProgressByLearner(learner.id);
@@ -564,6 +591,11 @@ class DataStore {
         status: learner.status,
         last_activity_at: learner.last_activity_at,
       },
+      formation,
+      formation_name: formation === 'gp'
+        ? 'Module de spécialisation — Gestion de projets marketing 360°'
+        : 'Formation initiale — Marketing numérique',
+      certification_threshold: formation === 'gp' ? 12 : 10,
       completion_rate: completionRate,
       completed_activities: completed,
       total_activities: total,

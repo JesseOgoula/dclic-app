@@ -69,11 +69,20 @@ function AppContent() {
     }
   }, []);
 
-  // Handle URL changes for admin login
+  // Handle URL changes or keyboard shortcut for admin login
   useEffect(() => {
     if (checkAdminRequested() && !isAdminAuthenticated) {
       setShowLoginModal(true);
     }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') || (e.altKey && e.key.toLowerCase() === 'a')) {
+        e.preventDefault();
+        setShowLoginModal(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isAdminAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -139,7 +148,7 @@ function AppContent() {
   if (!isAdminAuthenticated || isExplicitPortal) {
     return (
       <div className="relative min-h-screen">
-        <LearnerPortal onOpenCoordinatorLogin={() => setShowLoginModal(true)} />
+        <LearnerPortal />
 
         {/* Modal de connexion Coordinateur */}
         {showLoginModal && (

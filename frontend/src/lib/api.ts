@@ -120,6 +120,9 @@ export interface LearnerPortalData {
     status: string;
     last_activity_at: string | null;
   };
+  formation?: 'mn' | 'gp';
+  formation_name?: string;
+  certification_threshold?: number;
   completion_rate: number;
   completed_activities: number;
   total_activities: number;
