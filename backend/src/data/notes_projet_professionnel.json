@@ -7,46 +7,46 @@
       {
         "code": "PP1",
         "name": "Document de stratégie marketing",
-        "max_score": 6.0
+        "max_score": 6
       },
       {
         "code": "PP2",
         "name": "Document de gestion de projets",
-        "max_score": 6.0
+        "max_score": 6
       },
       {
         "code": "PP3",
         "name": "Production de contenus",
-        "max_score": 4.0
+        "max_score": 4
       },
       {
         "code": "PP4",
         "name": "Tableau de bord des indicateurs",
-        "max_score": 4.0
+        "max_score": 4
       }
     ]
   },
   "statistics": {
     "cohort": "MN_072026 - Marketing Numérique (Formation Initiale)",
     "course_code": "PP_PROJET_PROFESSIONNEL",
-    "total_learners_submitted": 52,
-    "validated_count": 52,
+    "total_learners_submitted": 54,
+    "validated_count": 54,
     "failed_count": 0,
     "validation_rate_percent": 100.0,
-    "threshold_validation": 10.0,
-    "scale_max": 20.0,
+    "threshold_validation": 10,
+    "scale_max": 20,
     "averages": {
-      "pp1_strategie_marketing_sur_6": 4.96,
-      "pp2_gestion_projets_sur_6": 4.96,
-      "pp3_production_contenus_sur_4": 2.23,
-      "pp4_tableau_bord_sur_4": 2.75,
-      "total_general_sur_20": 14.9
+      "pp1_strategie_marketing_sur_6": 4.97,
+      "pp2_gestion_projets_sur_6": 4.99,
+      "pp3_production_contenus_sur_4": 2.15,
+      "pp4_tableau_bord_sur_4": 2.77,
+      "total_general_sur_20": 14.89
     },
     "score_distribution": {
-      "min": 10.0,
-      "max": 19.0,
+      "min": 10,
+      "max": 19,
       "tier_16_to_20_tres_bien": 15,
-      "tier_14_to_15_9_bien": 28,
+      "tier_14_to_15_9_bien": 30,
       "tier_12_to_13_9_assez_bien": 8,
       "tier_10_to_11_9_passable": 1,
       "tier_below_10_ajourne": 0
@@ -62,28 +62,28 @@
       "email": "christelleagblag@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 18.0,
-      "max_score": 20.0,
+      "total_score": 18,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -96,28 +96,28 @@
       "email": "aissimignone@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 3.0,
-          "max": 6.0,
+          "score": 3,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 3.0,
-          "max": 6.0,
+          "score": 3,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -130,28 +130,28 @@
       "email": "christelleleaa@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 19.0,
-      "max_score": 20.0,
+      "total_score": 19,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -164,28 +164,28 @@
       "email": "nadiangono87@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 3.0,
-          "max": 6.0,
+          "score": 3,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
-      "max_score": 20.0,
+      "total_score": 14,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -198,28 +198,28 @@
       "email": "faridathamoussa21@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 17.0,
-      "max_score": 20.0,
+      "total_score": 17,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -232,28 +232,28 @@
       "email": "johanitaa10@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -266,28 +266,28 @@
       "email": "jeremiedescarte@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -300,28 +300,28 @@
       "email": "fabiolaadjoukeu@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 3.0,
-          "max": 6.0,
+          "score": 3,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 12.0,
-      "max_score": 20.0,
+      "total_score": 12,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -334,28 +334,28 @@
       "email": "dorisandy109@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -368,28 +368,28 @@
       "email": "arianemukonkole@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -402,28 +402,28 @@
       "email": "yesminamoha@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -436,28 +436,28 @@
       "email": "limatouassouma@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -470,28 +470,28 @@
       "email": "ablanmarieaka@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -504,28 +504,28 @@
       "email": "leilasouma2000@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
-      "max_score": 20.0,
+      "total_score": 14,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -538,28 +538,28 @@
       "email": "androssa111@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -572,28 +572,28 @@
       "email": "alfrednaphtarie12@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -606,28 +606,28 @@
       "email": "tedeumlaudamusazossi@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -640,28 +640,28 @@
       "email": "laytanialaydie@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
-      "max_score": 20.0,
+      "total_score": 14,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -674,28 +674,28 @@
       "email": "miraculee39@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -708,28 +708,28 @@
       "email": "diija0000@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -742,28 +742,28 @@
       "email": "sokhna@cosnainvestments.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -776,28 +776,28 @@
       "email": "houefacarine6@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -810,28 +810,28 @@
       "email": "christelle.asg@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -844,28 +844,28 @@
       "email": "amineabdramanemht@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 17.0,
-      "max_score": 20.0,
+      "total_score": 17,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -878,28 +878,28 @@
       "email": "tobiahossinou999@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -912,28 +912,28 @@
       "email": "eagnoun@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -946,28 +946,28 @@
       "email": "komileoali9@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -980,28 +980,28 @@
       "email": "njunioragossa@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1014,28 +1014,28 @@
       "email": "olivierakieros08@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1048,28 +1048,28 @@
       "email": "eudesaccrombessi3@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1082,28 +1082,28 @@
       "email": "ithiel2mil4@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1116,28 +1116,28 @@
       "email": "allarabeyesucces@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1150,28 +1150,28 @@
       "email": "tranquilinadanzounnon@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1184,28 +1184,28 @@
       "email": "gerardoagbahoungba95@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1218,28 +1218,28 @@
       "email": "abdoaminobakar@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 3.0,
-          "max": 6.0,
+          "score": 3,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
-      "max_score": 20.0,
+      "total_score": 14,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1252,28 +1252,28 @@
       "email": "adjakidjememiaghe@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1286,28 +1286,28 @@
       "email": "romaricakpo229@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 17.0,
-      "max_score": 20.0,
+      "total_score": 17,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1320,28 +1320,28 @@
       "email": "abissifabriceworou@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1354,28 +1354,28 @@
       "email": "rabodji28@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1388,28 +1388,28 @@
       "email": "pascaladokou@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1422,28 +1422,28 @@
       "email": "jeanclaudemukaw@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16.0,
-      "max_score": 20.0,
+      "total_score": 16,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1456,29 +1456,29 @@
       "email": "abdoulganiouaboubakar@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing",
           "feedback": "Une stratégie marketing claire, concise et bien alignée sur les réalités du e-commerce africain."
         },
         "pp2_gestion": {
-          "score": 4.0,
-          "max": 6.0,
+          "score": 4,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1491,28 +1491,28 @@
       "email": "timeomarie15avril@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 2.0,
-          "max": 6.0,
+          "score": 2,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 1.0,
-          "max": 4.0,
+          "score": 1,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 10.0,
-      "max_score": 20.0,
+      "total_score": 10,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1525,28 +1525,28 @@
       "email": "moudassireake@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
-      "max_score": 20.0,
+      "total_score": 14,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1559,28 +1559,28 @@
       "email": "u4065566550@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1593,28 +1593,28 @@
       "email": "anaswouchia@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
-          "max": 6.0,
+          "score": 6,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 4.0,
-          "max": 4.0,
+          "score": 4,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 17.0,
-      "max_score": 20.0,
+      "total_score": 17,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1627,28 +1627,28 @@
       "email": "pacemadetola@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 3.0,
-          "max": 6.0,
+          "score": 3,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 13.0,
-      "max_score": 20.0,
+      "total_score": 13,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1661,28 +1661,28 @@
       "email": "ablesamuel39@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
-      "max_score": 20.0,
+      "total_score": 14,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1695,28 +1695,28 @@
       "email": "adekounleallagbek@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1729,28 +1729,28 @@
       "email": "avetocyrille10@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1763,28 +1763,28 @@
       "email": "adjarababoris@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 5.0,
-          "max": 6.0,
+          "score": 5,
+          "max": 6,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
-          "max": 4.0,
+          "score": 2,
+          "max": 4,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 3.0,
-          "max": 4.0,
+          "score": 3,
+          "max": 4,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15.0,
-      "max_score": 20.0,
+      "total_score": 15,
+      "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
@@ -1797,27 +1797,95 @@
       "email": "g.padonou93@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5.0,
+          "score": 5,
+          "max": 6,
+          "label": "Document de stratégie marketing"
+        },
+        "pp2_gestion": {
+          "score": 6,
+          "max": 6,
+          "label": "Document de gestion de projets"
+        },
+        "pp3_contenus": {
+          "score": 2,
+          "max": 4,
+          "label": "Production de contenus"
+        },
+        "pp4_tableau": {
+          "score": 1,
+          "max": 4,
+          "label": "Tableau de bord des indicateurs"
+        }
+      },
+      "total_score": 14,
+      "max_score": 20,
+      "validated": true,
+      "status": "Validé"
+    },
+    {
+      "num": 53,
+      "learner_id": "4ffddc36-d8b0-46ef-9d19-0db1987fb70f",
+      "first_name": "Moukaïla",
+      "last_name": "AYENA",
+      "full_name": "Moukaïla AYENA",
+      "email": "moukailaayena14@gmail.com",
+      "grades": {
+        "pp1_strategie": {
+          "score": 5.45,
           "max": 6.0,
           "label": "Document de stratégie marketing"
         },
         "pp2_gestion": {
-          "score": 6.0,
+          "score": 5.8,
           "max": 6.0,
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2.0,
+          "score": 0.0,
           "max": 4.0,
           "label": "Production de contenus"
         },
         "pp4_tableau": {
-          "score": 1.0,
+          "score": 3.3,
           "max": 4.0,
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 14.0,
+      "total_score": 14.55,
+      "max_score": 20.0,
+      "validated": true,
+      "status": "Validé"
+    },
+    {
+      "num": 54,
+      "learner_id": "036f4cd0-680f-46e8-9b1c-56d754baab07",
+      "first_name": "Ephraïm",
+      "last_name": "AZUMI",
+      "full_name": "Ephraïm AZUMI",
+      "email": "ephraimazumi@gmail.com",
+      "grades": {
+        "pp1_strategie": {
+          "score": 5.2,
+          "max": 6.0,
+          "label": "Document de stratégie marketing"
+        },
+        "pp2_gestion": {
+          "score": 5.65,
+          "max": 6.0,
+          "label": "Document de gestion de projets"
+        },
+        "pp3_contenus": {
+          "score": 0.0,
+          "max": 4.0,
+          "label": "Production de contenus"
+        },
+        "pp4_tableau": {
+          "score": 3.4,
+          "max": 4.0,
+          "label": "Tableau de bord des indicateurs"
+        }
+      },
+      "total_score": 14.25,
       "max_score": 20.0,
       "validated": true,
       "status": "Validé"
