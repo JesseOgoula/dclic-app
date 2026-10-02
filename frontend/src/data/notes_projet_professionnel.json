@@ -2,53 +2,53 @@
   "metadata": {
     "title": "Notes du Projet Professionnel - Session Formation Initiale",
     "description": "Extraction intégrale et synthèse des 4 livrables du Projet Professionnel D-CLIC OIF",
-    "generated_at": "2026-10-01T22:30:00+01:00",
+    "generated_at": "2026-10-02T12:15:00+01:00",
     "deliverables": [
       {
         "code": "PP1",
         "name": "Document de stratégie marketing",
-        "max_score": 6
+        "max_score": 6.0
       },
       {
         "code": "PP2",
         "name": "Document de gestion de projets",
-        "max_score": 6
+        "max_score": 6.0
       },
       {
         "code": "PP3",
         "name": "Production de contenus",
-        "max_score": 4
+        "max_score": 4.0
       },
       {
         "code": "PP4",
         "name": "Tableau de bord des indicateurs",
-        "max_score": 4
+        "max_score": 4.0
       }
     ]
   },
   "statistics": {
     "cohort": "MN_072026 - Marketing Numérique (Formation Initiale)",
     "course_code": "PP_PROJET_PROFESSIONNEL",
-    "total_learners_submitted": 54,
-    "validated_count": 54,
+    "total_learners_submitted": 53,
+    "validated_count": 53,
     "failed_count": 0,
     "validation_rate_percent": 100.0,
-    "threshold_validation": 10,
-    "scale_max": 20,
+    "threshold_validation": 10.0,
+    "scale_max": 20.0,
     "averages": {
-      "pp1_strategie_marketing_sur_6": 4.97,
+      "pp1_strategie_marketing_sur_6": 4.88,
       "pp2_gestion_projets_sur_6": 4.99,
-      "pp3_production_contenus_sur_4": 2.15,
+      "pp3_production_contenus_sur_4": 2.11,
       "pp4_tableau_bord_sur_4": 2.77,
-      "total_general_sur_20": 14.89
+      "total_general_sur_20": 14.75
     },
     "score_distribution": {
-      "min": 10,
+      "min": 10.0,
       "max": 19,
-      "tier_16_to_20_tres_bien": 15,
-      "tier_14_to_15_9_bien": 30,
+      "tier_16_to_20_tres_bien": 14,
+      "tier_14_to_15_9_bien": 29,
       "tier_12_to_13_9_assez_bien": 8,
-      "tier_10_to_11_9_passable": 1,
+      "tier_10_to_11_9_passable": 2,
       "tier_below_10_ajourne": 0
     }
   },
@@ -412,9 +412,10 @@
           "label": "Document de gestion de projets"
         },
         "pp3_contenus": {
-          "score": 2,
+          "score": 0.0,
           "max": 4,
-          "label": "Production de contenus"
+          "label": "Production de contenus",
+          "comment": "Livrable non remis sur Moodle"
         },
         "pp4_tableau": {
           "score": 3,
@@ -422,7 +423,7 @@
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 16,
+      "total_score": 14.0,
       "max_score": 20,
       "validated": true,
       "status": "Validé"
@@ -939,40 +940,6 @@
     },
     {
       "num": 27,
-      "learner_id": "b6f4d3fe-dee3-4604-8162-1598043feba8",
-      "first_name": "Léo",
-      "last_name": "KOMI ALI",
-      "full_name": "Léo KOMI ALI",
-      "email": "komileoali9@gmail.com",
-      "grades": {
-        "pp1_strategie": {
-          "score": 5,
-          "max": 6,
-          "label": "Document de stratégie marketing"
-        },
-        "pp2_gestion": {
-          "score": 5,
-          "max": 6,
-          "label": "Document de gestion de projets"
-        },
-        "pp3_contenus": {
-          "score": 2,
-          "max": 4,
-          "label": "Production de contenus"
-        },
-        "pp4_tableau": {
-          "score": 3,
-          "max": 4,
-          "label": "Tableau de bord des indicateurs"
-        }
-      },
-      "total_score": 15,
-      "max_score": 20,
-      "validated": true,
-      "status": "Validé"
-    },
-    {
-      "num": 28,
       "learner_id": "c44b4e7f-707f-4e8d-9cd4-12f2e45f2d5c",
       "first_name": "N'Junior",
       "last_name": "AGOSSA",
@@ -1006,7 +973,7 @@
       "status": "Validé"
     },
     {
-      "num": 29,
+      "num": 28,
       "learner_id": "d7fcd28c-7335-4ce0-affa-369cd4609cfc",
       "first_name": "Olivier",
       "last_name": "AKADJA",
@@ -1040,7 +1007,7 @@
       "status": "Validé"
     },
     {
-      "num": 30,
+      "num": 29,
       "learner_id": "3f5da3a4-080a-48d5-9548-359b50c7a7fb",
       "first_name": "Eudes",
       "last_name": "ACCROMBESSI",
@@ -1074,7 +1041,7 @@
       "status": "Validé"
     },
     {
-      "num": 31,
+      "num": 30,
       "learner_id": "a6eb4eed-5bbe-4462-8d48-b6d0075915e3",
       "first_name": "Komi Ithiel",
       "last_name": "ATTIOGBE",
@@ -1108,7 +1075,7 @@
       "status": "Validé"
     },
     {
-      "num": 32,
+      "num": 31,
       "learner_id": "92e20e32-aa95-4026-bfbc-5828ac513104",
       "first_name": "Nodjipal Succès",
       "last_name": "Allarabeye",
@@ -1142,7 +1109,7 @@
       "status": "Validé"
     },
     {
-      "num": 33,
+      "num": 32,
       "learner_id": "d246c219-f883-4f7d-abc7-669c3002a273",
       "first_name": "Tranquilin Yelognissè",
       "last_name": "ADANZOUNNON AGBO",
@@ -1176,7 +1143,7 @@
       "status": "Validé"
     },
     {
-      "num": 34,
+      "num": 33,
       "learner_id": "d30387f9-2dc8-4ea3-b8b7-c75f454fe2c8",
       "first_name": "Gerardo",
       "last_name": "G. AGBAHOUNGBA",
@@ -1210,7 +1177,7 @@
       "status": "Validé"
     },
     {
-      "num": 35,
+      "num": 34,
       "learner_id": "43e27f2c-b528-40b2-969b-c6f4d81807b2",
       "first_name": "ABDO AMIN",
       "last_name": "ABDO AMIN OBAKAR",
@@ -1244,7 +1211,7 @@
       "status": "Validé"
     },
     {
-      "num": 36,
+      "num": 35,
       "learner_id": "96f9669f-728a-4559-b5aa-4dfc73d9e34e",
       "first_name": "Kémi Axel Salim Honoré",
       "last_name": "ADJAKIDJE",
@@ -1278,7 +1245,7 @@
       "status": "Validé"
     },
     {
-      "num": 37,
+      "num": 36,
       "learner_id": "d3277c52-a189-4db9-b2ad-70bae0c8ccf4",
       "first_name": "Wolé Romaric",
       "last_name": "AKPO",
@@ -1312,7 +1279,7 @@
       "status": "Validé"
     },
     {
-      "num": 38,
+      "num": 37,
       "learner_id": "56260443-9bd2-4fef-965f-b7c87317909e",
       "first_name": "Fabrice Worou",
       "last_name": "ABISSI",
@@ -1346,7 +1313,7 @@
       "status": "Validé"
     },
     {
-      "num": 39,
+      "num": 38,
       "learner_id": "fbf49ece-f8f6-4741-a071-59d5a339b8b5",
       "first_name": "Abdul Razak",
       "last_name": "O. ABODJI WOHOU",
@@ -1354,9 +1321,10 @@
       "email": "rabodji28@gmail.com",
       "grades": {
         "pp1_strategie": {
-          "score": 5,
+          "score": 0.0,
           "max": 6,
-          "label": "Document de stratégie marketing"
+          "label": "Document de stratégie marketing",
+          "comment": "Livrable non remis sur Moodle"
         },
         "pp2_gestion": {
           "score": 5,
@@ -1374,13 +1342,13 @@
           "label": "Tableau de bord des indicateurs"
         }
       },
-      "total_score": 15,
+      "total_score": 10.0,
       "max_score": 20,
       "validated": true,
       "status": "Validé"
     },
     {
-      "num": 40,
+      "num": 39,
       "learner_id": "6b238491-8b01-403b-a6e1-a97b7cd3fe3e",
       "first_name": "Pascal",
       "last_name": "Adokou",
@@ -1414,7 +1382,7 @@
       "status": "Validé"
     },
     {
-      "num": 41,
+      "num": 40,
       "learner_id": "3d9a9321-b727-45c9-968c-adb728402744",
       "first_name": "JEAN CLAUDE ASIFIWE",
       "last_name": "JEAN CLAUDE ASIFIWE MUKAWA",
@@ -1448,7 +1416,7 @@
       "status": "Validé"
     },
     {
-      "num": 42,
+      "num": 41,
       "learner_id": "e0e0b868-53b9-454c-b694-e722eae59880",
       "first_name": "Abdou Ganiou",
       "last_name": "Aboubakar",
@@ -1483,7 +1451,7 @@
       "status": "Validé"
     },
     {
-      "num": 43,
+      "num": 42,
       "learner_id": "31b34544-06be-4b02-af30-5cda63a39a76",
       "first_name": "Sègla Gérald",
       "last_name": "P. AIGLO",
@@ -1517,7 +1485,7 @@
       "status": "Validé"
     },
     {
-      "num": 44,
+      "num": 43,
       "learner_id": "c73e1b73-395d-4e34-920d-b3636abfb63a",
       "first_name": "Moudachirou Sègla",
       "last_name": "AKE",
@@ -1551,7 +1519,7 @@
       "status": "Validé"
     },
     {
-      "num": 45,
+      "num": 44,
       "learner_id": "c1ab9158-9bee-461a-b908-4cb2b8a022a5",
       "first_name": "GARBA",
       "last_name": "GARBA ALI",
@@ -1585,7 +1553,7 @@
       "status": "Validé"
     },
     {
-      "num": 46,
+      "num": 45,
       "learner_id": "3e8f9c20-b303-4789-ad99-cac674e29487",
       "first_name": "/ yaouba",
       "last_name": "ANASS WOUCHIA",
@@ -1619,7 +1587,7 @@
       "status": "Validé"
     },
     {
-      "num": 47,
+      "num": 46,
       "learner_id": "86f5f568-edc2-4462-9b52-44a89b0a9b97",
       "first_name": "Jean-Baptiste De La Salle Pacem Adétola",
       "last_name": "AÏKO",
@@ -1653,7 +1621,7 @@
       "status": "Validé"
     },
     {
-      "num": 48,
+      "num": 47,
       "learner_id": "bff0e95d-734a-4cd0-9d59-3b76024a7352",
       "first_name": "Samuel",
       "last_name": "Able",
@@ -1687,7 +1655,7 @@
       "status": "Validé"
     },
     {
-      "num": 49,
+      "num": 48,
       "learner_id": "7a063485-2ced-4abc-908a-21b7cf02d719",
       "first_name": "Adekounlé Alain Fréjus Florian",
       "last_name": "ALLAGBE KASSIFA",
@@ -1721,7 +1689,7 @@
       "status": "Validé"
     },
     {
-      "num": 50,
+      "num": 49,
       "learner_id": "84458ae7-3a38-4e32-ae32-595dddbd1668",
       "first_name": "Cyrille",
       "last_name": "AVETO",
@@ -1755,7 +1723,7 @@
       "status": "Validé"
     },
     {
-      "num": 51,
+      "num": 50,
       "learner_id": "7ef93139-fe78-4253-9cfa-e3d3b5681be3",
       "first_name": "KOSSI BORIS DADJA",
       "last_name": "KOSSI BORIS DADJA ADJARABA",
@@ -1789,7 +1757,7 @@
       "status": "Validé"
     },
     {
-      "num": 52,
+      "num": 51,
       "learner_id": "711f4816-1356-4192-89af-2105798db899",
       "first_name": "PADONOU",
       "last_name": "PADONOU GILDAS",
@@ -1823,7 +1791,7 @@
       "status": "Validé"
     },
     {
-      "num": 53,
+      "num": 52,
       "learner_id": "4ffddc36-d8b0-46ef-9d19-0db1987fb70f",
       "first_name": "Moukaïla",
       "last_name": "AYENA",
@@ -1857,7 +1825,7 @@
       "status": "Validé"
     },
     {
-      "num": 54,
+      "num": 53,
       "learner_id": "036f4cd0-680f-46e8-9b1c-56d754baab07",
       "first_name": "Ephraïm",
       "last_name": "AZUMI",
