@@ -43,6 +43,42 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 // Types (mirroring backend)
 // ============================================================
 
+export interface PPGrades {
+  has_pp: boolean;
+  pp1: number;
+  pp2: number;
+  pp3: number;
+  pp4: number;
+  total_score: number;
+  max_score: number;
+  validated: boolean;
+  status: 'Validé' | 'Ajourné';
+}
+
+export interface PPStats {
+  total_submitted: number;
+  validated_count: number;
+  failed_count: number;
+  validation_rate: number;
+  average_total: number;
+  averages: {
+    pp1_strategie_marketing_sur_6: number;
+    pp2_gestion_projets_sur_6: number;
+    pp3_production_contenus_sur_4: number;
+    pp4_tableau_bord_sur_4: number;
+    total_general_sur_20: number;
+  };
+  distribution: {
+    min: number;
+    max: number;
+    tier_16_to_20_tres_bien: number;
+    tier_14_to_15_9_bien: number;
+    tier_12_to_13_9_assez_bien: number;
+    tier_10_to_11_9_passable: number;
+    tier_below_10_ajourne: number;
+  };
+}
+
 export interface DashboardStats {
   total_learners: number;
   active_learners: number;
@@ -58,6 +94,7 @@ export interface DashboardStats {
   blocked_learners: LearnerWithProgress[];
   completed_phase1_list: LearnerWithProgress[];
   completed_list: LearnerWithProgress[];
+  pp_stats?: PPStats;
 }
 
 export interface SequenceStat {
@@ -102,6 +139,7 @@ export interface LearnerWithProgress extends Learner {
   unvalidated_assignments?: ProgressionHole[];
   has_unvalidated_assignments?: boolean;
   is_blocked?: boolean;
+  pp_grades?: PPGrades;
 }
 
 export interface LearnerDetail extends LearnerWithProgress {
@@ -130,6 +168,7 @@ export interface LearnerPortalData {
   unvalidated_assignments: ProgressionHole[];
   all_progression_holes: ProgressionHole[];
   has_unvalidated_assignments: boolean;
+  pp_grades?: PPGrades;
   sequences: {
     sequence: string;
     total: number;
@@ -348,4 +387,8 @@ export const api = {
     const qs = formation ? `?formation=${encodeURIComponent(formation)}` : '';
     return request<{ deletedLearners: number; deletedActivities: number }>(`/reset${qs}`, { method: 'DELETE' });
   },
+
+  // Projet Professionnel
+  getProjetProfessionnelAll: () => request<any>('/pp/all'),
+  getProjetProfessionnelStats: () => request<PPStats>('/pp/stats'),
 };

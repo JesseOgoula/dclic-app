@@ -4,12 +4,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 dotenv.config();
 
 import type {
   Learner, Activity, LearnerProgress, Upload, CommunicationLog,
   Evaluation, Report, Alert, DashboardStats, LearnerWithProgress, SequenceStat,
-  ProgressionHole, LearnerPortalData
+  ProgressionHole, LearnerPortalData, PPGradeInfo, PPStats
 } from '../types.js';
 import { isAssignment } from './parser/moodleParser.js';
 
@@ -20,9 +22,10 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 export function computeLearnerStatus(
   completionRate: number,
   daysInactive: number,
-  isPhase1Completed: boolean
+  isPhase1Completed: boolean,
+  hasValidatedPP: boolean = false
 ): 'completed' | 'completed_phase1' | 'dropped' | 'inactive' | 'active' {
-  if (completionRate >= 100) return 'completed';
+  if (completionRate >= 100 || (isPhase1Completed && hasValidatedPP)) return 'completed';
   if (isPhase1Completed) return 'completed_phase1';
   if (daysInactive > 7) return 'dropped';
   if (daysInactive >= 2) return 'inactive';
@@ -30,6 +33,29 @@ export function computeLearnerStatus(
 }
 
 class DataStore {
+  // In-Memory High-Performance Caching
+  private progressCache: { data: LearnerProgress[]; timestamp: number } | null = null;
+  private learnersCache = new Map<string, { data: Learner[]; timestamp: number }>();
+  private activitiesCache = new Map<string, { data: Activity[]; timestamp: number }>();
+  private statsCache = new Map<string, { data: DashboardStats; timestamp: number }>();
+  private weeklyReportsCache = new Map<string, { data: any[]; timestamp: number }>();
+  private readonly CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+
+  invalidateCache(formation?: string) {
+    this.progressCache = null;
+    this.statsCache.clear();
+    this.weeklyReportsCache.clear();
+    if (formation) {
+      this.learnersCache.delete(formation);
+      this.learnersCache.delete('all');
+      this.activitiesCache.delete(formation);
+      this.activitiesCache.delete('all');
+    } else {
+      this.learnersCache.clear();
+      this.activitiesCache.clear();
+    }
+  }
+
   // ----------------------------------------------------------
   // Learner operations
   // ----------------------------------------------------------
@@ -72,7 +98,15 @@ class DataStore {
     return inserted as Learner;
   }
 
-  async getLearners(formation?: string): Promise<Learner[]> {
+  async getLearners(formation?: string, forceRefresh = false): Promise<Learner[]> {
+    const cacheKey = formation || 'all';
+    if (!forceRefresh) {
+      const cached = this.learnersCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     let query = supabase.from('learners').select('*');
     if (formation === 'gp') {
       query = query.or('group_id.eq.G1_GPM_092026,group_id.ilike.%GPM%');
@@ -82,7 +116,9 @@ class DataStore {
       query = query.or('group_id.eq.G1_MN_072026,group_id.eq.G1_GPM_092026,group_id.ilike.%G1_%');
     }
     const { data } = await query;
-    return (data as Learner[]) || [];
+    const learners = (data as Learner[]) || [];
+    this.learnersCache.set(cacheKey, { data: learners, timestamp: Date.now() });
+    return learners;
   }
 
   async getLearnerByEmail(email: string): Promise<Learner | undefined> {
@@ -143,7 +179,15 @@ class DataStore {
     return inserted as Activity;
   }
 
-  async getActivities(formation?: string): Promise<Activity[]> {
+  async getActivities(formation?: string, forceRefresh = false): Promise<Activity[]> {
+    const cacheKey = formation || 'all';
+    if (!forceRefresh) {
+      const cached = this.activitiesCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     let query = supabase.from('activities').select('*');
     if (formation === 'gp') {
       query = query.eq('formation_type', 'gp');
@@ -158,11 +202,11 @@ class DataStore {
       for (const act of activities) {
         if (act.name.toLowerCase().includes('impression') && act.sequence !== "Phase d'impressions") {
           act.sequence = "Phase d'impressions";
-          supabase.from('activities').update({ sequence: "Phase d'impressions" }).eq('id', act.id).then();
         }
       }
     }
 
+    this.activitiesCache.set(cacheKey, { data: activities, timestamp: Date.now() });
     return activities;
   }
 
@@ -227,29 +271,51 @@ class DataStore {
     return data as LearnerProgress[] || [];
   }
 
-  async getAllProgress(): Promise<LearnerProgress[]> {
-    let allData: LearnerProgress[] = [];
-    let from = 0;
-    const step = 1000;
-    
-    while (true) {
-      const { data, error } = await supabase
-        .from('progress')
-        .select('*')
-        .range(from, from + step - 1);
-        
-      if (error || !data || data.length === 0) {
-        break;
-      }
-      
-      allData = allData.concat(data as LearnerProgress[]);
-      if (data.length < step) {
-        break;
-      }
-      from += step;
+  async getAllProgress(forceRefresh = false): Promise<LearnerProgress[]> {
+    if (!forceRefresh && this.progressCache && (Date.now() - this.progressCache.timestamp < this.CACHE_TTL)) {
+      return this.progressCache.data;
     }
-    
-    return allData;
+
+    try {
+      const { count, error: countErr } = await supabase
+        .from('progress')
+        .select('*', { count: 'exact', head: true });
+
+      if (countErr || count === null || count === 0) {
+        const { data } = await supabase.from('progress').select('*').limit(1000);
+        const res = (data as LearnerProgress[]) || [];
+        this.progressCache = { data: res, timestamp: Date.now() };
+        return res;
+      }
+
+      const step = 1000;
+      const chunksCount = Math.ceil(count / step);
+      const ranges: [number, number][] = [];
+      for (let i = 0; i < chunksCount; i++) {
+        ranges.push([i * step, Math.min((i + 1) * step - 1, count - 1)]);
+      }
+
+      const results: LearnerProgress[] = [];
+      const batchSize = 6;
+      for (let i = 0; i < ranges.length; i += batchSize) {
+        const batchRanges = ranges.slice(i, i + batchSize);
+        const batchPromises = batchRanges.map(([from, to]) =>
+          supabase.from('progress').select('*').range(from, to)
+        );
+        const batchResults = await Promise.all(batchPromises);
+        for (const res of batchResults) {
+          if (res.data) {
+            results.push(...(res.data as LearnerProgress[]));
+          }
+        }
+      }
+
+      this.progressCache = { data: results, timestamp: Date.now() };
+      return results;
+    } catch (err) {
+      console.error('[Store] getAllProgress error:', err);
+      return this.progressCache ? this.progressCache.data : [];
+    }
   }
 
   /**
@@ -342,14 +408,34 @@ class DataStore {
   // Dashboard stats
   // ----------------------------------------------------------
 
-  async getDashboardStats(formation: string = 'mn'): Promise<DashboardStats> {
+  async getDashboardStats(formation: string = 'mn', forceRefresh = false): Promise<DashboardStats> {
+    if (!forceRefresh) {
+      const cached = this.statsCache.get(formation);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     const allLearners = await this.getLearners(formation);
     const allActivities = await this.getActivities(formation);
     const allProgress = await this.getAllProgress();
     const now = new Date();
 
+    // Fast O(1) lookup Map for progress by learner_id
+    const progressByLearner = new Map<string, LearnerProgress[]>();
+    for (const p of allProgress) {
+      let list = progressByLearner.get(p.learner_id);
+      if (!list) {
+        list = [];
+        progressByLearner.set(p.learner_id, list);
+      }
+      list.push(p);
+    }
+
+    const learnersToUpdateStatus: { id: string; status: string }[] = [];
+
     const learnersWithProgress: LearnerWithProgress[] = allLearners.map(learner => {
-      const learnerProgress = allProgress.filter(p => p.learner_id === learner.id);
+      const learnerProgress = progressByLearner.get(learner.id) || [];
       const completedActivities = learnerProgress.filter(
         p => p.status === 'completed' || p.status === 'passed'
       ).length;
@@ -383,7 +469,6 @@ class DataStore {
     });
 
     // Classification des statuts : la complétion prime sur l'inactivité.
-    // Un apprenant ayant terminé ne sera jamais classé "décrocheur".
     const seq5Activities = allActivities.filter(a => a.sequence.includes('Séquence 5'));
     const phase1Activities = allActivities.filter(a => a.sequence.startsWith('Séquence '));
 
@@ -398,26 +483,41 @@ class DataStore {
       ).length;
       const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
 
-      // Pour valider la Phase 1, l'apprenant ne doit pas avoir de devoir bloquant non validé en amont dans la Phase 1
       const hasNoPhase1AssignmentHoles = !(lwp.unvalidated_assignments || []).some(u =>
         u.sequence.startsWith('Séquence ') || u.sequence === 'Préalable'
       );
 
       const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
-      const status = computeLearnerStatus(lwp.completion_rate, lwp.days_inactive, isPhase1Completed);
+      const ppGrade = this.getPPGradeForEmail(lwp.email);
+      const hasValidatedPP = !!(ppGrade && ppGrade.validated);
+      const status = computeLearnerStatus(lwp.completion_rate, lwp.days_inactive, isPhase1Completed, hasValidatedPP);
 
-      // Mettre à jour le statut dans l'objet en mémoire et en base si changé
       const oldStatus = lwp.status;
       lwp.status = status as any;
       
       if (oldStatus !== status) {
-         await supabase.from('learners').update({ status }).eq('id', lwp.id);
+        learnersToUpdateStatus.push({ id: lwp.id, status });
       }
+    }
+
+    // Non-blocking asynchronous background status update
+    if (learnersToUpdateStatus.length > 0) {
+      (async () => {
+        try {
+          for (let i = 0; i < learnersToUpdateStatus.length; i += 25) {
+            const chunk = learnersToUpdateStatus.slice(i, i + 25);
+            await Promise.all(
+              chunk.map(u => supabase.from('learners').update({ status: u.status }).eq('id', u.id))
+            );
+          }
+        } catch (e) {
+          console.warn('[Store] Background status update error:', e);
+        }
+      })();
     }
 
     const completedPhase1Learners = learnersWithProgress.filter(l => l.status === 'completed_phase1');
     const completedLearners = learnersWithProgress.filter(l => l.status === 'completed');
-    // Les apprenants ayant terminé (phase1 ou session) ne comptent pas dans active/inactive/dropped
     const nonCompletedLearners = learnersWithProgress.filter(l => l.status !== 'completed_phase1' && l.status !== 'completed');
     const activeLearners = nonCompletedLearners.filter(l => l.days_inactive < 2).length;
     const inactiveLearners = nonCompletedLearners.filter(l => l.days_inactive >= 2 && l.days_inactive <= 7).length;
@@ -432,25 +532,24 @@ class DataStore {
     
     for (const seq of sequences) {
       const seqActivities = allActivities.filter(a => a.sequence === seq);
+      const seqActivityIds = new Set(seqActivities.map(a => a.id));
       let totalCompletions = 0;
       let completedCount = 0;
       let inProgressCount = 0;
       let notStartedCount = 0;
 
       for (const learner of allLearners) {
-        const learnerProgress = allProgress.filter(p => p.learner_id === learner.id);
-        
+        const learnerProgress = progressByLearner.get(learner.id) || [];
         let learnerSeqCompleted = 0;
-        for (const act of seqActivities) {
-          const prog = learnerProgress.find(p => p.activity_id === act.id);
-          if (prog && (prog.status === 'completed' || prog.status === 'passed')) {
+        for (const prog of learnerProgress) {
+          if (seqActivityIds.has(prog.activity_id) && (prog.status === 'completed' || prog.status === 'passed')) {
             learnerSeqCompleted++;
             totalCompletions++;
           }
         }
         
         if (seqActivities.length > 0) {
-          if (learnerSeqCompleted === seqActivities.length) completedCount++;
+          if (learnerSeqCompleted >= seqActivities.length) completedCount++;
           else if (learnerSeqCompleted > 0) inProgressCount++;
           else notStartedCount++;
         }
@@ -467,9 +566,6 @@ class DataStore {
       });
     }
 
-    // Avant l'ouverture du Projet Pro (14 sept 2026), les apprenants ayant
-    // terminé les 5 séquences (Phase 1) sont exclus du classement Top Performers
-    // jusqu'à la réouverture du projet (pour valoriser ceux qui progressent encore).
     const PROJET_PRO_START = new Date(2026, 8, 14); // 14 Septembre 2026
     const isBeforeProjetPro = now < PROJET_PRO_START;
 
@@ -478,13 +574,11 @@ class DataStore {
       .sort((a, b) => b.completion_rate - a.completion_rate);
     const topPerformers = sorted.slice(0, 10);
 
-    // Exclure les apprenants ayant terminé (phase 1 ou session) de la liste "en risque"
     const atRisk = learnersWithProgress
       .filter(l => l.days_inactive > 7 && l.status !== 'completed_phase1' && l.status !== 'completed')
       .sort((a, b) => b.days_inactive - a.days_inactive)
       .slice(0, 10);
 
-    // Apprenants bloqués : inclut ceux avec échec explicite ET ceux avec devoirs non validés en amont
     const blockedLearners = learnersWithProgress
       .filter(l => l.progress.some(p => p.status === 'failed') || (l.unvalidated_assignments && l.unvalidated_assignments.length > 0))
       .map(l => {
@@ -506,7 +600,7 @@ class DataStore {
       completionEvolution = Math.round((uploadsWithRate[0].completion_rate! - uploadsWithRate[1].completion_rate!) * 10) / 10;
     }
 
-    return {
+    const result: DashboardStats = {
       formation,
       formation_name: formation === 'gp'
         ? 'Module de spécialisation — Gestion de projet'
@@ -515,7 +609,7 @@ class DataStore {
       active_learners: activeLearners,
       inactive_learners: inactiveLearners,
       dropped_learners: droppedLearners,
-      completed_phase1_learners: completedPhase1Learners.length,
+      completed_phase1_learners: completedPhase1Learners.length + completedLearners.length,
       completed_learners: completedLearners.length,
       completion_rate: avgCompletion,
       completion_evolution: completionEvolution,
@@ -526,15 +620,86 @@ class DataStore {
       completed_phase1_list: completedPhase1Learners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
       completed_list: completedLearners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
     };
+
+    const ppData = this.getProjetProfessionnelData();
+    if (ppData && ppData.statistics && (formation === 'mn' || formation === 'all' || !formation)) {
+      result.pp_stats = {
+        total_submitted: ppData.statistics.total_learners_submitted,
+        validated_count: ppData.statistics.validated_count,
+        failed_count: ppData.statistics.failed_count,
+        validation_rate: ppData.statistics.validation_rate_percent,
+        average_total: ppData.statistics.averages.total_general_sur_20,
+        averages: ppData.statistics.averages,
+        distribution: ppData.statistics.score_distribution
+      };
+    }
+
+    this.statsCache.set(formation, { data: result, timestamp: Date.now() });
+    return result;
+  }
+
+  // ----------------------------------------------------------
+  // Projet Professionnel Data
+  // ----------------------------------------------------------
+
+  private ppDataCache: any = null;
+
+  getProjetProfessionnelData() {
+    if (this.ppDataCache) return this.ppDataCache;
+    const paths = [
+      path.join(process.cwd(), 'src', 'data', 'notes_projet_professionnel.json'),
+      path.join(process.cwd(), 'data', 'notes_projet_professionnel.json'),
+      'D:\\Project\\DCLIC\\Assistant Formation Initiale\\NOTES PP\\notes_projet_professionnel.json',
+      'D:\\Project\\DCLIC\\DclicApp\\backend\\src\\data\\notes_projet_professionnel.json',
+    ];
+    for (const p of paths) {
+      if (fs.existsSync(p)) {
+        try {
+          this.ppDataCache = JSON.parse(fs.readFileSync(p, 'utf-8'));
+          return this.ppDataCache;
+        } catch (err) {
+          console.error('Failed reading PP data from', p, err);
+        }
+      }
+    }
+    return null;
+  }
+
+  getPPGradeForEmail(email: string): PPGradeInfo | undefined {
+    const ppData = this.getProjetProfessionnelData();
+    if (!ppData || !ppData.learners) return undefined;
+    const cleanEmail = email.toLowerCase().trim();
+    const found = ppData.learners.find((l: any) => l.email && l.email.toLowerCase().trim() === cleanEmail);
+    if (!found) return undefined;
+
+    return {
+      has_pp: true,
+      pp1: found.grades.pp1_strategie.score,
+      pp2: found.grades.pp2_gestion.score,
+      pp3: found.grades.pp3_contenus.score,
+      pp4: found.grades.pp4_tableau.score,
+      total_score: found.total_score,
+      max_score: found.max_score,
+      validated: found.validated,
+      status: found.status
+    };
   }
 
   // ----------------------------------------------------------
   // Learner Portal Data
   // ----------------------------------------------------------
 
-  async getLearnerPortalData(email: string, requestedFormation?: string): Promise<LearnerPortalData | null> {
-    const cleanEmail = email.toLowerCase().trim();
-    const learner = await this.getLearnerByEmail(cleanEmail);
+  async getLearnerPortalData(query: string, requestedFormation?: string): Promise<LearnerPortalData | null> {
+    const clean = query.toLowerCase().trim();
+    let learner = await this.getLearnerByEmail(clean);
+    if (!learner) {
+      const all = await this.getLearners(requestedFormation);
+      const words = clean.replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length >= 2);
+      learner = all.find(l => {
+        const full = `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase();
+        return clean === l.email.toLowerCase() || (words.length > 0 && words.every(w => full.includes(w)));
+      }) || undefined;
+    }
     if (!learner) return null;
 
     const detectedFormation: 'mn' | 'gp' = (learner.group_id && learner.group_id.includes('GPM')) ? 'gp' : 'mn';
@@ -548,31 +713,66 @@ class DataStore {
     const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
       this.computeProgressionGaps(progress, allActivities);
 
-    const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
-    const total = allActivities.length;
-    const completionRate = total > 0 ? Math.round((completed / total) * 100 * 10) / 10 : 0;
+    const ppGrade = this.getPPGradeForEmail(learner.email);
 
     const sequencesMap = new Map<string, any[]>();
     for (const act of allActivities) {
       const seq = act.sequence || 'Autre';
+      // In MN, skip Phase d'impressions as it was an unmonitored survey activity
+      if (formation === 'mn' && seq.toLowerCase().includes('impression')) {
+        continue;
+      }
       if (!sequencesMap.has(seq)) {
         sequencesMap.set(seq, []);
       }
       const p = progress.find(x => x.activity_id === act.id);
-      const isCompleted = p ? (p.status === 'completed' || p.status === 'passed') : false;
+      let isCompleted = p ? (p.status === 'completed' || p.status === 'passed') : false;
+      let status = p ? p.status : 'not_completed';
+      let completedAt = p ? p.completed_at : null;
       const isDevoir = act.type === 'devoir' || isAssignment(act.name);
-      const isTrou = progressionHoles.some(h => h.activity_id === act.id);
+      let isTrou = progressionHoles.some(h => h.activity_id === act.id);
+
+      // If learner has submitted PP deliverables, credit the PP activities dynamically
+      if (ppGrade && ppGrade.has_pp && seq.toLowerCase().includes('projet')) {
+        const actLower = act.name.toLowerCase();
+        if (actLower.includes('stratégie') && ppGrade.pp1 !== undefined) {
+          isCompleted = true;
+          status = 'completed';
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+          isTrou = false;
+        } else if (actLower.includes('gestion') && ppGrade.pp2 !== undefined) {
+          isCompleted = true;
+          status = 'completed';
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+          isTrou = false;
+        } else if (actLower.includes('contenu') && ppGrade.pp3 !== undefined) {
+          isCompleted = true;
+          status = 'completed';
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+          isTrou = false;
+        } else if ((actLower.includes('tableau') || actLower.includes('indicateur')) && ppGrade.pp4 !== undefined) {
+          isCompleted = true;
+          status = 'completed';
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+          isTrou = false;
+        }
+      }
 
       sequencesMap.get(seq)!.push({
         ...act,
         type: isDevoir ? 'devoir' : act.type,
-        status: p ? p.status : 'not_completed',
-        completed_at: p ? p.completed_at : null,
+        status,
+        completed_at: completedAt,
         is_devoir: isDevoir,
         is_trou: isTrou,
         is_completed: isCompleted,
       });
     }
+
+    const allPortalActivities = Array.from(sequencesMap.values()).flat();
+    const completed = allPortalActivities.filter(a => a.is_completed).length;
+    const total = allPortalActivities.length;
+    const completionRate = total > 0 ? Math.min(100, Math.round((completed / total) * 100 * 10) / 10) : 0;
 
     const sequences = Array.from(sequencesMap.entries()).map(([seqName, acts]) => ({
       sequence: seqName,
@@ -603,6 +803,7 @@ class DataStore {
       unvalidated_assignments: unvalidatedAssignments,
       all_progression_holes: progressionHoles,
       has_unvalidated_assignments: hasUnvalidatedAssignments,
+      pp_grades: this.getPPGradeForEmail(learner.email),
       sequences,
     };
   }
@@ -611,7 +812,14 @@ class DataStore {
   // Weekly Reports
   // ----------------------------------------------------------
 
-  async getWeeklyReports(formation: string = 'mn') {
+  async getWeeklyReports(formation: string = 'mn', forceRefresh = false) {
+    if (!forceRefresh) {
+      const cached = this.weeklyReportsCache.get(formation);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     const allProgress = await this.getAllProgress();
     const allActivities = await this.getActivities(formation);
     const allLearners = await this.getLearners(formation);
@@ -692,7 +900,9 @@ class DataStore {
       });
     }
 
-    return result.sort((a, b) => new Date(b.week_start).getTime() - new Date(a.week_start).getTime());
+    const sortedResult = result.sort((a, b) => new Date(b.week_start).getTime() - new Date(a.week_start).getTime());
+    this.weeklyReportsCache.set(formation, { data: sortedResult, timestamp: Date.now() });
+    return sortedResult;
   }
 
   // ----------------------------------------------------------
@@ -928,11 +1138,13 @@ class DataStore {
     // 9. Delete upload history for this formation
     await this.clearUploadHistory(targetFormation);
 
+    this.invalidateCache(targetFormation);
     return { deletedLearners: targetLearners.length, deletedActivities: targetActivities.length };
   }
 
   async clearAllData(): Promise<void> {
     await this.clearData('all');
+    this.invalidateCache();
   }
 
   async clearUploadHistory(formation?: string): Promise<void> {

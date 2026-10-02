@@ -35,6 +35,7 @@ interface LayoutProps {
   globalSearch?: string;
   onSearch?: (value: string) => void;
   onLogout?: () => void;
+  onOpenPortal?: () => void;
 }
 
 export default function Layout({
@@ -45,6 +46,7 @@ export default function Layout({
   globalSearch = '',
   onSearch,
   onLogout,
+  onOpenPortal,
 }: LayoutProps) {
   const { currentFormation, setFormation, formationTitle, formationCategory, setShowSelector } = useFormation();
   const [formationDropdownOpen, setFormationDropdownOpen] = useState(false);
@@ -282,6 +284,20 @@ export default function Layout({
               {portalLinkCopied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
               <span className="hidden lg:inline">{portalLinkCopied ? 'Lien copié' : 'Lien apprenant'}</span>
             </Button>
+
+            {/* Quick Action: Open Portal Mode */}
+            {onOpenPortal && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenPortal}
+                className="h-8 px-2.5 text-xs font-medium border-[#E2E8F0] text-neutral-700 bg-white hover:bg-neutral-50 rounded-lg gap-1.5 shadow-none cursor-pointer"
+                title="Prévisualiser le portail apprenant"
+              >
+                <ExternalLink size={13} />
+                <span className="hidden xl:inline">Portail</span>
+              </Button>
+            )}
 
             {/* Quick Action: Import Button */}
             <button

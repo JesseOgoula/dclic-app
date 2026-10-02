@@ -16,7 +16,6 @@ import {
   Calendar,
   Users,
   Target,
-  Trophy,
   TrendingUp,
   Activity,
   ChevronDown,
@@ -299,6 +298,21 @@ export default function Reports() {
         recommendations.push('Aucune anomalie détectée. La cohorte suit un rythme régulier.');
       }
 
+      const ppSection = dashboardStats.pp_stats ? `
+## Projet Professionnel
+
+| Indicateur | Valeur |
+|---|---|
+| Effectif noté | **${dashboardStats.pp_stats.total_submitted}** |
+| Taux de validation | **${dashboardStats.pp_stats.validation_rate}%** (${dashboardStats.pp_stats.validated_count}/${dashboardStats.pp_stats.total_submitted}) |
+| Moyenne promotion | **${dashboardStats.pp_stats.average_total} / 20** |
+| Ajournés (< 10/20) | **${dashboardStats.pp_stats.failed_count}** |
+| PP1 Stratégie Marketing | **${dashboardStats.pp_stats.averages.pp1_strategie_marketing_sur_6} / 6** |
+| PP2 Gestion de Projets | **${dashboardStats.pp_stats.averages.pp2_gestion_projets_sur_6} / 6** |
+| PP3 Production Contenus | **${dashboardStats.pp_stats.averages.pp3_production_contenus_sur_4} / 4** |
+| PP4 Tableau de Bord | **${dashboardStats.pp_stats.averages.pp4_tableau_bord_sur_4} / 4** |
+` : '';
+
       globalSection = `
 ## Vue Globale de la Cohorte
 
@@ -352,7 +366,7 @@ ${atRiskList}
 
 ### Recommandations
 ${recommendations.map((r) => `- ${r}`).join('\n')}
-
+${ppSection}
 `;
     }
 
@@ -381,6 +395,68 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
     link.download = isCustomMode
       ? `Rapport_DCLIC_Custom_${customStartDate}_au_${customEndDate}.md`
       : `Rapport_DCLIC_${currentReport.week_start}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportToCSV = () => {
+    if (!currentReport) return;
+
+    const rows: string[][] = [
+      ['RAPPORT PEDAGOGIQUE DCLIC - SYNTHESE ET MONITORING'],
+      ['Formation', `"${formationTitle} (${groupId})"`],
+      ['Periode', `"${isCustomMode ? `Du ${customStartDate} au ${customEndDate}` : `Semaine du ${formatDate(currentReport.week_start)} au ${formatDate(currentReport.week_end)}`}"`],
+      ['Date generation', `"${new Date().toLocaleDateString('fr-FR')}"`],
+      [],
+      ['INDICATEURS COHORTE', 'VALEUR'],
+      ['Effectif total inscrits', String(dashboardStats?.total_learners || 0)],
+      ['Taux de completion moyen', `${dashboardStats?.completion_rate || 0}%`],
+      ['Phase 1 terminee (Eligibles PP)', String(dashboardStats?.completed_phase1_learners || 0)],
+      ['Session terminee (Certifies)', String(dashboardStats?.completed_learners || 0)],
+      ['Apprenants actifs', String(dashboardStats?.active_learners || 0)],
+      ['Apprenants inactifs', String(dashboardStats?.inactive_learners || 0)],
+      ['Apprenants decroches', String(dashboardStats?.dropped_learners || 0)],
+      ['Apprenants bloques', String(dashboardStats?.blocked_learners?.length || 0)],
+    ];
+
+    if (dashboardStats?.pp_stats) {
+      rows.push(
+        [],
+        ['PROJET PROFESSIONNEL', 'VALEUR'],
+        ['Effectif note', String(dashboardStats.pp_stats.total_submitted)],
+        ['Taux de validation', `"${dashboardStats.pp_stats.validation_rate}% (${dashboardStats.pp_stats.validated_count}/${dashboardStats.pp_stats.total_submitted})"`],
+        ['Moyenne generale (/20)', String(dashboardStats.pp_stats.average_total)],
+        ['Ajournes (< 10/20)', String(dashboardStats.pp_stats.failed_count)],
+        ['PP1 Strategie Marketing (/6)', String(dashboardStats.pp_stats.averages?.pp1_strategie_marketing_sur_6 || '-')],
+        ['PP2 Gestion de Projets (/6)', String(dashboardStats.pp_stats.averages?.pp2_gestion_projets_sur_6 || '-')],
+        ['PP3 Production Contenus (/4)', String(dashboardStats.pp_stats.averages?.pp3_production_contenus_sur_4 || '-')],
+        ['PP4 Tableau de Bord (/4)', String(dashboardStats.pp_stats.averages?.pp4_tableau_bord_sur_4 || '-')],
+      );
+    }
+
+    rows.push(
+      [],
+      ['ACTIVITE DE LA PERIODE', 'VALEUR'],
+      ['Total des validations', String(currentReport.total_validations || 0)],
+      ['Apprenants actifs sur la periode', String(currentReport.active_learners || 0)],
+      ['Sequence la plus active', `"${topSequence?.sequence || '-'}" (${topSequence?.count || 0})`],
+      ['Jour record', `"${topDay?.day || '-'}" (${topDay?.count || 0})`],
+      [],
+      ['VALIDATIONS PAR SEQUENCE', 'NOMBRE'],
+      ...(currentReport.validations_by_sequence || []).map((s: any) => [`"${s.sequence}"`, String(s.count)]),
+      [],
+      ['VALIDATIONS PAR JOUR', 'NOMBRE'],
+      ...(currentReport.validations_by_day || []).map((d: any) => [`"${d.day}"`, String(d.count)]),
+    );
+
+    const csvContent = '\uFEFF' + rows.map(r => r.join(';')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Rapport_Synthese_${currentFormation}_${isCustomMode ? `${customStartDate}_${customEndDate}` : (currentReport.week_start || '').split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -471,6 +547,18 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
             <Download size={13} className="text-neutral-500" />
             <span>Export MD</span>
           </button>
+
+          {/* Export CSV Button */}
+          <button
+            type="button"
+            onClick={exportToCSV}
+            disabled={!currentReport}
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 bg-white text-xs font-medium text-neutral-700 transition-colors shadow-none cursor-pointer disabled:opacity-50"
+            title="Exporter la synthèse du rapport au format CSV (Excel)"
+          >
+            <Download size={13} className="text-neutral-500" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 
@@ -512,10 +600,16 @@ ${currentReport.validations_by_day.map((d: any) => `- **${d.day}** : ${d.count} 
             <span className="font-semibold text-neutral-900">{dashboardStats.completed_phase1_learners || 0}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Trophy size={14} className="text-emerald-600" />
+            <CheckCircle2 size={14} className="text-neutral-700" />
             <span className="text-neutral-500">Session terminée :</span>
             <span className="font-semibold text-neutral-900">{dashboardStats.completed_learners || 0}</span>
           </div>
+          {dashboardStats.pp_stats && (
+            <div className="flex items-center gap-2">
+              <span className="text-neutral-500">PP validé :</span>
+              <span className="font-semibold text-neutral-900">{dashboardStats.pp_stats.validated_count}/{dashboardStats.pp_stats.total_submitted}</span>
+            </div>
+          )}
         </div>
       )}
 

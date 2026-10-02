@@ -267,8 +267,19 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
     const seq5Activities = activities.filter(a => a.sequence.includes('Séquence 5'));
     const phase1Activities = activities.filter(a => a.sequence.startsWith('Séquence '));
     
+    // Index progress by learner_id for fast O(1) lookups
+    const progressByLearner = new Map<string, typeof allProgress>();
+    for (const p of allProgress) {
+      let list = progressByLearner.get(p.learner_id);
+      if (!list) {
+        list = [];
+        progressByLearner.set(p.learner_id, list);
+      }
+      list.push(p);
+    }
+
     let enriched = learners.map(l => {
-      const progress = allProgress.filter(p => p.learner_id === l.id);
+      const progress = progressByLearner.get(l.id) || [];
       const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
       const total = activities.length;
       const lastActivity = l.last_activity_at ? new Date(l.last_activity_at).getTime() : null;
@@ -295,7 +306,11 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       );
 
       const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
-      const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed);
+      const ppGrade = store.getPPGradeForEmail(l.email);
+      const hasValidatedPP = !!(ppGrade && ppGrade.validated);
+      const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed, hasValidatedPP);
+      const finalCompleted = completed + (hasValidatedPP ? 4 : 0);
+      const finalRate = total > 0 ? Math.min(100, Math.round((finalCompleted / total) * 100 * 10) / 10) : 0;
 
       const hasFailed = progress.some(p => p.status === 'failed');
       const isBlocked = hasFailed || hasUnvalidatedAssignments;
@@ -303,8 +318,8 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       return {
         ...l,
         status: computedStatus,
-        completion_rate: completionRate,
-        completed_activities: completed,
+        completion_rate: finalRate,
+        completed_activities: Math.min(total, finalCompleted),
         total_activities: total,
         days_inactive: daysInactive,
         has_failed_activities: hasFailed,
@@ -312,6 +327,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
         unvalidated_assignments: unvalidatedAssignments,
         progression_holes: progressionHoles,
         is_blocked: isBlocked,
+        pp_grades: ppGrade,
       };
     });
 
@@ -333,6 +349,11 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
     enriched.sort((a, b) => {
       if (sortBy === 'completion_rate') return (a.completion_rate - b.completion_rate) * sortDir;
       if (sortBy === 'days_inactive') return (a.days_inactive - b.days_inactive) * sortDir;
+      if (sortBy === 'pp_score') {
+        const scoreA = a.pp_grades?.has_pp ? a.pp_grades.total_score : -1;
+        const scoreB = b.pp_grades?.has_pp ? b.pp_grades.total_score : -1;
+        return (scoreA - scoreB) * sortDir;
+      }
       return (a[sortBy as keyof typeof a] || '').toString()
         .localeCompare((b[sortBy as keyof typeof b] || '').toString()) * sortDir;
     });
@@ -361,18 +382,47 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
     const activities = await store.getActivities(formation);
     const communications = await store.getCommunicationsByLearner(learner.id);
 
+    const ppGrade = store.getPPGradeForEmail(learner.email);
+    const hasValidatedPP = !!(ppGrade && ppGrade.validated);
+
     // Merge progress with activity details
     const activityProgress = activities.map(activity => {
       const prog = progress.find(p => p.activity_id === activity.id);
+      let status = prog?.status || 'not_completed';
+      let completedAt = prog?.completed_at || null;
+      let grade = prog?.grade || null;
+
+      // Credit PP deliverables if submitted
+      if (ppGrade && ppGrade.has_pp && activity.sequence.toLowerCase().includes('projet')) {
+        const actLower = activity.name.toLowerCase();
+        if (actLower.includes('stratégie') && ppGrade.pp1 !== undefined) {
+          status = 'completed';
+          grade = ppGrade.pp1;
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+        } else if (actLower.includes('gestion') && ppGrade.pp2 !== undefined) {
+          status = 'completed';
+          grade = ppGrade.pp2;
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+        } else if (actLower.includes('contenu') && ppGrade.pp3 !== undefined) {
+          status = 'completed';
+          grade = ppGrade.pp3;
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+        } else if ((actLower.includes('tableau') || actLower.includes('indicateur')) && ppGrade.pp4 !== undefined) {
+          status = 'completed';
+          grade = ppGrade.pp4;
+          completedAt = completedAt || '2026-09-28T00:00:00Z';
+        }
+      }
+
       return {
         ...activity,
-        status: prog?.status || 'not_completed',
-        completed_at: prog?.completed_at || null,
-        grade: prog?.grade || null,
+        status,
+        completed_at: completedAt,
+        grade,
       };
     });
 
-    const completed = progress.filter(p => p.status === 'completed' || p.status === 'passed').length;
+    const completed = activityProgress.filter(p => p.status === 'completed' || p.status === 'passed').length;
 
     const lastActivity = learner.last_activity_at ? new Date(learner.last_activity_at).getTime() : null;
 
@@ -404,7 +454,7 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
     );
 
     const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
-    const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed);
+    const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed, hasValidatedPP);
 
     res.json({
       success: true,
@@ -422,8 +472,39 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
         unvalidated_assignments: unvalidatedAssignments,
         has_unvalidated_assignments: hasUnvalidatedAssignments,
         is_blocked: progress.some(p => p.status === 'failed') || hasUnvalidatedAssignments,
+        pp_grades: store.getPPGradeForEmail(learner.email),
       },
     });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+// ============================================================
+// Projet Professionnel endpoints
+// ============================================================
+
+router.get('/pp/all', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const data = store.getProjetProfessionnelData();
+    if (!data) {
+      res.status(404).json({ error: 'Données du Projet Professionnel non trouvées' });
+      return;
+    }
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.get('/pp/stats', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const data = store.getProjetProfessionnelData();
+    if (!data) {
+      res.status(404).json({ error: 'Données du Projet Professionnel non trouvées' });
+      return;
+    }
+    res.json({ success: true, data: data.statistics });
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }

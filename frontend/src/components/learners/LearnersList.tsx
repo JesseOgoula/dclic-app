@@ -144,7 +144,19 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
   const handleExportCSV = () => {
     if (learners.length === 0) return;
-    const headers = ['Nom', 'Prénom', 'Email', 'Groupe', 'Statut', 'Complétion (%)', 'Activités complétées', 'Total activités', 'Jours inactif'];
+    const isMN = currentFormation === 'mn' || learners.some(l => l.pp_grades?.has_pp);
+    const headers = [
+      'Nom',
+      'Prénom',
+      'Email',
+      'Groupe',
+      'Statut',
+      'Complétion (%)',
+      'Activités complétées',
+      'Total activités',
+      'Jours inactif',
+      ...(isMN ? ['Note Projet Pro (/20)', 'Statut PP', 'PP1 Stratégie (/6)', 'PP2 Gestion Projet (/6)', 'PP3 Contenus (/4)', 'PP4 Indicateurs (/4)'] : []),
+    ];
     const rows = learners.map(l => [
       `"${l.last_name}"`,
       `"${l.first_name}"`,
@@ -155,6 +167,14 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
       l.completed_activities,
       l.total_activities,
       l.days_inactive > 900 ? 'Jamais' : l.days_inactive,
+      ...(isMN ? [
+        l.pp_grades?.has_pp ? l.pp_grades.total_score : '',
+        l.pp_grades?.has_pp ? l.pp_grades.status : '',
+        l.pp_grades?.has_pp ? l.pp_grades.pp1 : '',
+        l.pp_grades?.has_pp ? l.pp_grades.pp2 : '',
+        l.pp_grades?.has_pp ? l.pp_grades.pp3 : '',
+        l.pp_grades?.has_pp ? l.pp_grades.pp4 : '',
+      ] : []),
     ]);
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -170,11 +190,12 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
   const filterTabs = [
     { id: '', label: 'Tous', count: stats?.total },
+    { id: 'completed', label: 'Terminés', count: stats?.completed },
+    { id: 'completed_phase1', label: 'Phase 1', count: stats?.completed_phase1 },
     { id: 'active', label: 'Actifs', count: stats?.active },
     { id: 'inactive', label: 'Inactifs', count: stats?.inactive },
     { id: 'dropped', label: 'Décrochés', count: stats?.dropped },
     { id: 'blocked', label: 'Bloqués', count: stats?.blocked },
-    { id: 'completed', label: 'Terminés', count: stats?.completed },
   ];
 
   return (
@@ -329,6 +350,15 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                   </div>
                 </th>
                 <th
+                  onClick={() => toggleSort('pp_score')}
+                  className="py-3 px-6 text-center cursor-pointer hover:text-neutral-700 group transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span>Projet Pro</span>
+                    <SortIcon field="pp_score" />
+                  </div>
+                </th>
+                <th
                   onClick={() => toggleSort('days_inactive')}
                   className="py-3 px-6 text-center cursor-pointer hover:text-neutral-700 group transition-colors select-none"
                 >
@@ -337,7 +367,6 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                     <SortIcon field="days_inactive" />
                   </div>
                 </th>
-                <th className="py-3 px-6 text-right">Statut</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F1F5F9] text-xs">
@@ -392,7 +421,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                     {/* Progression bar */}
                     <td className="py-3.5 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-28 sm:w-36 bg-neutral-100 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-24 sm:w-28 bg-neutral-100 h-1.5 rounded-full overflow-hidden">
                           <div
                             className="bg-blue-600 h-full rounded-full transition-all duration-300"
                             style={{ width: `${Math.min(100, Math.max(learner.completion_rate, learner.completion_rate > 0 ? 4 : 0))}%` }}
@@ -402,6 +431,20 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                           {learner.completion_rate}%
                         </span>
                       </div>
+                    </td>
+
+                    {/* Projet Pro */}
+                    <td className="py-3.5 px-6 text-center">
+                      {learner.pp_grades?.has_pp ? (
+                        <span
+                          className="font-mono text-xs font-semibold text-neutral-900"
+                          title={`PP1: ${learner.pp_grades.pp1}/6 · PP2: ${learner.pp_grades.pp2}/6 · PP3: ${learner.pp_grades.pp3}/4 · PP4: ${learner.pp_grades.pp4}/4`}
+                        >
+                          {learner.pp_grades.total_score.toFixed(1)} <span className="text-[10px] text-neutral-400 font-normal">/ 20</span>
+                        </span>
+                      ) : (
+                        <span className="text-neutral-300 text-xs">—</span>
+                      )}
                     </td>
 
                     {/* Inactivité */}
@@ -414,11 +457,6 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                       )}>
                         {learner.days_inactive > 900 ? 'Jamais' : `${learner.days_inactive}j`}
                       </span>
-                    </td>
-
-                    {/* Statut */}
-                    <td className="py-3.5 px-6 text-right">
-                      {renderStatusBadge(learner.status, learner.is_blocked)}
                     </td>
                   </tr>
                 ))

@@ -9,7 +9,6 @@ import {
   Clock,
   ChevronDown,
   ChevronRight,
-  Award,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer } from 'recharts';
@@ -277,42 +276,6 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
             <h3 className="text-sm font-semibold text-neutral-900">Synthèse apprenant</h3>
 
             <div>
-              <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">Statut</p>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {learner.status === 'active' && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
-                    Actif
-                  </span>
-                )}
-                {learner.status === 'inactive' && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200/60">
-                    Inactif
-                  </span>
-                )}
-                {learner.status === 'dropped' && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/60">
-                    Décroché
-                  </span>
-                )}
-                {learner.status === 'completed_phase1' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
-                    <CheckCircle2 size={11} /> Phase 1 terminée
-                  </span>
-                )}
-                {learner.status === 'completed' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                    <Award size={11} /> Terminé (100%)
-                  </span>
-                )}
-                {learner.is_blocked && learner.status !== 'dropped' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-700 border border-red-200/60">
-                    <AlertTriangle size={11} /> Bloqué
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div>
               <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 <span>Progression globale</span>
                 <span className="text-neutral-900 font-bold text-xs">{learner.completion_rate}%</span>
@@ -340,6 +303,59 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
               </div>
             )}
           </div>
+
+          {/* Projet Professionnel Card */}
+          {learner.pp_grades?.has_pp && (
+            <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 shadow-none space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-neutral-900">Projet Professionnel</h3>
+                  <p className="text-[10px] text-neutral-400">Évaluation finale</p>
+                </div>
+
+                <span
+                  className={cn(
+                    'text-[10px] font-medium px-2 py-0.5 rounded-md border',
+                    learner.pp_grades.validated
+                      ? 'bg-neutral-50 text-neutral-800 border-neutral-200'
+                      : 'bg-red-50 text-red-700 border-red-200/60'
+                  )}
+                >
+                  {learner.pp_grades.status}
+                </span>
+              </div>
+
+              <div className="p-3 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl flex items-baseline justify-between">
+                <span className="text-xs font-medium text-neutral-600">Note Globale</span>
+                <div>
+                  <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                    {learner.pp_grades.total_score.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-neutral-400 font-medium ml-1">/ 20</span>
+                </div>
+              </div>
+
+              {/* 4 Deliverables */}
+              <div className="space-y-2 pt-1 border-t border-[#F1F5F9]">
+                <div className="flex items-center justify-between text-xs py-1">
+                  <span className="text-neutral-600">PP1 · Stratégie Marketing</span>
+                  <span className="font-mono font-semibold text-neutral-900">{learner.pp_grades.pp1} / 6</span>
+                </div>
+                <div className="flex items-center justify-between text-xs py-1">
+                  <span className="text-neutral-600">PP2 · Gestion de Projets</span>
+                  <span className="font-mono font-semibold text-neutral-900">{learner.pp_grades.pp2} / 6</span>
+                </div>
+                <div className="flex items-center justify-between text-xs py-1">
+                  <span className="text-neutral-600">PP3 · Production de Contenus</span>
+                  <span className="font-mono font-semibold text-neutral-900">{learner.pp_grades.pp3} / 4</span>
+                </div>
+                <div className="flex items-center justify-between text-xs py-1">
+                  <span className="text-neutral-600">PP4 · Tableau de Bord</span>
+                  <span className="font-mono font-semibold text-neutral-900">{learner.pp_grades.pp4} / 4</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column (8 cols): Activity Chart & Parcours */}

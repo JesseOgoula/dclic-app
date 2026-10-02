@@ -1,6 +1,6 @@
 // ============================================================
-// Upload Processing Service (Supabase Async Version)
-// Orchestrates CSV/Excel parsing → data store ingestion
+// Upload Processing Service (Supabase High-Performance Async Version)
+// Orchestrates CSV/Excel/MD parsing → batch data store ingestion
 // ============================================================
 
 import path from 'path';
@@ -8,38 +8,37 @@ import fs from 'fs';
 import {
   parseProgressCSV,
   parseParticipantsXLSX,
-  filterByGroup,
   extractActivityMetadata,
 } from './parser/moodleParser.js';
 import { parseParticipantsMD, parseRelativeTime } from './parser/mdParser.js';
 import { store, supabase } from './store.js';
-import type { UploadResult } from '../types.js';
+import type { UploadResult, Learner, Activity, LearnerProgress } from '../types.js';
 
 const TARGET_GROUPS = ['G1_MN_072026', 'G1_GPM_092026'];
 
 /**
- * Helper to resolve formation if not provided:
- * 1. Checks explicit targetFormation
- * 2. Checks filename markers
- * 3. Checks distinctive activity names (excluding false positives like Gantt)
+ * Helper to resolve formation accurately:
+ * 1. Checks filename markers (Strongest signal: a file named progress.mn... is always MN)
+ * 2. Checks distinctive activity names
+ * 3. Falls back to targetFormation from UI if provided
+ * 4. Default fallback: 'mn'
  */
 function resolveFormation(
   targetFormation?: 'mn' | 'gp',
   filename?: string,
   activityNames?: string[]
 ): 'mn' | 'gp' {
-  if (targetFormation === 'gp' || targetFormation === 'mn') {
-    return targetFormation;
-  }
-
   const lowerName = (filename || '').toLowerCase();
-  if (lowerName.includes('gpm') || lowerName.includes('gp_2026') || lowerName.includes('gp_') || lowerName.includes('gestion')) {
+
+  // 1. Strong filename signals take priority over UI dropdown selection
+  if (lowerName.includes('gpm') || lowerName.includes('gp_2026') || lowerName.includes('gp_') || lowerName.includes('gestion') || lowerName.includes('projet')) {
     return 'gp';
   }
-  if (lowerName.includes('mn_') || lowerName.includes('marketing') || lowerName.includes('courseid')) {
+  if (lowerName.includes('mn_') || lowerName.includes('mn.') || lowerName.includes('courseidmn') || lowerName.includes('marketing')) {
     return 'mn';
   }
 
+  // 2. Activity content markers
   if (activityNames && activityNames.length > 0) {
     const isGP = activityNames.some(n =>
       n.includes('posture stratégique') ||
@@ -56,16 +55,22 @@ function resolveFormation(
       n.startsWith('M1B.') ||
       n.startsWith('M2A.') ||
       n.startsWith('M3A.') ||
+      n.startsWith('M4A.') ||
       n.includes('marketing numérique')
     );
     if (isMN) return 'mn';
+  }
+
+  // 3. Fallback to user UI selection if provided
+  if (targetFormation === 'gp' || targetFormation === 'mn') {
+    return targetFormation;
   }
 
   return 'mn'; // Default fallback
 }
 
 /**
- * Process an uploaded file — determines type and ingests data.
+ * Process an uploaded file — determines type and ingests data with high throughput.
  */
 export async function processUpload(
   filePath: string,
@@ -82,13 +87,13 @@ export async function processUpload(
   const upload = await store.addUpload(filename, fileTypeMap[ext] || 'csv');
 
   try {
-    // Attempt to upload original file to Supabase Storage as a backup/audit (non-blocking if bucket unconfigured)
+    // Non-blocking upload to Supabase storage
     try {
       const fileContent = fs.readFileSync(filePath);
       const storagePath = `${Date.now()}_${filename}`;
       await supabase.storage.from('uploads').upload(storagePath, fileContent);
     } catch (storageErr) {
-      console.warn('Storage upload skipped or failed (non-critical):', storageErr);
+      // Storage backup failure is non-fatal
     }
 
     let result: UploadResult;
@@ -114,10 +119,11 @@ export async function processUpload(
 
     return result;
   } catch (error) {
+    console.error('[UploadService] Error:', error);
     await store.updateUpload(upload.id, { status: 'error' });
     throw error;
   } finally {
-    // Clean up the temporary local file
+    // Clean up local temp file
     if (fs.existsSync(filePath) && filePath.includes('uploads')) {
       try {
         fs.unlinkSync(filePath);
@@ -129,7 +135,7 @@ export async function processUpload(
 }
 
 /**
- * Process the Moodle progress CSV.
+ * High-performance batch processing for Moodle progress CSV.
  */
 async function processProgressCSV(
   filePath: string,
@@ -152,15 +158,54 @@ async function processProgressCSV(
     };
   }
 
-  // Detect formation accurately
+  // 1. Detect formation accurately
   const rawActivityNames = rows[0].activities.map(a => a.name);
   const detectedFormation = resolveFormation(targetFormation, originalFilename || filePath, rawActivityNames);
   const targetGroup = detectedFormation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
 
-  // Register activities with explicit detectedFormation
+  // 2. Fetch existing activities and safely insert/update
+  const existingActivities = await store.getActivities(detectedFormation, true);
+  const existingByName = new Map(existingActivities.map(a => [a.name, a]));
+  const existingByCode = new Map(existingActivities.map(a => [a.code, a]));
+
   const activityMeta = extractActivityMetadata(rawActivityNames, detectedFormation);
+  const activitiesToInsert: any[] = [];
+  const activitiesToUpdate: any[] = [];
+
   for (const meta of activityMeta) {
-    await store.upsertActivity(meta);
+    const existing = existingByName.get(meta.name) || existingByCode.get(meta.code);
+    if (!existing) {
+      activitiesToInsert.push({
+        ...meta,
+        formation_type: detectedFormation,
+      });
+    } else {
+      activitiesToUpdate.push({
+        id: existing.id,
+        ...meta,
+        formation_type: detectedFormation,
+      });
+    }
+  }
+
+  if (activitiesToInsert.length > 0) {
+    for (let i = 0; i < activitiesToInsert.length; i += 50) {
+      const chunk = activitiesToInsert.slice(i, i + 50);
+      const { error: actInsErr } = await supabase.from('activities').insert(chunk);
+      if (actInsErr) {
+        console.warn('[Upload] Activity insert warning:', actInsErr.message);
+      }
+    }
+  }
+
+  if (activitiesToUpdate.length > 0) {
+    for (let i = 0; i < activitiesToUpdate.length; i += 50) {
+      const chunk = activitiesToUpdate.slice(i, i + 50);
+      const { error: actUpErr } = await supabase.from('activities').upsert(chunk, { onConflict: 'id' });
+      if (actUpErr) {
+        console.warn('[Upload] Activity update warning:', actUpErr.message);
+      }
+    }
   }
 
   let learnersCreated = 0;
@@ -168,114 +213,179 @@ async function processProgressCSV(
   let progressRecords = 0;
   const errors: string[] = [];
 
-  const allLearners = await store.getLearners(detectedFormation);
-  const allActivities = await store.getActivities(detectedFormation);
-  const allProgress = await store.getAllProgress();
-  const toInsert: any[] = [];
-  const toUpdate: any[] = [];
+  // 3. Load existing learners for this formation
+  const allLearners = await store.getLearners(detectedFormation, true);
+  const learnerMap = new Map<string, Learner>(
+    allLearners.map(l => [l.email.trim().toLowerCase(), l])
+  );
 
   const targetEmails = new Set(
     allLearners
       .filter(l => l.group_id === targetGroup)
-      .map(l => l.email)
+      .map(l => l.email.trim().toLowerCase())
   );
 
   if (targetEmails.size === 0) {
-    errors.push(`Information : La liste des participants n'a pas encore été importée pour cette cohorte (${targetGroup}). L'application va charger les apprenants du fichier CSV.`);
+    errors.push(`Information : La liste des participants n'a pas encore été importée pour cette cohorte (${targetGroup}). L'application charge les apprenants directement depuis le fichier CSV.`);
   }
+
+  // 4. Batch prepare learners to upsert
+  const learnersToUpsert: any[] = [];
+  const rowsToProcess: typeof rows = [];
 
   for (const row of rows) {
-    try {
-      if (targetEmails.size > 0 && !targetEmails.has(row.email)) {
-        continue;
+    const emailNorm = row.email.trim().toLowerCase();
+    if (!emailNorm || !emailNorm.includes('@')) continue;
+
+    if (targetEmails.size > 0 && !targetEmails.has(emailNorm)) {
+      continue;
+    }
+    rowsToProcess.push(row);
+
+    const nameParts = row.name.trim().split(/\s+/);
+    const firstName = nameParts.slice(0, -1).join(' ') || nameParts[0] || 'Apprenant';
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+    const timestamps = row.activities
+      .filter(a => a.completed_at)
+      .map(a => new Date(a.completed_at!).getTime())
+      .filter(t => !isNaN(t));
+    const lastActivity = timestamps.length > 0
+      ? new Date(Math.max(...timestamps)).toISOString()
+      : null;
+
+    const existing = learnerMap.get(emailNorm);
+    const learnerObj = {
+      ...(existing?.id ? { id: existing.id } : {}),
+      first_name: existing?.first_name || firstName,
+      last_name: existing?.last_name || lastName,
+      email: emailNorm,
+      group_id: existing?.group_id && existing.group_id !== 'UNKNOWN' ? existing.group_id : targetGroup,
+      last_activity_at: lastActivity || existing?.last_activity_at || null,
+      status: existing?.status || 'active',
+    };
+
+    learnersToUpsert.push(learnerObj);
+    if (existing) learnersUpdated++;
+    else learnersCreated++;
+  }
+
+  // 5. Batch upsert learners into Supabase
+  for (let i = 0; i < learnersToUpsert.length; i += 50) {
+    const chunk = learnersToUpsert.slice(i, i + 50);
+    const { error: lErr } = await supabase.from('learners').upsert(chunk, { onConflict: 'email' });
+    if (lErr) {
+      errors.push(`Erreur enregistrement apprenants: ${lErr.message}`);
+    }
+  }
+
+  // 6. Refresh learners & activities to map IDs
+  const refreshedLearners = await store.getLearners(detectedFormation, true);
+  const refreshedLearnerMap = new Map<string, Learner>(
+    refreshedLearners.map(l => [l.email.trim().toLowerCase(), l])
+  );
+
+  const allActivities = await store.getActivities(detectedFormation, true);
+  const activityByName = new Map<string, Activity>(allActivities.map(a => [a.name, a]));
+  const activityByCode = new Map<string, Activity>(allActivities.map(a => [a.code, a]));
+
+  // 7. Load all existing progress records into memory map
+  const allExistingProgress = await store.getAllProgress(true);
+  const existingProgressMap = new Map<string, LearnerProgress>();
+  for (const p of allExistingProgress) {
+    existingProgressMap.set(`${p.learner_id}:${p.activity_id}`, p);
+  }
+
+  // 8. Build progress lists: toInsert and toUpdate
+  const toInsertProgress: any[] = [];
+  const toUpdateProgress: any[] = [];
+  let totalMatchedProgress = 0;
+
+  for (const row of rowsToProcess) {
+    const emailNorm = row.email.trim().toLowerCase();
+    const learner = refreshedLearnerMap.get(emailNorm);
+    if (!learner) continue;
+
+    for (const act of row.activities) {
+      const meta = activityMeta.find(m => m.name === act.name);
+      const activity = activityByName.get(act.name) || (meta ? activityByCode.get(meta.code) : undefined);
+      if (!activity) continue;
+
+      totalMatchedProgress++;
+      const status = act.status as 'completed' | 'not_completed' | 'passed';
+      const key = `${learner.id}:${activity.id}`;
+      const existing = existingProgressMap.get(key);
+
+      if (!existing) {
+        toInsertProgress.push({
+          learner_id: learner.id,
+          activity_id: activity.id,
+          status,
+          completed_at: act.completed_at || null,
+          grade: null,
+          upload_id: uploadId,
+        });
+      } else if (existing.status !== status || existing.completed_at !== act.completed_at) {
+        toUpdateProgress.push({
+          id: existing.id,
+          learner_id: learner.id,
+          activity_id: activity.id,
+          status,
+          completed_at: act.completed_at || null,
+          grade: existing.grade,
+          upload_id: uploadId,
+        });
       }
+    }
+  }
 
-      const nameParts = row.name.split(/\s+/);
-      const firstName = nameParts.slice(0, -1).join(' ');
-      const lastName = nameParts[nameParts.length - 1] || '';
+  // 9. Batch insert/update progress records with parallel chunk execution
+  const chunkSize = 500;
+  const BATCH_CONCURRENCY = 4;
 
-      const timestamps = row.activities
-        .filter(a => a.completed_at)
-        .map(a => new Date(a.completed_at!).getTime())
-        .filter(t => !isNaN(t));
-      const lastActivity = timestamps.length > 0
-        ? new Date(Math.max(...timestamps)).toISOString()
-        : null;
-
-      const existingLearner = await store.getLearnerByEmail(row.email);
-      const learner = await store.upsertLearner({
-        first_name: existingLearner?.first_name || firstName,
-        last_name: existingLearner?.last_name || lastName,
-        email: row.email,
-        group_id: existingLearner?.group_id && existingLearner.group_id !== 'UNKNOWN' ? existingLearner.group_id : targetGroup,
-        last_activity_at: lastActivity,
-      });
-
-      if (existingLearner) learnersUpdated++;
-      else learnersCreated++;
-
-      for (const act of row.activities) {
-        const meta = activityMeta.find(m => m.name === act.name);
-        const activity = allActivities.find(a => a.name === act.name) ||
-                         (meta ? allActivities.find(a => a.code === meta.code) : undefined);
-        if (!activity) continue;
-
-        const status = act.status as 'completed' | 'not_completed' | 'passed';
-        const existingProgress = allProgress.find(p => p.learner_id === learner.id && p.activity_id === activity.id);
-
-        if (!existingProgress) {
-          toInsert.push({
-            learner_id: learner.id,
-            activity_id: activity.id,
-            status,
-            completed_at: act.completed_at,
-            grade: null,
-            upload_id: uploadId,
-          });
-          allProgress.push({
-            id: `temp-${Date.now()}-${Math.random()}`,
-            learner_id: learner.id,
-            activity_id: activity.id,
-            status,
-            completed_at: act.completed_at || null,
-            grade: null,
-            upload_id: uploadId,
-            created_at: new Date().toISOString(),
-          } as any);
-        } else if (existingProgress.status !== status || existingProgress.completed_at !== act.completed_at) {
-          toUpdate.push({
-            ...existingProgress,
-            status,
-            completed_at: act.completed_at,
-            upload_id: uploadId,
-          });
+  if (toInsertProgress.length > 0) {
+    const insertChunks: any[][] = [];
+    for (let i = 0; i < toInsertProgress.length; i += chunkSize) {
+      insertChunks.push(toInsertProgress.slice(i, i + chunkSize));
+    }
+    for (let i = 0; i < insertChunks.length; i += BATCH_CONCURRENCY) {
+      const batch = insertChunks.slice(i, i + BATCH_CONCURRENCY);
+      const results = await Promise.all(batch.map(c => supabase.from('progress').insert(c)));
+      for (const res of results) {
+        if (res.error) {
+          console.error('[Upload] Progress insert error:', res.error.message);
+          errors.push(`Erreur insertion progression: ${res.error.message}`);
         }
       }
-    } catch (err) {
-      errors.push(`Error processing row for ${row.email}: ${err}`);
     }
   }
 
-  if (toInsert.length > 0) {
-    const chunkSize = 500;
-    for (let i = 0; i < toInsert.length; i += chunkSize) {
-      await supabase.from('progress').insert(toInsert.slice(i, i + chunkSize));
+  if (toUpdateProgress.length > 0) {
+    const updateChunks: any[][] = [];
+    for (let i = 0; i < toUpdateProgress.length; i += chunkSize) {
+      updateChunks.push(toUpdateProgress.slice(i, i + chunkSize));
     }
-    progressRecords += toInsert.length;
+    for (let i = 0; i < updateChunks.length; i += BATCH_CONCURRENCY) {
+      const batch = updateChunks.slice(i, i + BATCH_CONCURRENCY);
+      const results = await Promise.all(batch.map(c => supabase.from('progress').upsert(c, { onConflict: 'id' })));
+      for (const res of results) {
+        if (res.error) {
+          console.error('[Upload] Progress update error:', res.error.message);
+          errors.push(`Erreur mise à jour progression: ${res.error.message}`);
+        }
+      }
+    }
   }
 
-  if (toUpdate.length > 0) {
-    const chunkSize = 500;
-    for (let i = 0; i < toUpdate.length; i += chunkSize) {
-      await supabase.from('progress').upsert(toUpdate.slice(i, i + chunkSize), { onConflict: 'id' });
-    }
-    progressRecords += toUpdate.length;
-  }
+  progressRecords = (toInsertProgress.length + toUpdateProgress.length) || totalMatchedProgress;
+
+  // 10. Invalidate cache for instantaneous subsequent page loads
+  store.invalidateCache(detectedFormation);
 
   return {
     upload_id: uploadId,
     filename: originalFilename || path.basename(filePath),
-    rows_processed: rows.length,
+    rows_processed: rowsToProcess.length,
     learners_created: learnersCreated,
     learners_updated: learnersUpdated,
     progress_records: progressRecords,
@@ -285,7 +395,7 @@ async function processProgressCSV(
 }
 
 /**
- * Process the participants XLSX
+ * Fast batch processing for participants XLSX.
  */
 async function processParticipantsXLSX(
   filePath: string,
@@ -308,23 +418,38 @@ async function processParticipantsXLSX(
   let learnersUpdated = 0;
   const errors: string[] = [];
 
-  for (const p of g1Participants) {
-    try {
-      const existing = await store.getLearnerByEmail(p.email);
-      const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
-      await store.upsertLearner({
-        first_name: p.first_name,
-        last_name: p.last_name,
-        email: p.email,
-        group_id: groupToAssign,
-        last_activity_at: null,
-      });
-      if (existing) learnersUpdated++;
-      else learnersCreated++;
-    } catch (err) {
-      errors.push(`Error processing participant ${p.email}: ${err}`);
+  const existingLearners = await store.getLearners(detectedFormation, true);
+  const existingMap = new Map(existingLearners.map(l => [l.email.trim().toLowerCase(), l]));
+
+  const learnersToUpsert = g1Participants.map(p => {
+    const emailNorm = p.email.trim().toLowerCase();
+    const existing = existingMap.get(emailNorm);
+    const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
+    if (existing) learnersUpdated++;
+    else learnersCreated++;
+
+    return {
+      ...(existing?.id ? { id: existing.id } : {}),
+      first_name: p.first_name,
+      last_name: p.last_name,
+      email: emailNorm,
+      group_id: groupToAssign,
+      last_activity_at: existing?.last_activity_at || null,
+      status: existing?.status || 'active',
+    };
+  });
+
+  for (let i = 0; i < learnersToUpsert.length; i += 50) {
+    const chunk = learnersToUpsert.slice(i, i + 50);
+    const { error: upsertErr } = await supabase
+      .from('learners')
+      .upsert(chunk, { onConflict: 'email' });
+    if (upsertErr) {
+      errors.push(`Erreur enregistrement apprenants: ${upsertErr.message}`);
     }
   }
+
+  store.invalidateCache(detectedFormation);
 
   return {
     upload_id: uploadId,
@@ -339,7 +464,7 @@ async function processParticipantsXLSX(
 }
 
 /**
- * Process the participants MD
+ * Fast batch processing for participants MD.
  */
 async function processParticipantsMD(
   filePath: string,
@@ -362,23 +487,38 @@ async function processParticipantsMD(
   let learnersUpdated = 0;
   const errors: string[] = [];
 
-  for (const p of g1Participants) {
-    try {
-      const existing = await store.getLearnerByEmail(p.email);
-      const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
-      await store.upsertLearner({
-        first_name: p.first_name,
-        last_name: p.last_name,
-        email: p.email,
-        group_id: groupToAssign,
-        last_activity_at: p.last_access ? parseRelativeTime(p.last_access) : null,
-      });
-      if (existing) learnersUpdated++;
-      else learnersCreated++;
-    } catch (err) {
-      errors.push(`Error processing participant ${p.email}: ${err}`);
+  const existingLearners = await store.getLearners(detectedFormation, true);
+  const existingMap = new Map(existingLearners.map(l => [l.email.trim().toLowerCase(), l]));
+
+  const learnersToUpsert = g1Participants.map(p => {
+    const emailNorm = p.email.trim().toLowerCase();
+    const existing = existingMap.get(emailNorm);
+    const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
+    if (existing) learnersUpdated++;
+    else learnersCreated++;
+
+    return {
+      ...(existing?.id ? { id: existing.id } : {}),
+      first_name: p.first_name,
+      last_name: p.last_name,
+      email: emailNorm,
+      group_id: groupToAssign,
+      last_activity_at: p.last_access ? parseRelativeTime(p.last_access) : (existing?.last_activity_at || null),
+      status: existing?.status || 'active',
+    };
+  });
+
+  for (let i = 0; i < learnersToUpsert.length; i += 50) {
+    const chunk = learnersToUpsert.slice(i, i + 50);
+    const { error: upsertErr } = await supabase
+      .from('learners')
+      .upsert(chunk, { onConflict: 'email' });
+    if (upsertErr) {
+      errors.push(`Erreur enregistrement apprenants: ${upsertErr.message}`);
     }
   }
+
+  store.invalidateCache(detectedFormation);
 
   return {
     upload_id: uploadId,

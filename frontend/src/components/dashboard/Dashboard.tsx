@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   Users,
-  CheckCircle2,
   AlertTriangle,
   TrendingUp,
   Calendar,
@@ -265,6 +264,220 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
           </div>
         </div>
       </div>
+
+      {/* Projet Professionnel Section (Formation Initiale) */}
+      {stats.pp_stats && (
+        <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 space-y-5">
+          {/* Card Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F1F5F9]">
+            <div>
+              <h3 className="text-sm font-bold text-neutral-900">Projet Professionnel (Session Initiale)</h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Bilan consolidé des 4 livrables (Stratégie, Gantt & Budget, Contenus, Tableau de bord) · Seuil de validation : 10 / 20
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onNavigate?.('learners')}
+                className="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer flex items-center gap-1"
+              >
+                <span>Consulter les notes par apprenant</span>
+                <ArrowUpRight size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Top 4 KPI mini blocks */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9]">
+              <div className="text-[11px] font-medium text-neutral-500">Taux de validation</div>
+              <div className="flex items-baseline gap-1.5 mt-1.5">
+                <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                  {stats.pp_stats.validation_rate}%
+                </span>
+                <span className="text-xs font-semibold text-neutral-700">
+                  {stats.pp_stats.validated_count}/{stats.pp_stats.total_submitted}
+                </span>
+              </div>
+              <div className="text-[11px] text-neutral-400 mt-1">
+                {stats.pp_stats.failed_count} ajourné (&lt; 10/20)
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9]">
+              <div className="text-[11px] font-medium text-neutral-500">Moyenne promotion</div>
+              <div className="flex items-baseline gap-1.5 mt-1.5">
+                <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                  {stats.pp_stats.average_total}
+                </span>
+                <span className="text-xs text-neutral-400">/ 20</span>
+              </div>
+              <div className="text-[11px] text-neutral-400 mt-1">
+                Min : {stats.pp_stats.distribution.min} · Max : {stats.pp_stats.distribution.max}
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9]">
+              <div className="text-[11px] font-medium text-neutral-500">Mentions Très bien & Bien</div>
+              <div className="flex items-baseline gap-1.5 mt-1.5">
+                <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                  {stats.pp_stats.distribution.tier_16_to_20_tres_bien + stats.pp_stats.distribution.tier_14_to_15_9_bien}
+                </span>
+                <span className="text-xs text-neutral-500">
+                  ({Math.round(((stats.pp_stats.distribution.tier_16_to_20_tres_bien + stats.pp_stats.distribution.tier_14_to_15_9_bien) / stats.pp_stats.total_submitted) * 100)}%)
+                </span>
+              </div>
+              <div className="text-[11px] text-neutral-400 mt-1">
+                Notes supérieures ou égales à 14/20
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9]">
+              <div className="text-[11px] font-medium text-neutral-500">Effectif noté</div>
+              <div className="flex items-baseline gap-1.5 mt-1.5">
+                <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                  {stats.pp_stats.total_submitted}
+                </span>
+                <span className="text-xs text-neutral-400">évaluations</span>
+              </div>
+              <div className="text-[11px] text-neutral-400 mt-1">
+                100% des livrables corrigés
+              </div>
+            </div>
+          </div>
+
+          {/* 2 Sub-blocks: Deliverable Averages & Tier Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-1">
+            {/* Deliverable details */}
+            <div className="space-y-3 p-4 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/40">
+              <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                Moyennes par Livrable
+              </h4>
+              <div className="space-y-2.5">
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-neutral-700 font-medium">PP1 · Stratégie Marketing</span>
+                    <span className="font-mono font-semibold text-neutral-900">
+                      {stats.pp_stats.averages.pp1_strategie_marketing_sur_6} / 6
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-neutral-200/70 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full"
+                      style={{ width: `${(stats.pp_stats.averages.pp1_strategie_marketing_sur_6 / 6) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-neutral-700 font-medium">PP2 · Gestion de Projets (Gantt & Budget)</span>
+                    <span className="font-mono font-semibold text-neutral-900">
+                      {stats.pp_stats.averages.pp2_gestion_projets_sur_6} / 6
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-neutral-200/70 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full"
+                      style={{ width: `${(stats.pp_stats.averages.pp2_gestion_projets_sur_6 / 6) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-neutral-700 font-medium">PP3 · Production de Contenus</span>
+                    <span className="font-mono font-semibold text-neutral-900">
+                      {stats.pp_stats.averages.pp3_production_contenus_sur_4} / 4
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-neutral-200/70 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full"
+                      style={{ width: `${(stats.pp_stats.averages.pp3_production_contenus_sur_4 / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-neutral-700 font-medium">PP4 · Tableau de Bord des Indicateurs</span>
+                    <span className="font-mono font-semibold text-neutral-900">
+                      {stats.pp_stats.averages.pp4_tableau_bord_sur_4} / 4
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-neutral-200/70 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full"
+                      style={{ width: `${(stats.pp_stats.averages.pp4_tableau_bord_sur_4 / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tier distribution */}
+            <div className="space-y-3 p-4 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/40">
+              <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                Distribution des Mentions
+              </h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#F1F5F9]">
+                  <span className="flex items-center gap-2 text-neutral-700">
+                    <span className="w-2 h-2 rounded-full bg-neutral-800" />
+                    Très bien (16 à 20/20)
+                  </span>
+                  <span className="font-mono font-semibold text-neutral-900">
+                    {stats.pp_stats.distribution.tier_16_to_20_tres_bien} apprenant{stats.pp_stats.distribution.tier_16_to_20_tres_bien > 1 ? 's' : ''} ({Math.round((stats.pp_stats.distribution.tier_16_to_20_tres_bien / stats.pp_stats.total_submitted) * 100)}%)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#F1F5F9]">
+                  <span className="flex items-center gap-2 text-neutral-700">
+                    <span className="w-2 h-2 rounded-full bg-neutral-600" />
+                    Bien (14 à 15.9/20)
+                  </span>
+                  <span className="font-mono font-semibold text-neutral-900">
+                    {stats.pp_stats.distribution.tier_14_to_15_9_bien} apprenant{stats.pp_stats.distribution.tier_14_to_15_9_bien > 1 ? 's' : ''} ({Math.round((stats.pp_stats.distribution.tier_14_to_15_9_bien / stats.pp_stats.total_submitted) * 100)}%)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#F1F5F9]">
+                  <span className="flex items-center gap-2 text-neutral-700">
+                    <span className="w-2 h-2 rounded-full bg-neutral-500" />
+                    Assez bien (12 à 13.9/20)
+                  </span>
+                  <span className="font-mono font-semibold text-neutral-900">
+                    {stats.pp_stats.distribution.tier_12_to_13_9_assez_bien} apprenant{stats.pp_stats.distribution.tier_12_to_13_9_assez_bien > 1 ? 's' : ''} ({Math.round((stats.pp_stats.distribution.tier_12_to_13_9_assez_bien / stats.pp_stats.total_submitted) * 100)}%)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#F1F5F9]">
+                  <span className="flex items-center gap-2 text-neutral-700">
+                    <span className="w-2 h-2 rounded-full bg-neutral-400" />
+                    Passable (10 à 11.9/20)
+                  </span>
+                  <span className="font-mono font-semibold text-neutral-900">
+                    {stats.pp_stats.distribution.tier_10_to_11_9_passable} apprenant{stats.pp_stats.distribution.tier_10_to_11_9_passable > 1 ? 's' : ''} ({Math.round((stats.pp_stats.distribution.tier_10_to_11_9_passable / stats.pp_stats.total_submitted) * 100)}%)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#F1F5F9]">
+                  <span className="flex items-center gap-2 text-neutral-700">
+                    <span className="w-2 h-2 rounded-full bg-neutral-300" />
+                    Ajourné (&lt; 10/20)
+                  </span>
+                  <span className="font-mono font-semibold text-neutral-900">
+                    {stats.pp_stats.distribution.tier_below_10_ajourne} apprenant ({Math.round((stats.pp_stats.distribution.tier_below_10_ajourne / stats.pp_stats.total_submitted) * 100)}%)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 3. Main Dashboard Grid (2 Columns: Left Chart & Tables, Right Actions & Meters) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

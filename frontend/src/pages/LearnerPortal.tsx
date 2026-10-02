@@ -7,10 +7,11 @@ import {
   ChevronDown,
   ChevronRight,
   Mail,
-  Award,
   LogOut,
-  UserCheck
+  UserCheck,
+  X,
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { api, type LearnerPortalData, type FormationType } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,79 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-export const LearnerPortal: React.FC = () => {
+export type LearnerOutcomeTier =
+  | 'validated'
+  | 'phase1_no_pp'
+  | 'phase1_failed_pp'
+  | 'incomplete';
+
+export function getLearnerOutcome(data: LearnerPortalData): LearnerOutcomeTier {
+  if (data.formation === 'gp') {
+    if (data.learner.status === 'completed' || (!data.has_unvalidated_assignments && data.completion_rate >= 100)) {
+      return 'validated';
+    }
+    return 'incomplete';
+  }
+
+  // Formation Initiale
+  if (data.pp_grades && data.pp_grades.validated) {
+    return 'validated';
+  }
+
+  const isPhase1Done = Boolean(
+    data.learner.status === 'completed' ||
+    data.learner.status === 'completed_phase1' ||
+    data.completed_activities >= 72 ||
+    (!data.has_unvalidated_assignments && data.completion_rate >= 90)
+  );
+
+  if (isPhase1Done) {
+    if (data.pp_grades?.has_pp) {
+      return 'phase1_failed_pp';
+    }
+    return 'phase1_no_pp';
+  }
+
+  return 'incomplete';
+}
+
+export function getOutcomeModalContent(tier: LearnerOutcomeTier, data: LearnerPortalData) {
+  const firstName = data.learner.first_name;
+
+  switch (tier) {
+    case 'phase1_no_pp':
+      return {
+        badge: 'Séquences 1 à 5 validées · Projet Professionnel non remis',
+        title: 'Parcours des 5 séquences validé · Projet Pro non remis',
+        bodyIntro: `Félicitations ${firstName} pour votre engagement et votre rigueur ! Vous avez suivi et validé avec succès l'intégralité des 5 séquences pédagogiques de la formation initiale en Marketing Numérique. Vos résultats démontrent un travail assidu tout au long du parcours.`,
+        bodyReason: `Cependant, l'obtention de la certification finale D-CLIC est conditionnée par la remise et l'évaluation terminale des 4 livrables du Projet Professionnel (Stratégie, Gantt & Budget, Contenus, Tableau de bord). Aucun livrable de Projet Professionnel n'ayant été enregistré lors de cette session, votre formation ne peut malheureusement pas être certifiée pour cette promotion.`,
+        bodyNextSession: `Ne vous arrêtez pas en si bon chemin ! Vos acquis sur l'ensemble des 5 séquences sont d'ores et déjà validés. Nous vous invitons chaleureusement à vous inscrire pour la prochaine session afin de soumettre vos livrables de Projet Professionnel et décrocher définitivement votre certification D-CLIC.`,
+      };
+
+    case 'phase1_failed_pp':
+      return {
+        badge: 'Séquences 1 à 5 validées · Projet Professionnel ajourné',
+        title: 'Parcours des séquences validé · Seuil non atteint au Projet Pro',
+        bodyIntro: `Félicitations ${firstName} pour votre investissement ! Vous avez validé l'ensemble des 5 séquences de formation et vous avez conduit votre travail jusqu'à la remise complète des livrables du Projet Professionnel.`,
+        bodyReason: `Après correction et évaluation collégiale de vos livrables (Stratégie, Gantt & Budget, Contenus, Tableau de bord), la note globale obtenue n'atteint malheureusement pas le seuil minimum de validation de 10/20 exigé pour la certification D-CLIC lors de cette session.`,
+        bodyNextSession: `Ne baissez surtout pas les bras ! L'essentiel des compétences a été assimilé. Nous vous encourageons vivement à vous réinscrire lors de la prochaine session pour ajuster vos livrables, intégrer les retours pédagogiques et obtenir votre certification D-CLIC avec succès.`,
+      };
+
+    case 'incomplete':
+    default:
+      return {
+        badge: 'Session terminée · Parcours non finalisé',
+        title: 'Bilan de fin de formation',
+        bodyIntro: `Bonjour ${firstName}, vous avez participé à la formation en Marketing Numérique. Votre parcours enregistre une progression de ${data.completion_rate}%, avec ${data.completed_activities} activité(s) validée(s) sur un total de ${data.total_activities}.`,
+        bodyReason: `L'ensemble des activités obligatoires et des évaluations des séquences n'ayant pas été validé avec succès, vous n'avez malheureusement pas terminé la formation avec succès pour cette promotion et ne pouvez prétendre à la certification sur cette session.`,
+        bodyNextSession: `Chaque étape d'apprentissage est constructive. Nous vous invitons chaleureusement à vous inscrire pour la prochaine session de formation. Vous pourrez reprendre votre parcours avec un nouvel élan, consolider vos acquis et franchir toutes les étapes jusqu'à la certification.`,
+      };
+  }
+}
+
+export interface LearnerPortalProps {}
+
+export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
   const [formation, setFormation] = useState<FormationType>(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const f = urlParams.get('formation');
@@ -31,6 +104,7 @@ export const LearnerPortal: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [portalData, setPortalData] = useState<LearnerPortalData | null>(null);
   const [openSequences, setOpenSequences] = useState<Record<string, boolean>>({});
+  const [showOutcomeModal, setShowOutcomeModal] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,10 +119,42 @@ export const LearnerPortal: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowOutcomeModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 50,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+    }, 250);
+  };
+
   const handleSearch = async (emailToSearch?: string, formationOverride?: FormationType) => {
     const targetEmail = (emailToSearch || emailInput).trim();
     if (!targetEmail) {
-      setError('Veuillez renseigner votre adresse e-mail.');
+      setError('Veuillez renseigner votre adresse e-mail ou votre nom.');
       return;
     }
 
@@ -60,6 +166,19 @@ export const LearnerPortal: React.FC = () => {
     try {
       const data = await api.getLearnerPortal(targetEmail, targetFormation);
       setPortalData(data);
+
+      const tier = getLearnerOutcome(data);
+
+      // Si l'apprenant a validé avec succès : confettis
+      // S'il n'a pas validé : affichage automatique du pop-up modal personnalisé
+      if (tier === 'validated') {
+        setShowOutcomeModal(false);
+        setTimeout(() => {
+          triggerConfetti();
+        }, 300);
+      } else {
+        setShowOutcomeModal(true);
+      }
 
       if (data.formation) {
         setFormation(data.formation);
@@ -84,7 +203,7 @@ export const LearnerPortal: React.FC = () => {
       window.history.replaceState({}, '', url.toString());
     } catch (err: any) {
       setPortalData(null);
-      setError(err.message || 'Aucun apprenant trouvé avec cette adresse e-mail. Vérifiez votre saisie.');
+      setError(err.message || 'Aucun apprenant trouvé. Vérifiez votre saisie (e-mail ou nom).');
     } finally {
       setLoading(false);
     }
@@ -94,6 +213,7 @@ export const LearnerPortal: React.FC = () => {
     setPortalData(null);
     setEmailInput('');
     setError(null);
+    setShowOutcomeModal(false);
     const url = new URL(window.location.href);
     url.searchParams.delete('email');
     window.history.replaceState({}, '', url.toString());
@@ -104,15 +224,19 @@ export const LearnerPortal: React.FC = () => {
   };
 
   const isGP = formation === 'gp';
+  const outcomeTier = portalData ? getLearnerOutcome(portalData) : 'incomplete';
+  const outcomeContent = portalData ? getOutcomeModalContent(outcomeTier, portalData) : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Barre du haut épurée : sans logo noir ni terme Dclic, sans répétition */}
-      <header className="h-14 border-b border-border bg-white px-4 sm:px-8 flex items-center shrink-0">
-        <span className="font-semibold text-sm text-foreground">Portail de suivi apprenant</span>
-        <span className="text-xs text-muted-foreground ml-2">
-          · {isGP ? 'Spécialisation Gestion de projet' : 'Formation initiale'}
-        </span>
+      {/* Barre du haut épurée avec lien retour dashboard */}
+      <header className="h-14 border-b border-border bg-white px-4 sm:px-8 flex items-center justify-between shrink-0">
+        <div className="flex items-center">
+          <span className="font-semibold text-sm text-foreground">Portail de suivi apprenant</span>
+          <span className="text-xs text-muted-foreground ml-2">
+            · {isGP ? 'Spécialisation Gestion de projet' : 'Formation initiale'}
+          </span>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -127,7 +251,7 @@ export const LearnerPortal: React.FC = () => {
                   Consulter mon avancement
                 </CardTitle>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                  Renseignez l'adresse e-mail avec laquelle vous êtes inscrit pour visualiser votre progression et vos devoirs.
+                  Renseignez votre adresse e-mail ou votre nom pour visualiser votre progression.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -139,10 +263,10 @@ export const LearnerPortal: React.FC = () => {
                   className="space-y-3"
                 >
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     <Input
-                      type="email"
-                      placeholder="votre.email@exemple.com"
+                      type="text"
+                      placeholder="votre.email@exemple.com ou Nom Prénom"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       className="pl-10 h-11 text-sm sm:text-base bg-background"
@@ -160,7 +284,7 @@ export const LearnerPortal: React.FC = () => {
                     ) : (
                       <Search className="h-4 w-4" />
                     )}
-                    Vérifier ma progression
+                    Consulter ma progression
                   </Button>
                 </form>
 
@@ -237,20 +361,26 @@ export const LearnerPortal: React.FC = () => {
                   </div>
 
                   <div className="self-start sm:self-auto">
-                    {portalData.has_unvalidated_assignments ? (
+                    {outcomeTier === 'validated' ? (
+                      <Badge className="bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-1 font-medium text-xs">
+                        Formation validée
+                      </Badge>
+                    ) : outcomeTier === 'phase1_no_pp' ? (
+                      <Badge variant="outline" className="bg-neutral-50 text-neutral-800 border-neutral-300 px-3 py-1 font-medium text-xs">
+                        Phase 1 validée · PP non remis
+                      </Badge>
+                    ) : outcomeTier === 'phase1_failed_pp' ? (
+                      <Badge variant="outline" className="bg-neutral-50 text-neutral-800 border-neutral-300 px-3 py-1 font-medium text-xs">
+                        Phase 1 validée · PP ajourné
+                      </Badge>
+                    ) : portalData.has_unvalidated_assignments ? (
                       <Badge variant="destructive" className="gap-1.5 px-3 py-1 font-semibold text-xs">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Devoir(s) en attente de rattrapage
                       </Badge>
-                    ) : portalData.learner.status === 'completed' ? (
-                      <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1.5 px-3 py-1 font-semibold text-xs">
-                        <Award className="h-3.5 w-3.5" />
-                        Formation terminée
-                      </Badge>
                     ) : (
-                      <Badge variant="default" className="gap-1.5 px-3 py-1 font-semibold text-xs">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Dossier conforme
+                      <Badge variant="outline" className="bg-neutral-50 text-neutral-600 border-neutral-300 px-3 py-1 font-medium text-xs">
+                        Parcours non finalisé
                       </Badge>
                     )}
                   </div>
@@ -399,6 +529,56 @@ export const LearnerPortal: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Outcome Banner / Summary Section */}
+            {outcomeTier === 'validated' ? (
+              <Card className="border-border bg-card shadow-none overflow-hidden">
+                <CardContent className="pt-6 pb-6">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-neutral-800 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-sm text-foreground">
+                        Félicitations {portalData.learner.first_name} ! Vous avez validé votre formation avec succès.
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Votre évaluation confirme la validation de l'épreuve terminale du Projet Professionnel pour la Formation Initiale en Marketing Numérique. Vous avez obtenu votre certification D-CLIC.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : outcomeContent ? (
+              <Card className="border-border bg-card shadow-none overflow-hidden">
+                <CardContent className="pt-6 pb-6 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <span className="inline-block text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
+                        {outcomeContent.badge}
+                      </span>
+                      <h3 className="font-bold text-sm text-foreground">
+                        {outcomeContent.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {outcomeContent.bodyReason}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowOutcomeModal(true)}
+                      className="shrink-0 text-xs h-8 border-neutral-300 hover:bg-neutral-100 cursor-pointer"
+                    >
+                      Voir la notification
+                    </Button>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">Prochaine étape :</span>{' '}
+                    {outcomeContent.bodyNextSession}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
 
             {/* Sequence by Sequence Checklist */}
             <div className="space-y-3">
@@ -553,9 +733,71 @@ export const LearnerPortal: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Modal Popup pour les apprenants n'ayant pas validé la formation */}
+        {showOutcomeModal && portalData && outcomeTier !== 'validated' && outcomeContent && (
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+            onClick={() => setShowOutcomeModal(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div
+              className="bg-white rounded-2xl border border-neutral-200 shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 text-left relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setShowOutcomeModal(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
+                aria-label="Fermer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* Header / Badge */}
+              <div className="space-y-2 pr-6">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200">
+                  {outcomeContent.badge}
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-neutral-900 leading-snug">
+                  {outcomeContent.title}
+                </h3>
+              </div>
+
+              {/* Body */}
+              <div className="space-y-3 text-xs sm:text-sm text-neutral-600 leading-relaxed">
+                <p>{outcomeContent.bodyIntro}</p>
+                <p>{outcomeContent.bodyReason}</p>
+              </div>
+
+              {/* Callout box Prochaine Session */}
+              <div className="p-4 rounded-xl border border-neutral-200 bg-[#F8FAFC] space-y-1.5 text-xs">
+                <div className="font-semibold text-neutral-900">
+                  Inscription pour la prochaine session
+                </div>
+                <p className="text-neutral-600 leading-relaxed">
+                  {outcomeContent.bodyNextSession}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  onClick={() => setShowOutcomeModal(false)}
+                  className="w-full h-10 font-semibold bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer shadow-none"
+                >
+                  Consulter le détail de mon parcours
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* Clean Footer - Épuré et sans bouton coordinateur */}
+      {/* Clean Footer */}
       <footer className="border-t border-border bg-card py-4 text-xs text-muted-foreground mt-auto">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center sm:text-left">
           <p>Plateforme de formation DCLIC · Suivi pédagogique individuel</p>

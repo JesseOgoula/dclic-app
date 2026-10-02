@@ -8,6 +8,9 @@ import {
   Trash2,
   RefreshCcw,
   Users,
+  ArrowRight,
+  Loader2,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type UploadResult } from '@/lib/api';
@@ -17,15 +20,35 @@ interface UploadPageProps {
   onNavigate?: (page: 'dashboard' | 'learners' | 'upload' | 'reports') => void;
 }
 
+const UPLOAD_STEPS = [
+  'Téléversement et analyse du fichier Moodle...',
+  'Détection automatique de la cohorte et des apprenants...',
+  'Synchronisation et alignement des activités pédagogiques...',
+  'Enregistrement haute performance des progressions...',
+  'Mise à jour instantanée des statistiques et caches mémoire...',
+];
+
 export default function UploadPage({ onNavigate }: UploadPageProps) {
-  const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
+  const { currentFormation, setFormation, formationTitle, formationCategory, groupId } = useFormation();
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadStepIndex, setUploadStepIndex] = useState(0);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const [history, setHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!uploading) {
+      setUploadStepIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setUploadStepIndex(prev => (prev + 1) % UPLOAD_STEPS.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, [uploading]);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -172,10 +195,25 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
         />
 
         {uploading ? (
-          <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto py-4">
-            <div className="w-6 h-6 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-semibold text-neutral-800">Traitement du fichier en cours...</p>
-            <p className="text-[11px] text-neutral-400">Analyse de la cohorte et mise à jour des progressions</p>
+          <div className="flex flex-col items-center gap-3.5 w-full max-w-sm mx-auto py-6">
+            <div className="relative flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-neutral-900 animate-spin" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-xs font-semibold text-neutral-900 transition-all duration-300">
+                {UPLOAD_STEPS[uploadStepIndex]}
+              </p>
+              <p className="text-[11px] text-neutral-400">
+                Traitement optimisé en masse &middot; Veuillez patienter...
+              </p>
+            </div>
+            <div className="w-48 h-1.5 bg-neutral-100 rounded-full overflow-hidden mt-1">
+              <div
+                className="h-full bg-neutral-900 transition-all duration-500 rounded-full"
+                style={{ width: `${Math.min(100, (uploadStepIndex + 1) * 20)}%` }}
+              />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-4">
@@ -196,16 +234,57 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
 
       {/* 3. Upload Result */}
       {result && (
-        <div className="bg-white border border-[#F1F5F9] rounded-2xl p-6 shadow-none space-y-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <h3 className="font-semibold text-sm text-neutral-900">Importation réussie avec succès</h3>
-              <p className="text-xs text-neutral-400">{uploadedFileName || result.filename}</p>
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F1F5F9]">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-neutral-900">
+                  Importation terminée et synchronisée avec succès !
+                </h3>
+                <p className="text-xs text-neutral-400">{uploadedFileName || result.filename}</p>
+              </div>
             </div>
+
+            {/* Target Cohort Badge */}
+            {result.formation && (
+              <div className="flex items-center gap-1.5 self-start sm:self-auto px-2.5 py-1 rounded-md bg-neutral-100 border border-neutral-200 text-xs font-semibold text-neutral-800">
+                <span>Cohorte :</span>
+                <span className="text-neutral-900">
+                  {result.formation === 'gp' ? 'Gestion de projet (G1_GPM_092026)' : 'Marketing numérique (G1_MN_072026)'}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+          {/* If the uploaded file belongs to a different formation than the currently active view */}
+          {result.formation && result.formation !== currentFormation && (
+            <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-amber-900 flex items-center gap-1.5">
+                  <span>Attention : Ce fichier concerne la cohorte « {result.formation === 'gp' ? 'Gestion de projet' : 'Marketing numérique'} »</span>
+                </p>
+                <p className="text-[11px] text-amber-800">
+                  Vous consultez actuellement l'espace « {formationTitle} ». Pour voir les nouvelles statistiques générées par ce fichier, basculez sur la cohorte correspondante.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (result.formation) setFormation(result.formation);
+                  if (onNavigate) onNavigate('dashboard');
+                }}
+                className="shrink-0 flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-lg bg-amber-800 hover:bg-amber-900 text-white text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <span>Basculer sur {result.formation === 'gp' ? 'Gestion de projet' : 'Marketing numérique'} & Aperçu</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl text-center">
               <p className="text-2xl font-bold tracking-tight text-neutral-900">{result.rows_processed}</p>
               <p className="text-[11px] text-neutral-400 mt-0.5">Lignes traitées</p>
@@ -220,7 +299,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
             </div>
             <div className="p-4 bg-[#F8FAFC] border border-[#F1F5F9] rounded-xl text-center">
               <p className="text-2xl font-bold tracking-tight text-neutral-900">{result.progress_records}</p>
-              <p className="text-[11px] text-neutral-400 mt-0.5">Notes & activités</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">Notes & activités synchronisées</p>
             </div>
           </div>
 
@@ -235,13 +314,23 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
             </div>
           )}
 
-          <div className="pt-2 flex justify-end">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs text-neutral-500">
+              Statistiques mises à jour en mémoire vive & Supabase.
+            </span>
             <button
               type="button"
-              onClick={() => (onNavigate ? onNavigate('dashboard') : (window.location.href = '/'))}
-              className="h-8 px-4 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium transition-colors shadow-none cursor-pointer"
+              onClick={() => {
+                if (result.formation && result.formation !== currentFormation) {
+                  setFormation(result.formation);
+                }
+                if (onNavigate) onNavigate('dashboard');
+                else window.location.href = '/';
+              }}
+              className="w-full sm:w-auto h-9 px-4 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-colors shadow-none cursor-pointer flex items-center justify-center gap-2"
             >
-              Voir le Tableau de bord
+              <span>Voir le Tableau de bord</span>
+              <ArrowRight size={13} />
             </button>
           </div>
         </div>
