@@ -26,6 +26,12 @@ export type LearnerOutcomeTier =
   | 'incomplete';
 
 export function getLearnerOutcome(data: LearnerPortalData): LearnerOutcomeTier {
+  // 1. Si l'apprenant a validé son Projet Professionnel, c'est un succès garanti !
+  if (data.pp_grades && data.pp_grades.validated) {
+    return 'validated';
+  }
+
+  // 2. Cas du parcours Spécialisation GP
   if (data.formation === 'gp') {
     if (data.learner.status === 'completed' || (!data.has_unvalidated_assignments && data.completion_rate >= 100)) {
       return 'validated';
@@ -33,11 +39,7 @@ export function getLearnerOutcome(data: LearnerPortalData): LearnerOutcomeTier {
     return 'incomplete';
   }
 
-  // Formation Initiale
-  if (data.pp_grades && data.pp_grades.validated) {
-    return 'validated';
-  }
-
+  // 3. Cas du parcours Formation Initiale MN
   const isPhase1Done = Boolean(
     data.learner.status === 'completed' ||
     data.learner.status === 'completed_phase1' ||
@@ -96,7 +98,7 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const f = urlParams.get('formation');
     if (f === 'mn' || f === 'gp') return f;
-    return 'gp';
+    return 'mn';
   });
 
   const [emailInput, setEmailInput] = useState('');

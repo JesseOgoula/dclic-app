@@ -693,19 +693,25 @@ class DataStore {
     const clean = query.toLowerCase().trim();
     let learner = await this.getLearnerByEmail(clean);
     if (!learner) {
-      const all = await this.getLearners(requestedFormation);
+      // Search across both formations to guarantee finding the learner regardless of query
+      const [mnLearners, gpLearners] = await Promise.all([
+        this.getLearners('mn'),
+        this.getLearners('gp'),
+      ]);
+      const all = [...mnLearners, ...gpLearners];
       const words = clean.replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length >= 2);
       learner = all.find(l => {
+        const cleanL = l.email.toLowerCase().trim();
         const full = `${l.first_name} ${l.last_name} ${l.email}`.toLowerCase();
-        return clean === l.email.toLowerCase() || (words.length > 0 && words.every(w => full.includes(w)));
+        return clean === cleanL || (words.length > 0 && words.every(w => full.includes(w)));
       }) || undefined;
     }
     if (!learner) return null;
 
+    // Detect actual formation from group_id (G1_GPM_092026 -> gp, G1_MN_072026 -> mn)
     const detectedFormation: 'mn' | 'gp' = (learner.group_id && learner.group_id.includes('GPM')) ? 'gp' : 'mn';
-    const formation: 'mn' | 'gp' = (requestedFormation === 'gp' || requestedFormation === 'mn')
-      ? requestedFormation
-      : detectedFormation;
+    // The learner's actual enrolled cohort ALWAYS dictates the syllabus
+    const formation: 'mn' | 'gp' = detectedFormation;
 
     const allActivities = await this.getActivities(formation);
     const progress = await this.getProgressByLearner(learner.id);
