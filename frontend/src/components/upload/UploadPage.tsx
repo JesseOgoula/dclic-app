@@ -360,7 +360,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
             <div>
               <p className="text-xs font-semibold text-neutral-900">CSV — Progression des activités</p>
               <p className="text-[11px] text-neutral-400 mt-0.5">
-                Export depuis Moodle &gt; Course Management &gt; Achèvement des activités (TSV ou CSV UTF-16 / UTF-8)
+                Export depuis Moodle &gt; Course Management &gt; Achèvement des activités. Enregistre automatiquement la progression et intègre tous les apprenants de la cohorte.
               </p>
             </div>
           </div>
@@ -368,19 +368,9 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
             <Users size={18} className="text-neutral-700 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-semibold text-neutral-900">MD — Liste des participants</p>
+              <p className="text-xs font-semibold text-neutral-900">MD ou XLSX — Liste des participants Moodle</p>
               <p className="text-[11px] text-neutral-400 mt-0.5">
-                Table Markdown avec colonnes Nom, Prénom, Email, Groupe
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
-            <FileSpreadsheet size={18} className="text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-neutral-900">XLSX / XLS — Participants Moodle</p>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
-                Export depuis Moodle &gt; Participants (colonnes : Prénom, Nom, Email, Groupes)
+                Export depuis Moodle &gt; Participants (veillez à sélectionner « Afficher tous » si la liste sur Moodle est paginée).
               </p>
             </div>
           </div>

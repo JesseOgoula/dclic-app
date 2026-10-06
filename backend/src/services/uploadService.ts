@@ -219,17 +219,7 @@ async function processProgressCSV(
     allLearners.map(l => [l.email.trim().toLowerCase(), l])
   );
 
-  const targetEmails = new Set(
-    allLearners
-      .filter(l => l.group_id === targetGroup)
-      .map(l => l.email.trim().toLowerCase())
-  );
-
-  if (targetEmails.size === 0) {
-    errors.push(`Information : La liste des participants n'a pas encore été importée pour cette cohorte (${targetGroup}). L'application charge les apprenants directement depuis le fichier CSV.`);
-  }
-
-  // 4. Batch prepare learners to upsert
+  // 4. Batch prepare learners to upsert from CSV (authoritative source of enrolled learners)
   const learnersToUpsert: any[] = [];
   const rowsToProcess: typeof rows = [];
 
@@ -237,9 +227,6 @@ async function processProgressCSV(
     const emailNorm = row.email.trim().toLowerCase();
     if (!emailNorm || !emailNorm.includes('@')) continue;
 
-    if (targetEmails.size > 0 && !targetEmails.has(emailNorm)) {
-      continue;
-    }
     rowsToProcess.push(row);
 
     const nameParts = row.name.trim().split(/\s+/);
@@ -260,7 +247,7 @@ async function processProgressCSV(
       first_name: existing?.first_name || firstName,
       last_name: existing?.last_name || lastName,
       email: emailNorm,
-      group_id: existing?.group_id && existing.group_id !== 'UNKNOWN' ? existing.group_id : targetGroup,
+      group_id: targetGroup,
       last_activity_at: lastActivity || existing?.last_activity_at || null,
       status: existing?.status || 'active',
     };

@@ -161,9 +161,16 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
             Overview
           </h1>
-          <p className="text-xs text-neutral-500 font-medium mt-1">
-            {formationCategory} · <span className="text-neutral-900 font-semibold">{formationTitle}</span> ({groupId})
-          </p>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <p className="text-xs text-neutral-500 font-medium">
+              {formationCategory} · <span className="text-neutral-900 font-semibold">{formationTitle}</span> ({groupId})
+            </p>
+            {currentFormation === 'gp' && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200">
+                Séquence 3 en cours (05 — 09 oct.)
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

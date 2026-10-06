@@ -20,6 +20,7 @@ interface LearnersListProps {
 
 export default function LearnersList({ onSelectLearner, globalSearch = '', initialFilter = '' }: LearnersListProps) {
   const { currentFormation, formationTitle, formationCategory, groupId } = useFormation();
+  const isMN = currentFormation === 'mn';
   const [learners, setLearners] = useState<LearnerWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -349,15 +350,21 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                     <SortIcon field="completion_rate" />
                   </div>
                 </th>
-                <th
-                  onClick={() => toggleSort('pp_score')}
-                  className="py-3 px-6 text-center cursor-pointer hover:text-neutral-700 group transition-colors select-none"
-                >
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span>Projet Pro</span>
-                    <SortIcon field="pp_score" />
-                  </div>
-                </th>
+                {isMN ? (
+                  <th
+                    onClick={() => toggleSort('pp_score')}
+                    className="py-3 px-6 text-center cursor-pointer hover:text-neutral-700 group transition-colors select-none"
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span>Projet Pro</span>
+                      <SortIcon field="pp_score" />
+                    </div>
+                  </th>
+                ) : (
+                  <th className="py-3 px-6 text-center select-none">
+                    <span>Activités validées</span>
+                  </th>
+                )}
                 <th
                   onClick={() => toggleSort('days_inactive')}
                   className="py-3 px-6 text-center cursor-pointer hover:text-neutral-700 group transition-colors select-none"
@@ -433,19 +440,27 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                       </div>
                     </td>
 
-                    {/* Projet Pro */}
-                    <td className="py-3.5 px-6 text-center">
-                      {learner.pp_grades?.has_pp ? (
-                        <span
-                          className="font-mono text-xs font-semibold text-neutral-900"
-                          title={`PP1: ${learner.pp_grades.pp1}/6 · PP2: ${learner.pp_grades.pp2}/6 · PP3: ${learner.pp_grades.pp3}/4 · PP4: ${learner.pp_grades.pp4}/4`}
-                        >
-                          {learner.pp_grades.total_score.toFixed(1)} <span className="text-[10px] text-neutral-400 font-normal">/ 20</span>
+                    {/* Projet Pro (MN) ou Activités validées (GP) */}
+                    {isMN ? (
+                      <td className="py-3.5 px-6 text-center">
+                        {learner.pp_grades?.has_pp ? (
+                          <span
+                            className="font-mono text-xs font-semibold text-neutral-900"
+                            title={`PP1: ${learner.pp_grades.pp1}/6 · PP2: ${learner.pp_grades.pp2}/6 · PP3: ${learner.pp_grades.pp3}/4 · PP4: ${learner.pp_grades.pp4}/4`}
+                          >
+                            {learner.pp_grades.total_score.toFixed(1)} <span className="text-[10px] text-neutral-400 font-normal">/ 20</span>
+                          </span>
+                        ) : (
+                          <span className="text-neutral-300 text-xs">—</span>
+                        )}
+                      </td>
+                    ) : (
+                      <td className="py-3.5 px-6 text-center">
+                        <span className="font-mono text-xs font-semibold text-neutral-900">
+                          {learner.completed_activities} <span className="text-[10px] text-neutral-400 font-normal">/ {learner.total_activities}</span>
                         </span>
-                      ) : (
-                        <span className="text-neutral-300 text-xs">—</span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Inactivité */}
                     <td className="py-3.5 px-6 text-center">

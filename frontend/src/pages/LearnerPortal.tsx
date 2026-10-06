@@ -169,25 +169,27 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
       const data = await api.getLearnerPortal(targetEmail, targetFormation);
       setPortalData(data);
 
-      const tier = getLearnerOutcome(data);
+      const isGPFormation = data.formation === 'gp' || data.learner.group_id?.includes('GPM') || targetFormation === 'gp';
 
-      // Si l'apprenant a validé avec succès : confettis
-      // S'il n'a pas validé : affichage automatique du pop-up modal personnalisé
-      if (tier === 'validated') {
-        setShowOutcomeModal(false);
-        setTimeout(() => {
-          triggerConfetti();
-        }, 300);
-      } else {
-        setShowOutcomeModal(true);
-      }
-
-      if (data.formation) {
-        setFormation(data.formation);
-      } else if (data.learner.group_id?.includes('GPM')) {
+      if (isGPFormation) {
         setFormation('gp');
+        setShowOutcomeModal(false);
+        if (data.completion_rate === 100) {
+          setTimeout(() => {
+            triggerConfetti();
+          }, 300);
+        }
       } else {
         setFormation('mn');
+        const tier = getLearnerOutcome(data);
+        if (tier === 'validated') {
+          setShowOutcomeModal(false);
+          setTimeout(() => {
+            triggerConfetti();
+          }, 300);
+        } else {
+          setShowOutcomeModal(true);
+        }
       }
 
       // Ouvrir par défaut les séquences avec des devoirs non validés ou non terminées
@@ -533,7 +535,26 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
             </Card>
 
             {/* Outcome Banner / Summary Section */}
-            {outcomeTier === 'validated' ? (
+            {isGP ? (
+              <Card className="border-border bg-card shadow-none overflow-hidden">
+                <CardContent className="pt-5 pb-5">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200">
+                        Séquence 3 en cours (05 — 09 oct.)
+                      </span>
+                      <span className="text-xs text-muted-foreground">· Semaine 3 sur 8</span>
+                    </div>
+                    <h3 className="font-bold text-sm text-foreground">
+                      Parcours de Spécialisation « Gestion de projets marketing 360° »
+                    </h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Chaque séquence hebdomadaire (S1 à S5) valide un badge de compétence par la remise de sa mission au tuteur. La certification finale D-CLIC est délivrée à l'issue de la Séquence 6 (Projet de spécialisation & Portfolio, seuil de validation : <strong>12 / 20</strong>).
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : outcomeTier === 'validated' ? (
               <Card className="border-border bg-card shadow-none overflow-hidden">
                 <CardContent className="pt-6 pb-6">
                   <div className="flex items-start gap-3">
@@ -736,8 +757,8 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
           </div>
         )}
 
-        {/* Modal Popup pour les apprenants n'ayant pas validé la formation */}
-        {showOutcomeModal && portalData && outcomeTier !== 'validated' && outcomeContent && (
+        {/* Modal Popup pour les apprenants n'ayant pas validé la formation (formation initiale uniquement) */}
+        {showOutcomeModal && portalData && !isGP && outcomeTier !== 'validated' && outcomeContent && (
           <div
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
             onClick={() => setShowOutcomeModal(false)}

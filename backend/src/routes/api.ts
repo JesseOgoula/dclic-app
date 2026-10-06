@@ -306,7 +306,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       );
 
       const isPhase1Completed = (hasCompletedSeq5 || hasCompletedAllPhase1) && hasNoPhase1AssignmentHoles;
-      const ppGrade = store.getPPGradeForEmail(l.email);
+      const ppGrade = formation === 'mn' ? store.getPPGradeForEmail(l.email) : undefined;
       const hasValidatedPP = !!(ppGrade && ppGrade.validated);
       const computedStatus = computeLearnerStatus(completionRate, daysInactive, isPhase1Completed, hasValidatedPP);
       const finalCompleted = completed + (hasValidatedPP ? 4 : 0);

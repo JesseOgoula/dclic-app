@@ -809,7 +809,7 @@ class DataStore {
       unvalidated_assignments: unvalidatedAssignments,
       all_progression_holes: progressionHoles,
       has_unvalidated_assignments: hasUnvalidatedAssignments,
-      pp_grades: this.getPPGradeForEmail(learner.email),
+      pp_grades: formation === 'mn' ? this.getPPGradeForEmail(learner.email) : undefined,
       sequences,
     };
   }

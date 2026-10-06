@@ -311,7 +311,7 @@ export function extractActivityMetadata(
 
       // Group 1: 0 to 6
       if (index <= 6) {
-        sequence = 'Séquence 1 : Cadrage stratégique et audit';
+        sequence = "Séquence 1 : L'analyse et la stratégie marketing";
         if (index <= 4) {
           code = `GP_S1_M${index + 1}`;
           type = 'exercise';
@@ -323,7 +323,7 @@ export function extractActivityMetadata(
       }
       // Group 2: 7 to 13
       else if (index <= 13) {
-        sequence = 'Séquence 2 : Planification et budgétisation';
+        sequence = 'Séquence 2 : Planification opérationnelle et budgétaire';
         if (index <= 11) {
           code = `GP_S2_M${index - 6}`;
           type = 'exercise';
@@ -335,7 +335,7 @@ export function extractActivityMetadata(
       }
       // Group 3: 14 to 21
       else if (index <= 21) {
-        sequence = 'Séquence 3 : Pilotage de projet et prestataires';
+        sequence = 'Séquence 3 : Pilotage de projet et coordination';
         if (index <= 18) {
           code = `GP_S3_M${index - 13}`;
           type = 'exercise';
@@ -347,7 +347,7 @@ export function extractActivityMetadata(
       }
       // Group 4: 22 to 28
       else if (index <= 28) {
-        sequence = 'Séquence 4 : Stratégie de lancement 360°';
+        sequence = 'Séquence 4 : Communication 360° et Événementiel';
         if (index <= 26) {
           code = `GP_S4_M${index - 21}`;
           type = 'exercise';
@@ -359,7 +359,7 @@ export function extractActivityMetadata(
       }
       // Group 5: 29 to 35
       else if (index <= 35) {
-        sequence = 'Séquence 5 : Mesure de performance et reporting';
+        sequence = 'Séquence 5 : Pilotage de la performance et Reporting';
         if (index <= 33) {
           code = `GP_S5_M${index - 28}`;
           type = 'exercise';
@@ -369,18 +369,18 @@ export function extractActivityMetadata(
           isEvaluated = true;
         }
       }
-      // Projet Pro: 36 to 48
+      // Projet de spécialisation et portfolio: 36 to 48
       else {
-        sequence = 'Projet professionnel';
+        sequence = 'Séquence 6 : Projet de spécialisation et portfolio';
         if (index === 36) {
-          code = 'GP_PP_DESC';
+          code = 'GP_S6_DESC';
           type = 'documentation';
         } else if (index <= 42) {
-          code = `GP_PP_ENT_${index - 36}`;
+          code = `GP_S6_ENT_${index - 36}`;
           type = 'devoir';
           isEvaluated = true;
         } else {
-          code = `GP_PP_FIN_${index - 42}`;
+          code = `GP_S6_FIN_${index - 42}`;
           type = 'devoir';
           isEvaluated = true;
         }
