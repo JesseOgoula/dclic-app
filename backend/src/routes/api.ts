@@ -5,7 +5,7 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { processUpload } from '../services/uploadService.js';
+import { processUpload, processRawTextImport } from '../services/uploadService.js';
 import { store, supabase, computeLearnerStatus } from '../services/store.js';
 import { requireAdminAuth, generateAdminToken, checkAdminPassword, verifyAdminToken } from '../services/auth.js';
 
@@ -130,6 +130,25 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
     console.error('Upload error:', error);
     res.status(500).json({
       error: 'Failed to process upload',
+      details: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+router.post('/upload/raw-text', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { text, formation } = req.body || {};
+    if (!text || typeof text !== 'string' || !text.trim()) {
+      res.status(400).json({ error: 'Texte vide ou manquant.' });
+      return;
+    }
+    const targetFormation = ((formation || req.query?.formation) as 'mn' | 'gp') || undefined;
+    const result = await processRawTextImport(text, targetFormation);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Raw text import error:', error);
+    res.status(500).json({
+      error: "Erreur lors de l'import du texte",
       details: error instanceof Error ? error.message : String(error),
     });
   }

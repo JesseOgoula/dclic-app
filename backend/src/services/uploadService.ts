@@ -10,7 +10,7 @@ import {
   parseParticipantsXLSX,
   extractActivityMetadata,
 } from './parser/moodleParser.js';
-import { parseParticipantsMD, parseRelativeTime } from './parser/mdParser.js';
+import { parseParticipantsMD, parseRelativeTime, parseRawParticipantsText } from './parser/mdParser.js';
 import { store, supabase } from './store.js';
 import type { UploadResult, Learner, Activity, LearnerProgress } from '../types.js';
 
@@ -511,6 +511,79 @@ async function processParticipantsMD(
     upload_id: uploadId,
     filename: originalFilename || path.basename(filePath),
     rows_processed: g1Participants.length,
+    learners_created: learnersCreated,
+    learners_updated: learnersUpdated,
+    progress_records: 0,
+    errors,
+    formation: detectedFormation,
+  };
+}
+
+/**
+ * Fast processing for raw text / pasted content (Moodle participants table or selection).
+ */
+export async function processRawTextImport(
+  rawText: string,
+  targetFormation?: 'mn' | 'gp'
+): Promise<UploadResult> {
+  const participants = parseRawParticipantsText(rawText);
+  if (participants.length === 0) {
+    throw new Error('Aucun apprenant détecté dans le texte collé. Vérifiez le format (e-mail valide requis).');
+  }
+
+  const detectedFormation = targetFormation || 'gp';
+  const targetGroup = detectedFormation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
+
+  const upload = await store.addUpload(`Sélection Moodle (${participants.length} apprenants)`, 'md');
+
+  let learnersCreated = 0;
+  let learnersUpdated = 0;
+  const errors: string[] = [];
+
+  const existingLearners = await store.getLearners(detectedFormation, true);
+  const existingMap = new Map(existingLearners.map(l => [l.email.trim().toLowerCase(), l]));
+
+  const learnersToUpsert = participants.map(p => {
+    const emailNorm = p.email.trim().toLowerCase();
+    const existing = existingMap.get(emailNorm);
+    const groupToAssign = p.group && p.group.startsWith('G1_') ? p.group : targetGroup;
+    if (existing) learnersUpdated++;
+    else learnersCreated++;
+
+    const parsedDate = p.last_access ? parseRelativeTime(p.last_access) : null;
+
+    return {
+      ...(existing?.id ? { id: existing.id } : {}),
+      first_name: p.first_name,
+      last_name: p.last_name,
+      email: emailNorm,
+      group_id: groupToAssign,
+      last_activity_at: parsedDate || existing?.last_activity_at || null,
+      status: existing?.status || 'active',
+    };
+  });
+
+  for (let i = 0; i < learnersToUpsert.length; i += 50) {
+    const chunk = learnersToUpsert.slice(i, i + 50);
+    const { error: upsertErr } = await supabase
+      .from('learners')
+      .upsert(chunk, { onConflict: 'email' });
+    if (upsertErr) {
+      errors.push(`Erreur enregistrement apprenants: ${upsertErr.message}`);
+    }
+  }
+
+  store.invalidateCache(detectedFormation);
+
+  await store.updateUpload(upload.id, {
+    rows_processed: participants.length,
+    status: 'processed',
+  });
+
+  return {
+    upload_id: upload.id,
+    filename: `Sélection collée (${participants.length} apprenants)`,
+    rows_processed: participants.length,
     learners_created: learnersCreated,
     learners_updated: learnersUpdated,
     progress_records: 0,

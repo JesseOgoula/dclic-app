@@ -353,6 +353,13 @@ export const api = {
     return data.data;
   },
 
+  uploadRawText: (text: string, formation?: string): Promise<UploadResult> => {
+    return request<UploadResult>('/upload/raw-text', {
+      method: 'POST',
+      body: JSON.stringify({ text, formation }),
+    });
+  },
+
   // Auth
   login: (password: string) =>
     request<{ token: string }>('/auth/login', {

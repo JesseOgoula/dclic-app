@@ -258,7 +258,7 @@ export interface ParsedParticipant {
   last_name: string;
   email: string;
   group: string;
-  last_access?: string;
+  last_access?: string | null;
 }
 
 export interface UploadResult {

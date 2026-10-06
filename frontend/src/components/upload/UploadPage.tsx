@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Loader2,
   Sparkles,
+  Clipboard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api, type UploadResult } from '@/lib/api';
@@ -30,6 +31,9 @@ const UPLOAD_STEPS = [
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
   const { currentFormation, setFormation, formationTitle, formationCategory, groupId } = useFormation();
+  const [importMode, setImportMode] = useState<'file' | 'text'>('file');
+  const [rawText, setRawText] = useState('');
+  const [parsingCount, setParsingCount] = useState<number>(0);
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadStepIndex, setUploadStepIndex] = useState(0);
@@ -38,6 +42,17 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [history, setHistory] = useState<any[]>([]);
+
+  // Détection en direct des adresses e-mails valides dans le texte collé
+  useEffect(() => {
+    if (!rawText.trim()) {
+      setParsingCount(0);
+      return;
+    }
+    const emailMatches = rawText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+    const unique = new Set(emailMatches?.map(e => e.toLowerCase()) || []);
+    setParsingCount(unique.size);
+  }, [rawText]);
 
   useEffect(() => {
     if (!uploading) {
@@ -115,6 +130,29 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     [fetchHistory, currentFormation]
   );
 
+  const handleRawTextSubmit = async () => {
+    if (!rawText.trim() || parsingCount === 0) {
+      setError('Veuillez coller un texte contenant au moins un apprenant avec une adresse courriel valide.');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+    setResult(null);
+    setUploadedFileName(`Sélection collée (${parsingCount} apprenant${parsingCount > 1 ? 's' : ''})`);
+
+    try {
+      const data = await api.uploadRawText(rawText, currentFormation);
+      setResult(data);
+      fetchHistory();
+      setRawText('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du traitement du texte.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -132,10 +170,29 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
       setDragActive(false);
 
       const file = e.dataTransfer.files?.[0];
-      if (file) await uploadFile(file);
+      if (file) {
+        await uploadFile(file);
+        return;
+      }
+
+      // Check if text was dragged and dropped
+      const droppedText = e.dataTransfer.getData('text/plain');
+      if (droppedText && droppedText.includes('@')) {
+        setImportMode('text');
+        setRawText(droppedText);
+      }
     },
     [uploadFile]
   );
+
+  const handleDropzonePaste = (e: React.ClipboardEvent) => {
+    const text = e.clipboardData.getData('text/plain');
+    if (text && text.includes('@')) {
+      e.preventDefault();
+      setImportMode('text');
+      setRawText(text);
+    }
+  };
 
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,66 +228,201 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
         </div>
       </div>
 
-      {/* 2. Drop Zone */}
-      <div
-        className={cn(
-          'relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer bg-white shadow-none',
-          dragActive
-            ? 'border-neutral-900 bg-neutral-50'
-            : 'border-[#E2E8F0] hover:border-neutral-400 hover:bg-[#FAFAFA]',
-          uploading && 'pointer-events-none opacity-60'
-        )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => document.getElementById('file-input')?.click()}
-      >
-        <input
-          id="file-input"
-          type="file"
-          accept=".csv,.xlsx,.xls,.md"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+      {/* Mode Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2">
+        <button
+          type="button"
+          onClick={() => setImportMode('file')}
+          className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+            importMode === 'file'
+              ? 'bg-neutral-900 text-white shadow-sm'
+              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+          )}
+        >
+          <UploadIcon size={14} />
+          <span>Fichier (CSV, XLSX, MD)</span>
+        </button>
 
-        {uploading ? (
-          <div className="flex flex-col items-center gap-3.5 w-full max-w-sm mx-auto py-6">
-            <div className="relative flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-neutral-900 animate-spin" />
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
-            </div>
-            <div className="text-center space-y-1">
-              <p className="text-xs font-semibold text-neutral-900 transition-all duration-300">
-                {UPLOAD_STEPS[uploadStepIndex]}
-              </p>
-              <p className="text-[11px] text-neutral-400">
-                Traitement optimisé en masse &middot; Veuillez patienter...
-              </p>
-            </div>
-            <div className="w-48 h-1.5 bg-neutral-100 rounded-full overflow-hidden mt-1">
-              <div
-                className="h-full bg-neutral-900 transition-all duration-500 rounded-full"
-                style={{ width: `${Math.min(100, (uploadStepIndex + 1) * 20)}%` }}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
-              <UploadIcon className="w-5 h-5 text-neutral-700" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-neutral-900">
-                Déposez vos fichiers Moodle ici ou <span className="underline">parcourez vos dossiers</span>
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                Formats acceptés : CSV (Progression), XLSX / XLS / MD (Participants) · Max 50 MB
-              </p>
-            </div>
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={() => setImportMode('text')}
+          className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+            importMode === 'text'
+              ? 'bg-neutral-900 text-white shadow-sm'
+              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+          )}
+        >
+          <Clipboard size={14} />
+          <span>Copier-coller direct / Glisser du texte</span>
+          {parsingCount > 0 && (
+            <span
+              className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded-full font-mono font-semibold',
+                importMode === 'text' ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-800'
+              )}
+            >
+              {parsingCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* 2. Import Content */}
+      {importMode === 'file' ? (
+        <div
+          className={cn(
+            'relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer bg-white shadow-none focus:outline-none focus:border-neutral-900',
+            dragActive
+              ? 'border-neutral-900 bg-neutral-50'
+              : 'border-[#E2E8F0] hover:border-neutral-400 hover:bg-[#FAFAFA]',
+            uploading && 'pointer-events-none opacity-60'
+          )}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onPaste={handleDropzonePaste}
+          onClick={() => document.getElementById('file-input')?.click()}
+          tabIndex={0}
+        >
+          <input
+            id="file-input"
+            type="file"
+            accept=".csv,.xlsx,.xls,.md"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+
+          {uploading ? (
+            <div className="flex flex-col items-center gap-3.5 w-full max-w-sm mx-auto py-6">
+              <div className="relative flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-neutral-900 animate-spin" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-xs font-semibold text-neutral-900 transition-all duration-300">
+                  {UPLOAD_STEPS[uploadStepIndex]}
+                </p>
+                <p className="text-[11px] text-neutral-400">
+                  Traitement optimisé en masse &middot; Veuillez patienter...
+                </p>
+              </div>
+              <div className="w-48 h-1.5 bg-neutral-100 rounded-full overflow-hidden mt-1">
+                <div
+                  className="h-full bg-neutral-900 transition-all duration-500 rounded-full"
+                  style={{ width: `${Math.min(100, (uploadStepIndex + 1) * 20)}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-4">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <UploadIcon className="w-5 h-5 text-neutral-700" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">
+                  Déposez vos fichiers Moodle ici ou <span className="underline">parcourez vos dossiers</span>
+                </p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  Formats acceptés : CSV (Progression), XLSX / XLS / MD (Participants) · Max 50 MB
+                </p>
+                <p className="text-[11px] text-neutral-400 mt-2 font-mono">
+                  Astuce : Vous pouvez aussi copier un tableau Moodle et faire Ctrl+V ici
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+                <Clipboard size={15} className="text-neutral-700" />
+                Copier-coller direct depuis Moodle
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Sélectionnez le tableau des participants ou les lignes sur Moodle, copiez-les (Ctrl+C), puis collez (Ctrl+V) ci-dessous ou glissez-déposez votre sélection.
+              </p>
+            </div>
+
+            {parsingCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 self-start sm:self-auto">
+                <Users size={13} />
+                {parsingCount} apprenant{parsingCount > 1 ? 's' : ''} détecté{parsingCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          <div
+            className={cn(
+              "relative rounded-xl border transition-all",
+              dragActive ? "border-neutral-900 ring-2 ring-neutral-900/10" : "border-[#E2E8F0] focus-within:border-neutral-900"
+            )}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <textarea
+              value={rawText}
+              onChange={e => setRawText(e.target.value)}
+              placeholder="Collez ici votre sélection Moodle (colonnes séparées par des tabulations, tableau markdown ou texte brut avec e-mails et heures de dernière connexion)...&#10;&#10;Exemple de format Moodle :&#10;Prénom / Nom    Adresse de courriel    Rôles    Groupes    Dernier accès au cours&#10;Jean DUPONT     jean.dupont@gmail.com   Étudiant  G1_GPM_092026   16 heures 22 min"
+              rows={8}
+              disabled={uploading}
+              className="w-full p-3.5 text-xs font-mono bg-[#FAFAFA] rounded-xl focus:outline-none focus:bg-white resize-y text-neutral-800 placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div className="text-[11px] text-neutral-500 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span>
+                Prend automatiquement en compte les noms, prénoms, adresses e-mails, groupes et heures de dernier accès.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              {rawText && (
+                <button
+                  type="button"
+                  onClick={() => setRawText('')}
+                  disabled={uploading}
+                  className="px-3 py-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  Effacer
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleRawTextSubmit}
+                disabled={uploading || parsingCount === 0}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-none cursor-pointer",
+                  uploading || parsingCount === 0
+                    ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                    : "bg-neutral-900 hover:bg-neutral-800 text-white"
+                )}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    <span>Synchronisation...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={13} />
+                    <span>Importer {parsingCount > 0 ? `(${parsingCount} apprenant${parsingCount > 1 ? 's' : ''})` : ''}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 3. Upload Result */}
       {result && (
@@ -371,6 +563,16 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               <p className="text-xs font-semibold text-neutral-900">MD ou XLSX — Liste des participants Moodle</p>
               <p className="text-[11px] text-neutral-400 mt-0.5">
                 Export depuis Moodle &gt; Participants (veillez à sélectionner « Afficher tous » si la liste sur Moodle est paginée).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
+            <Clipboard size={18} className="text-neutral-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-neutral-900">Copier-coller direct ou glisser-déposer de texte Moodle</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Sélectionnez les lignes du tableau des participants dans Moodle avec votre curseur, faites Ctrl+C, puis collez (Ctrl+V) ou glissez le texte dans l'onglet dédié. Les adresses, groupes et dates de dernier accès sont synchronisés en direct.
               </p>
             </div>
           </div>
