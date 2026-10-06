@@ -32,7 +32,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       authStorage.removeToken();
     }
     const error = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(error.error || error.details || `API Error: ${res.status}`);
+    const errObj = new Error(error.error || error.details || `API Error: ${res.status}`);
+    (errObj as any).status = res.status;
+    throw errObj;
   }
 
   const data = await res.json();
@@ -273,6 +275,52 @@ export const formationStorage = {
   },
 };
 
+function convertRawTextToMarkdownTable(rawText: string, formation?: string): string {
+  const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
+  const defaultGroup = formation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
+
+  const rows: string[] = [
+    '| Nom / Prénom | Adresse de courriel | Rôles | Groupes | Dernier accès au cours |',
+    '|---|---|---|---|---|',
+  ];
+
+  for (const line of lines) {
+    if (!emailRegex.test(line)) continue;
+    if (line.toLowerCase().includes('courriel') && line.toLowerCase().includes('nom')) continue;
+
+    if (line.startsWith('|')) {
+      rows.push(line);
+      continue;
+    }
+
+    let delimiter = '\t';
+    if (!line.includes('\t')) {
+      if (line.includes(';')) delimiter = ';';
+      else if (line.includes(',')) delimiter = ',';
+    }
+
+    const parts = line.split(delimiter).map(p => p.trim()).filter(p => p.length > 0);
+    const emailIdx = parts.findIndex(p => emailRegex.test(p));
+    if (emailIdx === -1) continue;
+
+    const email = parts[emailIdx].match(emailRegex)![1].toLowerCase();
+    if (parts.some(p => /formateur|enseignant|tuteur/i.test(p))) continue;
+
+    const name = parts.slice(0, emailIdx).join(' ').trim() || parts[0] || 'Apprenant';
+    const group = parts.find(p => /G1_|GPM|MN/i.test(p)) || defaultGroup;
+    const isAccess = (s: string) =>
+      !/G1_|GPM|MN/i.test(s) &&
+      !/étudiant|apprenant|enseignant|formateur|tuteur/i.test(s) &&
+      /jour|heure|min|\b\d+\s*s\b|seconde|jamais|maintenant|en ligne|\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2}/i.test(s);
+    const lastAccess = parts.find((p, idx) => idx !== emailIdx && isAccess(p)) || 'Jamais';
+
+    rows.push(`| ${name} | ${email} | Étudiant | ${group} | ${lastAccess} |`);
+  }
+
+  return rows.join('\n');
+}
+
 export const api = {
   // Formations
   getFormations: () => request<FormationInfo[]>('/formations'),
@@ -353,11 +401,28 @@ export const api = {
     return data.data;
   },
 
-  uploadRawText: (text: string, formation?: string): Promise<UploadResult> => {
-    return request<UploadResult>('/upload/raw-text', {
-      method: 'POST',
-      body: JSON.stringify({ text, formation }),
-    });
+  uploadRawText: async (text: string, formation?: string): Promise<UploadResult> => {
+    try {
+      return await request<UploadResult>('/upload/raw-text', {
+        method: 'POST',
+        body: JSON.stringify({ text, formation }),
+      });
+    } catch (err: any) {
+      // If 404 (endpoint not yet deployed on Render), fallback to virtual .md upload
+      if (
+        err?.status === 404 ||
+        err?.message?.includes('404') ||
+        err?.message?.includes('Not Found') ||
+        err?.message?.includes('Cannot POST')
+      ) {
+        console.warn('POST /upload/raw-text unavailable (404), using resilient Markdown fallback.');
+        const mdContent = convertRawTextToMarkdownTable(text, formation);
+        const blob = new Blob([mdContent], { type: 'text/markdown' });
+        const file = new File([blob], `selection_moodle_${Date.now()}.md`, { type: 'text/markdown' });
+        return await api.uploadFile(file, formation);
+      }
+      throw err;
+    }
   },
 
   // Auth
