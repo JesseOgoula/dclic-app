@@ -412,7 +412,7 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
       let grade = prog?.grade || null;
 
       // Credit PP deliverables if submitted
-      if (ppGrade && ppGrade.has_pp && activity.sequence.toLowerCase().includes('projet')) {
+      if (ppGrade && ppGrade.has_pp && (activity.sequence.toLowerCase().includes('projet professionnel') || (!activity.sequence.toLowerCase().includes('séquence') && activity.sequence.toLowerCase().includes('projet')))) {
         const actLower = activity.name.toLowerCase();
         if (actLower.includes('stratégie') && ppGrade.pp1 !== undefined) {
           status = 'completed';

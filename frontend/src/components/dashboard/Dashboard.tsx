@@ -101,11 +101,13 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
       .filter((s) => s.sequence !== 'Autre' && s.sequence !== 'Préalable')
       .map((s, index) => {
         let label = `S${index + 1}`;
-        if (s.sequence.toLowerCase().includes('projet')) label = 'Projet';
-        else if (s.sequence.toLowerCase().includes('impression')) label = 'Impress.';
-        else {
-          const match = s.sequence.match(/Séquence (\d)/i);
-          if (match) label = `Séq. ${match[1]}`;
+        const match = s.sequence.match(/Séquence (\d)/i);
+        if (match) {
+          label = `Séq. ${match[1]}`;
+        } else if (s.sequence.toLowerCase().includes('projet')) {
+          label = 'Projet';
+        } else if (s.sequence.toLowerCase().includes('impression')) {
+          label = 'Impress.';
         }
         return {
           name: label,

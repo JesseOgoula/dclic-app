@@ -480,7 +480,7 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {portalData.unvalidated_assignments.map((unval, i) => {
                           const isLettre = unval.name.toLowerCase().includes("lettre d");
-                          const isS6 = isGP && (unval.sequence.toLowerCase().includes("projet") || unval.name.toLowerCase().includes("portfolio"));
+                          const isS6 = isGP && (unval.sequence.toLowerCase().includes("séquence 6") || unval.name.toLowerCase().includes("portfolio") || unval.name.toLowerCase().includes("projet de spécialisation"));
 
                           return (
                             <div
@@ -618,7 +618,7 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
                 const isOpen = !!openSequences[seq.sequence];
                 const isAllDone = seq.completed === seq.total && seq.total > 0;
                 const hasTrou = seq.activities.some(a => a.is_trou);
-                const isS6 = isGP && seq.sequence.toLowerCase().includes('projet');
+                const isS6 = isGP && (seq.sequence.toLowerCase().includes('séquence 6') || seq.sequence.toLowerCase().includes('portfolio'));
 
                 return (
                   <div

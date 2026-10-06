@@ -739,7 +739,7 @@ class DataStore {
       let isTrou = progressionHoles.some(h => h.activity_id === act.id);
 
       // If learner has submitted PP deliverables, credit the PP activities dynamically
-      if (ppGrade && ppGrade.has_pp && seq.toLowerCase().includes('projet')) {
+      if (ppGrade && ppGrade.has_pp && (seq.toLowerCase().includes('projet professionnel') || (!seq.toLowerCase().includes('séquence') && seq.toLowerCase().includes('projet')))) {
         const actLower = act.name.toLowerCase();
         if (actLower.includes('stratégie') && ppGrade.pp1 !== undefined) {
           isCompleted = true;
