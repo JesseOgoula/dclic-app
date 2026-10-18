@@ -11,7 +11,8 @@ dotenv.config();
 import type {
   Learner, Activity, LearnerProgress, Upload, CommunicationLog,
   Evaluation, Report, Alert, DashboardStats, LearnerWithProgress, SequenceStat,
-  ProgressionHole, LearnerPortalData, PPGradeInfo, PPStats
+  ProgressionHole, LearnerPortalData, PPGradeInfo, PPStats,
+  GradeIncoherence, LearnerIncoherenceSummary
 } from '../types.js';
 import { isAssignment } from './parser/moodleParser.js';
 
@@ -345,6 +346,7 @@ class DataStore {
 
     const progressionHoles: ProgressionHole[] = [];
     const unvalidatedAssignments: ProgressionHole[] = [];
+    const gradeIncoherences: GradeIncoherence[] = [];
 
     if (maxValidOrder > -1) {
       sortedActivities.forEach(act => {
@@ -360,6 +362,7 @@ class DataStore {
             is_evaluated: act.is_evaluated || isDevoir,
             status: p ? p.status : 'not_completed',
             completed_at: p ? p.completed_at : null,
+            grade: p ? p.grade : null,
             display_order: act.display_order,
           };
           progressionHoles.push(hole);
@@ -372,10 +375,12 @@ class DataStore {
     }
 
     // Inclure également toute activité évaluée / devoir ayant reçu un échec (status === 'failed')
+    // et détecter toutes les incohérences entre les notes du carnet Moodle et l'achèvement
     sortedActivities.forEach(act => {
       const p = learnerProgress.find(x => x.activity_id === act.id);
+      const isDevoir = act.type === 'devoir' || isAssignment(act.name);
+
       if (p && p.status === 'failed') {
-        const isDevoir = act.type === 'devoir' || isAssignment(act.name);
         if (!unvalidatedAssignments.some(u => u.activity_id === act.id)) {
           const hole: ProgressionHole = {
             activity_id: act.id,
@@ -386,12 +391,38 @@ class DataStore {
             is_evaluated: act.is_evaluated || isDevoir,
             status: 'failed',
             completed_at: p.completed_at,
+            grade: p.grade,
             display_order: act.display_order,
           };
           unvalidatedAssignments.push(hole);
           if (!progressionHoles.some(h => h.activity_id === act.id)) {
             progressionHoles.push(hole);
           }
+        }
+      }
+
+      // Détection d'incohérence : c'est un devoir noté (grade !== null), mais le statut Moodle est "not_completed"
+      // (ou bien la note est validée >= seuil mais le statut est "failed")
+      if (isDevoir && p && p.grade !== null && p.grade !== undefined) {
+        const isS6 =
+          act.sequence.toLowerCase().includes('séquence 6') ||
+          act.name.toLowerCase().includes('livrable final') ||
+          act.name.toLowerCase().includes('portfolio');
+        const passingThreshold = isS6 ? 12 : 10;
+        const isPassingGrade = p.grade >= passingThreshold;
+
+        if (p.status === 'not_completed' || (isPassingGrade && p.status === 'failed')) {
+          gradeIncoherences.push({
+            activity_id: act.id,
+            code: act.code,
+            name: act.name,
+            sequence: act.sequence,
+            grade: p.grade,
+            max_grade: 20,
+            is_passing_grade: isPassingGrade,
+            moodle_status: p.status,
+            completed_at: p.completed_at,
+          });
         }
       }
     });
@@ -401,6 +432,8 @@ class DataStore {
       progressionHoles,
       unvalidatedAssignments,
       hasUnvalidatedAssignments: unvalidatedAssignments.length > 0,
+      gradeIncoherences,
+      hasGradeIncoherences: gradeIncoherences.length > 0,
     };
   }
 
@@ -452,8 +485,13 @@ class DataStore {
         ? Math.floor((now.getTime() - lastActivity) / (1000 * 60 * 60 * 24))
         : 999;
 
-      const { progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
-        this.computeProgressionGaps(learnerProgress, allActivities);
+      const {
+        progressionHoles,
+        unvalidatedAssignments,
+        hasUnvalidatedAssignments,
+        gradeIncoherences,
+        hasGradeIncoherences,
+      } = this.computeProgressionGaps(learnerProgress, allActivities);
 
       return {
         ...learner,
@@ -465,6 +503,8 @@ class DataStore {
         progression_holes: progressionHoles,
         unvalidated_assignments: unvalidatedAssignments,
         has_unvalidated_assignments: hasUnvalidatedAssignments,
+        grade_incoherences: gradeIncoherences,
+        has_grade_incoherences: hasGradeIncoherences,
       };
     });
 
@@ -593,6 +633,43 @@ class DataStore {
       })
       .sort((a, b) => a.last_name.localeCompare(b.last_name));
 
+    const gradeIncoherencesList: LearnerIncoherenceSummary[] = [];
+    let totalIncoherencesCount = 0;
+    let passingIncoherencesCount = 0;
+    let failingIncoherencesCount = 0;
+
+    for (const l of learnersWithProgress) {
+      const inc = l.grade_incoherences || [];
+      if (inc.length > 0) {
+        const passingCount = inc.filter(i => i.is_passing_grade).length;
+        const failingCount = inc.length - passingCount;
+        totalIncoherencesCount += inc.length;
+        passingIncoherencesCount += passingCount;
+        failingIncoherencesCount += failingCount;
+        gradeIncoherencesList.push({
+          learner_id: l.id,
+          first_name: l.first_name,
+          last_name: l.last_name,
+          email: l.email,
+          group_id: l.group_id,
+          completion_rate: l.completion_rate,
+          incoherences: inc,
+          passing_incoherences_count: passingCount,
+          failing_incoherences_count: failingCount,
+        });
+      }
+    }
+
+    gradeIncoherencesList.sort((a, b) => {
+      if (b.passing_incoherences_count !== a.passing_incoherences_count) {
+        return b.passing_incoherences_count - a.passing_incoherences_count;
+      }
+      if (b.incoherences.length !== a.incoherences.length) {
+        return b.incoherences.length - a.incoherences.length;
+      }
+      return a.last_name.localeCompare(b.last_name);
+    });
+
     const uploads = await this.getUploads();
     const uploadsWithRate = uploads.filter(u => u.completion_rate !== undefined && u.completion_rate !== null);
     let completionEvolution = undefined;
@@ -619,6 +696,10 @@ class DataStore {
       blocked_learners: blockedLearners,
       completed_phase1_list: completedPhase1Learners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
       completed_list: completedLearners.sort((a, b) => a.last_name.localeCompare(b.last_name)),
+      grade_incoherences: gradeIncoherencesList,
+      total_incoherences_count: totalIncoherencesCount,
+      passing_incoherences_count: passingIncoherencesCount,
+      failing_incoherences_count: failingIncoherencesCount,
     };
 
     const ppData = this.getProjetProfessionnelData();
@@ -716,7 +797,7 @@ class DataStore {
     const allActivities = await this.getActivities(formation);
     const progress = await this.getProgressByLearner(learner.id);
 
-    const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+    const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments, gradeIncoherences, hasGradeIncoherences } =
       this.computeProgressionGaps(progress, allActivities);
 
     const ppGrade = this.getPPGradeForEmail(learner.email);
@@ -735,6 +816,7 @@ class DataStore {
       let isCompleted = p ? (p.status === 'completed' || p.status === 'passed') : false;
       let status = p ? p.status : 'not_completed';
       let completedAt = p ? p.completed_at : null;
+      let grade = p && p.grade !== undefined && p.grade !== null ? p.grade : null;
       const isDevoir = act.type === 'devoir' || isAssignment(act.name);
       let isTrou = progressionHoles.some(h => h.activity_id === act.id);
 
@@ -764,11 +846,15 @@ class DataStore {
         }
       }
 
+      const hasIncoherence = !isCompleted && grade !== null && (isDevoir || act.is_evaluated);
+
       sequencesMap.get(seq)!.push({
         ...act,
         type: isDevoir ? 'devoir' : act.type,
         status,
         completed_at: completedAt,
+        grade,
+        has_incoherence: hasIncoherence,
         is_devoir: isDevoir,
         is_trou: isTrou,
         is_completed: isCompleted,
@@ -809,6 +895,8 @@ class DataStore {
       unvalidated_assignments: unvalidatedAssignments,
       all_progression_holes: progressionHoles,
       has_unvalidated_assignments: hasUnvalidatedAssignments,
+      grade_incoherences: gradeIncoherences,
+      has_grade_incoherences: hasGradeIncoherences,
       pp_grades: formation === 'mn' ? this.getPPGradeForEmail(learner.email) : undefined,
       sequences,
     };

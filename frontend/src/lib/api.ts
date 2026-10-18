@@ -81,6 +81,30 @@ export interface PPStats {
   };
 }
 
+export interface GradeIncoherence {
+  activity_id: string;
+  code: string;
+  name: string;
+  sequence: string;
+  grade: number;
+  max_grade: number;
+  is_passing_grade: boolean;
+  moodle_status: 'not_completed' | 'failed' | 'completed' | 'passed';
+  completed_at: string | null;
+}
+
+export interface LearnerIncoherenceSummary {
+  learner_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  group_id: string;
+  completion_rate: number;
+  incoherences: GradeIncoherence[];
+  passing_incoherences_count: number;
+  failing_incoherences_count: number;
+}
+
 export interface DashboardStats {
   total_learners: number;
   active_learners: number;
@@ -97,6 +121,10 @@ export interface DashboardStats {
   completed_phase1_list: LearnerWithProgress[];
   completed_list: LearnerWithProgress[];
   pp_stats?: PPStats;
+  grade_incoherences?: LearnerIncoherenceSummary[];
+  total_incoherences_count?: number;
+  passing_incoherences_count?: number;
+  failing_incoherences_count?: number;
 }
 
 export interface SequenceStat {
@@ -128,6 +156,7 @@ export interface ProgressionHole {
   is_evaluated: boolean;
   status: string;
   completed_at: string | null;
+  grade?: number | null;
   display_order: number;
 }
 
@@ -140,6 +169,8 @@ export interface LearnerWithProgress extends Learner {
   progression_holes?: ProgressionHole[];
   unvalidated_assignments?: ProgressionHole[];
   has_unvalidated_assignments?: boolean;
+  grade_incoherences?: GradeIncoherence[];
+  has_grade_incoherences?: boolean;
   is_blocked?: boolean;
   pp_grades?: PPGrades;
 }
@@ -170,6 +201,8 @@ export interface LearnerPortalData {
   unvalidated_assignments: ProgressionHole[];
   all_progression_holes: ProgressionHole[];
   has_unvalidated_assignments: boolean;
+  grade_incoherences?: GradeIncoherence[];
+  has_grade_incoherences?: boolean;
   pp_grades?: PPGrades;
   sequences: {
     sequence: string;
@@ -178,6 +211,7 @@ export interface LearnerPortalData {
     activities: (ActivityProgress & {
       is_devoir: boolean;
       is_trou: boolean;
+      has_incoherence?: boolean;
     })[];
   }[];
 }
@@ -193,6 +227,7 @@ export interface ActivityProgress {
   status: string;
   completed_at: string | null;
   grade: number | null;
+  has_incoherence?: boolean;
 }
 
 export interface Activity {
@@ -232,6 +267,19 @@ export interface Alert {
   triggered_at: string;
 }
 
+export interface GradebookComparison {
+  total_in_gradebook: number;
+  total_in_cohort: number;
+  matched_count: number;
+  missing_in_cohort: { name: string; email: string }[];
+  missing_in_gradebook: { first_name: string; last_name: string; email: string }[];
+  grades_recorded: number;
+  ungraded_recorded: number;
+  incoherences_detected: number;
+  passing_incoherences_detected: number;
+  affected_learners_count: number;
+}
+
 export interface UploadResult {
   upload_id: string;
   filename: string;
@@ -241,6 +289,7 @@ export interface UploadResult {
   progress_records: number;
   errors: string[];
   formation?: 'mn' | 'gp';
+  gradebook_comparison?: GradebookComparison;
 }
 
 // ============================================================
@@ -423,6 +472,13 @@ export const api = {
       }
       throw err;
     }
+  },
+
+  uploadGradebookText: async (text: string, formation?: string): Promise<UploadResult> => {
+    return await request<UploadResult>('/upload/gradebook-text', {
+      method: 'POST',
+      body: JSON.stringify({ text, formation }),
+    });
   },
 
   // Auth

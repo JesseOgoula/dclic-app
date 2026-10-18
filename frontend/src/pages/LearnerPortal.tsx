@@ -481,6 +481,8 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
                         {portalData.unvalidated_assignments.map((unval, i) => {
                           const isLettre = unval.name.toLowerCase().includes("lettre d");
                           const isS6 = isGP && (unval.sequence.toLowerCase().includes("séquence 6") || unval.name.toLowerCase().includes("portfolio") || unval.name.toLowerCase().includes("projet de spécialisation"));
+                          const hasGrade = unval.grade !== null && unval.grade !== undefined;
+                          const minScore = isS6 ? 12 : 10;
 
                           return (
                             <div
@@ -491,9 +493,22 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
                                 <span className="font-bold text-foreground truncate" title={unval.name}>
                                   {unval.name}
                                 </span>
-                                <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">
-                                  {isLettre ? "Dépôt manquant" : isS6 ? "Note < 12" : "Note < 10"}
-                                </Badge>
+                                {hasGrade ? (
+                                  <Badge
+                                    className={cn(
+                                      "text-[10px] px-1.5 py-0 shrink-0 font-mono",
+                                      unval.grade! >= minScore
+                                        ? "bg-emerald-600 text-white"
+                                        : "bg-amber-600 text-white"
+                                    )}
+                                  >
+                                    Note : {unval.grade} / 20 (Pas terminé)
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">
+                                    {isLettre ? "Dépôt manquant" : "0 / 20 · Non noté"}
+                                  </Badge>
+                                )}
                               </div>
                               <p className="text-muted-foreground text-[11px]">
                                 {unval.sequence}
@@ -676,6 +691,9 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
                           const isFailed = act.status === 'failed';
                           const isTrou = act.is_trou;
                           const isDevoir = act.is_devoir;
+                          const isLettre = act.name.toLowerCase().includes("lettre d");
+                          const hasGrade = act.grade !== null && act.grade !== undefined;
+                          const minScore = isS6 ? 12 : 10;
 
                           return (
                             <div
@@ -722,13 +740,34 @@ export const LearnerPortal: React.FC<LearnerPortalProps> = () => {
                                     </Badge>
                                   )}
 
+                                  {isDevoir && !isLettre && (
+                                    hasGrade ? (
+                                      <span
+                                        className={cn(
+                                          "text-[10px] font-mono font-bold px-2 py-0.5 rounded",
+                                          act.grade! >= minScore
+                                            ? "bg-emerald-600 text-white"
+                                            : "bg-amber-600 text-white"
+                                        )}
+                                      >
+                                        Note : {act.grade} / 20
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-mono font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border">
+                                        0 / 20 · Non noté
+                                      </span>
+                                    )
+                                  )}
+
                                   {isTrou ? (
                                     <span className="text-[11px] font-bold text-destructive">
-                                      {act.name.toLowerCase().includes("lettre d")
+                                      {isLettre
                                         ? "Lettre non déposée"
+                                        : hasGrade && act.grade! >= minScore
+                                        ? "Marqué « Pas terminé » sur Moodle"
                                         : isS6
-                                        ? "Non validé (Note < 12)"
-                                        : "Non validé (Note < 10)"}
+                                        ? "Non validé"
+                                        : "Non validé"}
                                     </span>
                                   ) : isDone ? (
                                     <span className="text-[11px] text-emerald-600 font-medium">

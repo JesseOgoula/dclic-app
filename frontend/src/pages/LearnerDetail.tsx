@@ -31,13 +31,18 @@ const SequenceAccordion = ({
   defaultOpen?: boolean;
 }) => {
   const hasUnvalidatedInSeq = activities.some((act: any) => unvalidatedIds.has(act.id));
-  const [isOpen, setIsOpen] = useState(defaultOpen || hasUnvalidatedInSeq);
+  const hasIncoherenceInSeq = activities.some((act: any) => act.has_incoherence);
+  const [isOpen, setIsOpen] = useState(defaultOpen || hasUnvalidatedInSeq || hasIncoherenceInSeq);
 
   return (
     <div
       className={cn(
         'mb-3 last:mb-0 border rounded-xl overflow-hidden bg-white transition-colors shadow-none',
-        hasUnvalidatedInSeq ? 'border-red-200' : 'border-[#F1F5F9]'
+        hasIncoherenceInSeq
+          ? 'border-red-300'
+          : hasUnvalidatedInSeq
+          ? 'border-red-200'
+          : 'border-[#F1F5F9]'
       )}
     >
       <button
@@ -45,14 +50,24 @@ const SequenceAccordion = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-3.5 bg-[#F8FAFC]/60 hover:bg-[#F8FAFC] transition-colors cursor-pointer"
       >
-        <div className="flex items-center gap-2.5">
-          <div className={cn('h-4 w-1 rounded-full', hasUnvalidatedInSeq ? 'bg-red-500' : 'bg-blue-600')} />
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className={cn(
+              'h-4 w-1 rounded-full',
+              hasIncoherenceInSeq || hasUnvalidatedInSeq ? 'bg-red-500' : 'bg-blue-600'
+            )}
+          />
           <h3 className="font-semibold text-xs text-neutral-900">{seq}</h3>
           <span className="text-[10px] font-medium text-neutral-400 bg-white border border-[#E2E8F0] px-2 py-0.5 rounded-full ml-1">
             {activities.length} activité{activities.length > 1 ? 's' : ''}
           </span>
-          {hasUnvalidatedInSeq && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full ml-1">
+          {hasIncoherenceInSeq && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-800 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">
+              <AlertTriangle className="h-2.5 w-2.5" /> Incohérence Moodle (Noté mais Pas terminé)
+            </span>
+          )}
+          {!hasIncoherenceInSeq && hasUnvalidatedInSeq && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
               <AlertTriangle className="h-2.5 w-2.5" /> Devoir à rattraper
             </span>
           )}
@@ -70,19 +85,28 @@ const SequenceAccordion = ({
             const isUnvalidated = unvalidatedIds.has(act.id);
             const isCompleted = act.status === 'completed' || act.status === 'passed';
             const isLettre = act.name.toLowerCase().includes('lettre d');
+            const isDevoir =
+              act.type === 'devoir' ||
+              act.is_evaluated ||
+              act.name.toLowerCase().includes('livrable');
+            const hasGrade = act.grade !== null && act.grade !== undefined;
+            const isPassingGrade = hasGrade && act.grade >= 10;
+            const hasIncoherence = Boolean(act.has_incoherence) || (!isCompleted && hasGrade && isDevoir);
 
             return (
               <div
                 key={j}
                 className={cn(
                   'flex items-start gap-2.5 p-2.5 rounded-xl border transition-colors shadow-none text-xs',
-                  isUnvalidated
+                  hasIncoherence
+                    ? 'border-red-300 bg-red-50/50'
+                    : isUnvalidated
                     ? 'border-red-200 bg-red-50/40'
                     : 'border-[#F1F5F9] bg-[#FAFAFA]/50 hover:bg-[#FAFAFA]'
                 )}
               >
                 <div className="shrink-0 mt-0.5">
-                  {isUnvalidated ? (
+                  {hasIncoherence || isUnvalidated ? (
                     <AlertTriangle className="h-4 w-4 text-red-500" />
                   ) : isCompleted ? (
                     <CheckCircle2 className="h-4 w-4 text-blue-600" />
@@ -96,21 +120,49 @@ const SequenceAccordion = ({
                   <p
                     className={cn(
                       'font-medium truncate',
-                      isUnvalidated ? 'text-red-700 font-semibold' : 'text-neutral-800'
+                      hasIncoherence || isUnvalidated ? 'text-red-800 font-semibold' : 'text-neutral-800'
                     )}
                     title={act.name}
                   >
                     {act.name}
                   </p>
-                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                     <span className="text-[10px] font-medium text-neutral-400 bg-white border border-[#E2E8F0] px-1.5 py-0.5 rounded">
                       {act.type}
                     </span>
-                    {isUnvalidated && (
-                      <span className="text-[10px] font-medium text-red-600 bg-red-100/60 px-1.5 py-0.5 rounded">
-                        {isLettre ? 'Lettre non déposée' : 'Note < 10'}
+
+                    {/* Affichage systématique de la note pour tous les livrables de devoirs */}
+                    {isDevoir && !isLettre && (
+                      hasGrade ? (
+                        <span
+                          className={cn(
+                            'text-[10px] font-mono font-bold px-2 py-0.5 rounded border',
+                            isPassingGrade
+                              ? 'bg-emerald-600 text-white border-emerald-700'
+                              : 'bg-amber-600 text-white border-amber-700'
+                          )}
+                        >
+                          Note : {act.grade} / 20
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono font-medium text-neutral-500 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded">
+                          0 / 20 · Non noté
+                        </span>
+                      )
+                    )}
+
+                    {hasIncoherence && (
+                      <span className="text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 px-1.5 py-0.5 rounded">
+                        Moodle : Pas terminé
                       </span>
                     )}
+
+                    {!hasIncoherence && isUnvalidated && (
+                      <span className="text-[10px] font-medium text-red-600 bg-red-100/60 px-1.5 py-0.5 rounded">
+                        {isLettre ? 'Lettre non déposée' : 'Devoir non validé'}
+                      </span>
+                    )}
+
                     {act.completed_at && (
                       <span className="text-[10px] text-neutral-400">
                         {isUnvalidated ? 'Soumis le ' : ''}
@@ -235,30 +287,90 @@ export const LearnerDetail: React.FC<LearnerDetailProps> = ({ id, onBack }) => {
         </div>
       </div>
 
-      {/* 2. Unvalidated assignments warning banner */}
-      {learner.has_unvalidated_assignments && (
-        <div className="bg-red-50/70 border border-red-200/60 rounded-2xl p-5 shadow-none">
+      {/* 2a. Moodle Grade Incoherences Alert Banner */}
+      {learner.grade_incoherences && learner.grade_incoherences.length > 0 && (
+        <div className="bg-red-50/90 border-2 border-red-200 rounded-2xl p-5 shadow-none">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-            <div className="space-y-2">
-              <h3 className="font-semibold text-sm text-red-900">
-                {learner.unvalidated_assignments?.length || 0} devoir(s) en attente de validation ou rattrapage
+            <div className="space-y-2 flex-1">
+              <h3 className="font-bold text-sm text-red-950">
+                {learner.grade_incoherences.length} incohérence(s) Moodle : Devoir(s) déjà noté(s) mais marqué(s) « Pas terminé »
               </h3>
-              <p className="text-xs text-red-700/80 max-w-3xl leading-relaxed">
-                Cet apprenant poursuit son parcours mais présente des devoirs obligatoires non validés (note minimale non atteinte) ou un document obligatoire non déposé.
+              <p className="text-xs text-red-800 max-w-3xl leading-relaxed">
+                Cet apprenant possède déjà une note dans le carnet de notes Moodle sur ce(s) livrable(s), mais la réouverture d'une tentative a réinitialisé son achèvement d'activité à « Pas terminé ».
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {learner.grade_incoherences.map((inc: any, idx: number) => (
+                  <span
+                    key={idx}
+                    className={cn(
+                      'inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-xl border bg-white',
+                      inc.is_passing_grade ? 'border-emerald-300 text-emerald-950' : 'border-amber-300 text-amber-950'
+                    )}
+                  >
+                    <span className="text-neutral-500 font-semibold">
+                      {inc.sequence.replace(/Séquence (\d+).*/i, 'S$1')}
+                    </span>
+                    <span className="font-semibold">{inc.name}</span>
+                    <span
+                      className={cn(
+                        'px-1.5 py-0.5 rounded font-mono font-bold text-[11px]',
+                        inc.is_passing_grade ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
+                      )}
+                    >
+                      {inc.grade} / {inc.max_grade}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
+                      Moodle : Pas terminé
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2b. Unvalidated assignments warning banner */}
+      {learner.has_unvalidated_assignments && (
+        <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-5 shadow-none">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm text-amber-950">
+                {learner.unvalidated_assignments?.length || 0} devoir(s) amont non validé(s) dans le suivi d'achèvement
+              </h3>
+              <p className="text-xs text-amber-800 max-w-3xl leading-relaxed">
+                L'apprenant a avancé dans les séquences suivantes alors que ces livrables amont figurent comme non terminés dans l'export d'achèvement Moodle.
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {learner.unvalidated_assignments?.map((u: any, idx: number) => {
                   const isLettre = u.name.toLowerCase().includes('lettre d');
+                  const hasGrade = u.grade !== null && u.grade !== undefined;
                   return (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-red-800 bg-white border border-red-200 px-2.5 py-1 rounded-lg"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-neutral-800 bg-white border border-amber-200 px-2.5 py-1 rounded-lg"
                     >
                       <span>{u.name}</span>
                       <span className="text-neutral-400">·</span>
                       <span className="text-neutral-500">{u.sequence}</span>
-                      <span className="text-red-600 font-semibold">({isLettre ? 'Dépôt manquant' : 'Note < 10'})</span>
+                      {hasGrade ? (
+                        <span
+                          className={cn(
+                            'font-mono font-bold px-1.5 py-0.5 rounded text-[10px]',
+                            u.grade >= 10
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-red-100 text-red-700'
+                          )}
+                        >
+                          Note : {u.grade}/20 (Pas terminé)
+                        </span>
+                      ) : (
+                        <span className="text-amber-700 font-semibold">
+                          ({isLettre ? 'Dépôt manquant' : '0/20 · Non noté'})
+                        </span>
+                      )}
                     </span>
                   );
                 })}

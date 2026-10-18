@@ -33,6 +33,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
     inactive: number;
     dropped: number;
     blocked: number;
+    incoherences: number;
     completed_phase1: number;
     completed: number;
     total: number;
@@ -69,6 +70,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
         inactive: data.inactive_learners,
         dropped: data.dropped_learners,
         blocked: data.blocked_learners.length,
+        incoherences: data.grade_incoherences?.length || 0,
         completed_phase1: data.completed_phase1_learners,
         completed: data.completed_learners,
       });
@@ -197,6 +199,9 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
     { id: 'inactive', label: 'Inactifs', count: stats?.inactive },
     { id: 'dropped', label: 'Décrochés', count: stats?.dropped },
     { id: 'blocked', label: 'Bloqués', count: stats?.blocked },
+    ...(stats && stats.incoherences > 0
+      ? [{ id: 'incoherence', label: 'Incohérences Moodle', count: stats.incoherences }]
+      : []),
   ];
 
   return (
@@ -406,6 +411,27 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                         <p className="font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
                           {learner.first_name} {learner.last_name}
                         </p>
+                        {learner.grade_incoherences && learner.grade_incoherences.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                            {learner.grade_incoherences.map((inc) => (
+                              <span
+                                key={inc.activity_id}
+                                className={cn(
+                                  "inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border",
+                                  inc.is_passing_grade
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-amber-50 text-amber-700 border-amber-200"
+                                )}
+                                title={`Incohérence Moodle : "${inc.name}" est marqué "Pas terminé" mais noté ${inc.grade}/${inc.max_grade}`}
+                              >
+                                <AlertTriangle size={10} className="shrink-0" />
+                                <span>
+                                  Incohérence : {inc.name.split(':')[0].trim()} ({inc.grade}/{inc.max_grade})
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         {learner.unvalidated_assignments && learner.unvalidated_assignments.length > 0 && (
                           <p
                             className="text-[11px] text-red-600 flex items-center gap-1 mt-0.5 truncate max-w-md"

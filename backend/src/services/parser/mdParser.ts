@@ -1,5 +1,6 @@
 import fs from 'fs';
 import type { ParsedParticipant } from '../../types.js';
+import { cleanMoodleLearnerName } from './gradebookParser.js';
 
 /**
  * Parse the Moodle participants Markdown file.
@@ -34,28 +35,11 @@ export function parseParticipantsMD(filePath: string): ParsedParticipant[] {
         const email = emailStr.toLowerCase().trim();
         if (!email) continue;
 
-        // Split name: Last word in uppercase (or just last word) is often the last name
-        const nameParts = fullName.split(/\s+/);
-        let firstName = '';
-        let lastName = '';
-        
-        if (nameParts.length > 1) {
-            // Check if any parts are all uppercase (typically last name in French conventions)
-            const upperParts = nameParts.filter(p => p === p.toUpperCase() && p.length > 1);
-            if (upperParts.length > 0) {
-                lastName = upperParts.join(' ');
-                firstName = nameParts.filter(p => !upperParts.includes(p)).join(' ');
-            } else {
-                lastName = nameParts[nameParts.length - 1];
-                firstName = nameParts.slice(0, -1).join(' ');
-            }
-        } else {
-            firstName = fullName;
-        }
+        const cleaned = cleanMoodleLearnerName(fullName);
 
         results.push({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          first_name: cleaned.first_name,
+          last_name: cleaned.last_name,
           email,
           group: groupStr.trim(),
           last_access: lastAccess.trim(),
@@ -118,26 +102,11 @@ export function parseRawParticipantsText(content: string): ParsedParticipantWith
         const nameStr = cols.slice(0, emailIdx).join(' ').trim() || cols[0];
         const group = cols.find(c => /G1_|GPM|MN/i.test(c)) || '';
         const lastAccess = cols.find((c, idx) => idx > emailIdx && isAccessString(c)) || '';
-
-        const nameParts = nameStr.split(/\s+/);
-        let firstName = '';
-        let lastName = '';
-        if (nameParts.length > 1) {
-          const upperParts = nameParts.filter(p => p === p.toUpperCase() && p.length > 1);
-          if (upperParts.length > 0) {
-            lastName = upperParts.join(' ');
-            firstName = nameParts.filter(p => !upperParts.includes(p)).join(' ');
-          } else {
-            lastName = nameParts[nameParts.length - 1];
-            firstName = nameParts.slice(0, -1).join(' ');
-          }
-        } else {
-          firstName = nameStr;
-        }
+        const cleaned = cleanMoodleLearnerName(nameStr);
 
         results.push({
-          first_name: firstName.trim() || 'Apprenant',
-          last_name: lastName.trim(),
+          first_name: cleaned.first_name,
+          last_name: cleaned.last_name,
           email,
           group: group.trim(),
           last_access: lastAccess.trim() || null,
@@ -176,26 +145,11 @@ export function parseRawParticipantsText(content: string): ParsedParticipantWith
 
     const group = parts.find(p => /G1_|GPM|MN/i.test(p)) || '';
     const lastAccess = parts.find((p, idx) => idx !== emailIdx && isAccessString(p)) || '';
-
-    const nameParts = nameStr.split(/\s+/);
-    let firstName = '';
-    let lastName = '';
-    if (nameParts.length > 1) {
-      const upperParts = nameParts.filter(p => p === p.toUpperCase() && p.length > 1);
-      if (upperParts.length > 0) {
-        lastName = upperParts.join(' ');
-        firstName = nameParts.filter(p => !upperParts.includes(p)).join(' ');
-      } else {
-        lastName = nameParts[nameParts.length - 1];
-        firstName = nameParts.slice(0, -1).join(' ');
-      }
-    } else {
-      firstName = nameStr;
-    }
+    const cleaned = cleanMoodleLearnerName(nameStr);
 
     results.push({
-      first_name: firstName.trim() || 'Apprenant',
-      last_name: lastName.trim(),
+      first_name: cleaned.first_name,
+      last_name: cleaned.last_name,
       email,
       group: group.trim(),
       last_access: lastAccess.trim() || null,
@@ -226,25 +180,11 @@ export function parseRawParticipantsText(content: string): ParsedParticipantWith
       }
 
       if (!isTeacher) {
-        const nameParts = nameStr.split(/\s+/);
-        let firstName = '';
-        let lastName = '';
-        if (nameParts.length > 1) {
-          const upperParts = nameParts.filter(p => p === p.toUpperCase() && p.length > 1);
-          if (upperParts.length > 0) {
-            lastName = upperParts.join(' ');
-            firstName = nameParts.filter(p => !upperParts.includes(p)).join(' ');
-          } else {
-            lastName = nameParts[nameParts.length - 1];
-            firstName = nameParts.slice(0, -1).join(' ');
-          }
-        } else {
-          firstName = nameStr;
-        }
+        const cleaned = cleanMoodleLearnerName(nameStr);
 
         results.push({
-          first_name: firstName.trim() || 'Apprenant',
-          last_name: lastName.trim(),
+          first_name: cleaned.first_name,
+          last_name: cleaned.last_name,
           email,
           group: group.trim(),
           last_access: lastAccess.trim() || null,

@@ -5,7 +5,7 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { processUpload, processRawTextImport } from '../services/uploadService.js';
+import { processUpload, processRawTextImport, processGradebookTextImport } from '../services/uploadService.js';
 import { store, supabase, computeLearnerStatus } from '../services/store.js';
 import { requireAdminAuth, generateAdminToken, checkAdminPassword, verifyAdminToken } from '../services/auth.js';
 
@@ -149,6 +149,25 @@ router.post('/upload/raw-text', async (req: Request, res: Response): Promise<voi
     console.error('Raw text import error:', error);
     res.status(500).json({
       error: "Erreur lors de l'import du texte",
+      details: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+router.post('/upload/gradebook-text', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { text, formation } = req.body || {};
+    if (!text || typeof text !== 'string' || !text.trim()) {
+      res.status(400).json({ error: 'Texte du carnet de notes vide ou manquant.' });
+      return;
+    }
+    const targetFormation = ((formation || req.query?.formation) as 'mn' | 'gp') || undefined;
+    const result = await processGradebookTextImport(text, targetFormation);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Gradebook text import error:', error);
+    res.status(500).json({
+      error: "Erreur lors de l'import des notes Moodle",
       details: error instanceof Error ? error.message : String(error),
     });
   }
@@ -317,7 +336,7 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
       ).length;
       const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
 
-      const { progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+      const { progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments, gradeIncoherences, hasGradeIncoherences } =
         store.computeProgressionGaps(progress, activities);
 
       const hasNoPhase1AssignmentHoles = !unvalidatedAssignments.some(u =>
@@ -345,6 +364,8 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
         has_unvalidated_assignments: hasUnvalidatedAssignments,
         unvalidated_assignments: unvalidatedAssignments,
         progression_holes: progressionHoles,
+        grade_incoherences: gradeIncoherences,
+        has_grade_incoherences: hasGradeIncoherences,
         is_blocked: isBlocked,
         pp_grades: ppGrade,
       };
@@ -357,6 +378,8 @@ router.get('/learners', async (req: Request, res: Response): Promise<void> => {
         enriched = enriched.filter(l => l.status === 'active' && l.days_inactive > 7);
       } else if (status === 'blocked') {
         enriched = enriched.filter(l => l.has_failed_activities || l.has_unvalidated_assignments);
+      } else if (status === 'incoherence') {
+        enriched = enriched.filter(l => l.has_grade_incoherences);
       } else {
         enriched = enriched.filter(l => l.status === status);
       }
@@ -409,7 +432,7 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
       const prog = progress.find(p => p.activity_id === activity.id);
       let status = prog?.status || 'not_completed';
       let completedAt = prog?.completed_at || null;
-      let grade = prog?.grade || null;
+      let grade = (prog && prog.grade !== undefined && prog.grade !== null) ? prog.grade : null;
 
       // Credit PP deliverables if submitted
       if (ppGrade && ppGrade.has_pp && (activity.sequence.toLowerCase().includes('projet professionnel') || (!activity.sequence.toLowerCase().includes('séquence') && activity.sequence.toLowerCase().includes('projet')))) {
@@ -433,11 +456,15 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
         }
       }
 
+      const isCompleted = status === 'completed' || status === 'passed';
+      const hasIncoherence = !isCompleted && grade !== null && (activity.type === 'devoir' || activity.is_evaluated);
+
       return {
         ...activity,
         status,
         completed_at: completedAt,
         grade,
+        has_incoherence: hasIncoherence,
       };
     });
 
@@ -465,7 +492,7 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
     ).length;
     const hasCompletedAllPhase1 = phase1Activities.length > 0 && learnerPhase1Completed === phase1Activities.length;
 
-    const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments } =
+    const { maxValidOrder, progressionHoles, unvalidatedAssignments, hasUnvalidatedAssignments, gradeIncoherences, hasGradeIncoherences } =
       store.computeProgressionGaps(progress, activities);
 
     const hasNoPhase1AssignmentHoles = !unvalidatedAssignments.some(u =>
@@ -490,6 +517,8 @@ router.get('/learners/:id', async (req: Request, res: Response): Promise<void> =
         progression_holes: progressionHoles,
         unvalidated_assignments: unvalidatedAssignments,
         has_unvalidated_assignments: hasUnvalidatedAssignments,
+        grade_incoherences: gradeIncoherences,
+        has_grade_incoherences: hasGradeIncoherences,
         is_blocked: progress.some(p => p.status === 'failed') || hasUnvalidatedAssignments,
         pp_grades: store.getPPGradeForEmail(learner.email),
       },
