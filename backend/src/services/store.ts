@@ -1088,7 +1088,8 @@ class DataStore {
   }
 
   async updateUpload(id: string, data: Partial<Upload>): Promise<void> {
-    await supabase.from('uploads').update(data).eq('id', id);
+    const { completion_rate: _ignored, ...safeData } = data as any;
+    await supabase.from('uploads').update(safeData).eq('id', id);
   }
 
   async getUploads(formation?: string): Promise<Upload[]> {

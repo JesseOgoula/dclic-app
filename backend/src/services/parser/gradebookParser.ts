@@ -52,6 +52,7 @@ export function cleanMoodleLearnerName(rawName: string): {
   let s = stripMarkdownLinks(rawName)
     .replace(/^Une photo d['’]identité de\s+/i, '')
     .replace(/^Photo d['’]identité ou de profil\.?\s*/i, '')
+    .replace(/^Ma\s+photo\s+de\s+profil\.?\s*/i, '')
     .replace(/^Photo de profil\.?\s*/i, '')
     .replace(/^Apprenant\s+/i, '')
     .replace(/\s+/g, ' ')

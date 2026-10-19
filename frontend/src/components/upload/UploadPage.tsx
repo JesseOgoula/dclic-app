@@ -257,6 +257,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+      e.target.value = '';
       if (file) await uploadFile(file);
     },
     [uploadFile]
@@ -410,7 +411,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                   Déposez vos fichiers Moodle ici ou <span className="underline">parcourez vos dossiers</span>
                 </p>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Formats acceptés : CSV (Progression), XLSX / XLS / MD (Participants) · Max 50 MB
+                  Formats acceptés : CSV, XLSX, XLS (Progression ou Participants) et MD · Max 50 MB
                 </p>
                 <p className="text-[11px] text-neutral-400 mt-2 font-mono">
                   Astuce : Vous pouvez aussi copier le Carnet de notes Moodle et faire Ctrl+V directement ici
