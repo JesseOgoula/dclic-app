@@ -118,10 +118,25 @@ export function cleanMoodleLearnerName(rawName: string): {
 }
 
 /**
+ * Clean Moodle activity header from copy-paste noise:
+ * - Markdown links `[Label](url)`
+ * - Leading Moodle activity type or aggregation icon alt texts (`Paquetage SCORM`, `Devoir`, `Naturelle`, etc.)
+ *   that browsers include when copying plain text directly from the Moodle Grader Report table.
+ */
+export function cleanMoodleActivityHeader(rawHeader: string): string {
+  return stripMarkdownLinks(rawHeader)
+    .replace(
+      /^(?:Paquetage\s+SCORM|Activit[ée]\s+SCORM|SCORM\s+package|Devoir|Assignment|Test|Quiz|Questionnaire|Feedback|Forum|Atelier|Workshop|Le[çc]on|Lesson|Glossaire|Glossary|Contenu\s+interactif|Activit[ée]\s+H5P|H5P|Outil\s+externe|External\s+tool|Ressource|Fichier|Page|URL|Dossier|[ÉE]tiquette|Wiki|Sondage|Choice|Base\s+de\s+donn[ée]es|Database|Chat|Naturelle|Natural|Moyenne\s+pond[ée]r[ée]e(?:\s+simple)?\s+des\s+notes|Moyenne\s+des\s+notes|Somme\s+des\s+notes|Tendance\s+centrale)\s*/i,
+      ''
+    )
+    .trim();
+}
+
+/**
  * Normalize activity name for resilient matching (collapses multiple spaces, lowercases, strips accents/punctuation differences).
  */
 export function normalizeActivityNameForMatch(name: string): string {
-  return name
+  return cleanMoodleActivityHeader(name)
     .toLowerCase()
     .replace(/\[suppression en cours\]/gi, '')
     .replace(/['’`]/g, "'")
@@ -174,19 +189,24 @@ export function parseRawGradebookText(rawText: string): ParsedGradebookResult {
   }
 
   // 1. Extract activity headers between "Adresse de courriel" and "Total du cours"
+  const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
   let inHeaders = false;
   const extractedHeaders: string[] = [];
 
   for (const line of rawLines) {
-    const cleaned = stripMarkdownLinks(line);
+    const rawStripped = stripMarkdownLinks(line);
+    const cleaned = cleanMoodleActivityHeader(line);
 
     // Handle case where headers are tab-separated on a single line
     if (
-      cleaned.toLowerCase().includes('adresse de courriel') &&
-      cleaned.toLowerCase().includes('total du cours') &&
-      cleaned.includes('\t')
+      rawStripped.toLowerCase().includes('adresse de courriel') &&
+      rawStripped.toLowerCase().includes('total du cours') &&
+      line.includes('\t')
     ) {
-      const parts = cleaned.split('\t').map(p => stripMarkdownLinks(p)).filter(Boolean);
+      const parts = line
+        .split('\t')
+        .map(p => cleanMoodleActivityHeader(p))
+        .filter(Boolean);
       const emailIdx = parts.findIndex(p => p.toLowerCase().includes('adresse de courriel'));
       const totalIdx = parts.findIndex(p => p.toLowerCase().includes('total du cours'));
       if (emailIdx !== -1 && totalIdx !== -1 && totalIdx > emailIdx) {
@@ -195,28 +215,43 @@ export function parseRawGradebookText(rawText: string): ParsedGradebookResult {
       }
     }
 
-    if (cleaned.toLowerCase() === 'adresse de courriel') {
+    if (rawStripped.toLowerCase() === 'adresse de courriel') {
       inHeaders = true;
       continue;
     }
 
     if (inHeaders) {
-      if (cleaned.toLowerCase() === 'total du cours' || cleaned.toLowerCase().startsWith('total du cours')) {
+      if (
+        cleaned.toLowerCase() === 'total du cours' ||
+        cleaned.toLowerCase().startsWith('total du cours') ||
+        rawStripped.toLowerCase().includes('total du cours')
+      ) {
+        inHeaders = false;
+        break;
+      }
+      // Safety stop if we ever hit a student email line (in case "Total du cours" was omitted from selection)
+      if (emailRegex.test(line) && !line.toLowerCase().includes('sortitemid=email')) {
+        if (extractedHeaders.length > 0) {
+          extractedHeaders.pop(); // Remove the student's name line that preceded the email
+        }
         inHeaders = false;
         break;
       }
       // If a header line has tabs, split by tab
-      if (cleaned.includes('\t')) {
-        const subParts = cleaned.split('\t').map(p => stripMarkdownLinks(p)).filter(Boolean);
+      if (line.includes('\t')) {
+        const subParts = line
+          .split('\t')
+          .map(p => cleanMoodleActivityHeader(p))
+          .filter(Boolean);
         for (const sp of subParts) {
-          if (sp.toLowerCase() === 'total du cours') {
+          if (sp.toLowerCase().includes('total du cours')) {
             inHeaders = false;
             break;
           }
           extractedHeaders.push(sp);
         }
         if (!inHeaders) break;
-      } else {
+      } else if (cleaned) {
         extractedHeaders.push(cleaned);
       }
     }
@@ -228,7 +263,6 @@ export function parseRawGradebookText(rawText: string): ParsedGradebookResult {
   );
 
   // 2. Parse student blocks
-  const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
   const pureGradeTokenRegex = /^(?:-|\d+(?:[.,]\d+)?)$/;
 
   interface RawStudentBlock {

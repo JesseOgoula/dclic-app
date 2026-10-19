@@ -635,7 +635,7 @@ export async function processGradebookTextImport(
   const targetGroup = detectedFormation === 'gp' ? 'G1_GPM_092026' : 'G1_MN_072026';
 
   const upload = await store.addUpload(
-    `Carnet de notes Moodle (${parsed.learners.length} apprenants)`,
+    `Carnet de notes Moodle ${detectedFormation.toUpperCase()} (${parsed.learners.length} apprenants)`,
     'md'
   );
 
@@ -737,7 +737,23 @@ export async function processGradebookTextImport(
     refreshedLearners.map(l => [l.email.trim().toLowerCase(), l])
   );
 
-  const allActivities = await store.getActivities(detectedFormation, true);
+  let allActivities = await store.getActivities(detectedFormation, true);
+  if (
+    allActivities.length === 0 &&
+    parsed.activity_headers.length > 0 &&
+    parsed.activity_headers.length <= 120
+  ) {
+    const activityMeta = extractActivityMetadata(parsed.activity_headers, detectedFormation);
+    const activitiesToInsert = activityMeta.map(meta => ({
+      ...meta,
+      formation_type: detectedFormation,
+    }));
+    for (let i = 0; i < activitiesToInsert.length; i += 50) {
+      await supabase.from('activities').insert(activitiesToInsert.slice(i, i + 50));
+    }
+    allActivities = await store.getActivities(detectedFormation, true);
+  }
+
   const activityByNormName = new Map<string, Activity>();
   for (const act of allActivities) {
     activityByNormName.set(normalizeActivityNameForMatch(act.name), act);
@@ -883,11 +899,11 @@ export async function processGradebookTextImport(
 
   return {
     upload_id: upload.id,
-    filename: `Carnet de notes Moodle (${parsed.learners.length} apprenants)`,
+    filename: `Carnet de notes Moodle ${detectedFormation.toUpperCase()} (${parsed.learners.length} apprenants)`,
     rows_processed: parsed.learners.length,
     learners_created: learnersCreated,
     learners_updated: learnersUpdated,
-    progress_records: toInsertProgress.length + toUpdateProgress.length,
+    progress_records: (toInsertProgress.length + toUpdateProgress.length) || gradesRecorded,
     errors,
     formation: detectedFormation,
     gradebook_comparison: comparison,
