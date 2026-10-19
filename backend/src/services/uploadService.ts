@@ -8,7 +8,6 @@ import fs from 'fs';
 import {
   parseProgressCSV,
   parseParticipantsXLSX,
-  isProgressionSpreadsheet,
   extractActivityMetadata,
   isAssignment,
 } from './parser/moodleParser.js';
@@ -105,23 +104,23 @@ export async function processUpload(
 
     let result: UploadResult;
 
-    if (ext === '.csv' || ext === '.xlsx' || ext === '.xls') {
-      if (isProgressionSpreadsheet(filePath)) {
-        result = await processProgressCSV(filePath, upload.id, targetFormation, filename);
-      } else if (ext === '.csv') {
-        result = await processProgressCSV(filePath, upload.id, targetFormation, filename);
-      } else {
-        result = await processParticipantsXLSX(filePath, upload.id, targetFormation, filename);
-      }
+    if (ext === '.csv') {
+      result = await processProgressCSV(filePath, upload.id, targetFormation, filename);
+    } else if (ext === '.xlsx' || ext === '.xls') {
+      result = await processParticipantsXLSX(filePath, upload.id, targetFormation, filename);
     } else if (ext === '.md') {
       result = await processParticipantsMD(filePath, upload.id, targetFormation, filename);
     } else {
       throw new Error(`Unsupported file type: ${ext}`);
     }
 
+    const resolvedFormation = result.formation || targetFormation || 'mn';
+    const stats = await store.getDashboardStats(resolvedFormation);
+
     await store.updateUpload(upload.id, {
       rows_processed: result.rows_processed,
       status: 'processed',
+      completion_rate: stats.completion_rate,
     });
 
     return result;
@@ -236,9 +235,9 @@ async function processProgressCSV(
 
     rowsToProcess.push(row);
 
-    const cleaned = cleanMoodleLearnerName(row.name.trim());
-    const firstName = cleaned.first_name || 'Apprenant';
-    const lastName = cleaned.last_name || '';
+    const nameParts = row.name.trim().split(/\s+/);
+    const firstName = nameParts.slice(0, -1).join(' ') || nameParts[0] || 'Apprenant';
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
 
     const timestamps = row.activities
       .filter(a => a.completed_at)
@@ -249,13 +248,10 @@ async function processProgressCSV(
       : null;
 
     const existing = learnerMap.get(emailNorm);
-    const existingCleaned = existing
-      ? cleanMoodleLearnerName(`${existing.first_name} ${existing.last_name}`)
-      : null;
     const learnerObj = {
       ...(existing?.id ? { id: existing.id } : {}),
-      first_name: existingCleaned?.first_name || firstName,
-      last_name: existingCleaned?.last_name || lastName,
+      first_name: existing?.first_name || firstName,
+      last_name: existing?.last_name || lastName,
       email: emailNorm,
       group_id: targetGroup,
       last_activity_at: lastActivity || existing?.last_activity_at || null,
@@ -284,9 +280,6 @@ async function processProgressCSV(
 
   const allActivities = await store.getActivities(detectedFormation, true);
   const activityByName = new Map<string, Activity>(allActivities.map(a => [a.name, a]));
-  const activityByNormName = new Map<string, Activity>(
-    allActivities.map(a => [normalizeActivityNameForMatch(a.name), a])
-  );
   const activityByCode = new Map<string, Activity>(allActivities.map(a => [a.code, a]));
 
   // 7. Load all existing progress records into memory map
@@ -308,10 +301,7 @@ async function processProgressCSV(
 
     for (const act of row.activities) {
       const meta = activityMeta.find(m => m.name === act.name);
-      const activity =
-        activityByName.get(act.name) ||
-        activityByNormName.get(normalizeActivityNameForMatch(act.name)) ||
-        (meta ? activityByCode.get(meta.code) : undefined);
+      const activity = activityByName.get(act.name) || (meta ? activityByCode.get(meta.code) : undefined);
       if (!activity) continue;
 
       totalMatchedProgress++;
@@ -747,20 +737,7 @@ export async function processGradebookTextImport(
     refreshedLearners.map(l => [l.email.trim().toLowerCase(), l])
   );
 
-  let allActivities = await store.getActivities(detectedFormation, true);
-  if (allActivities.length === 0 && parsed.activity_headers.length > 0) {
-    // Self-heal: if cohort was reset before pasting the Gradebook, create the syllabus activities automatically
-    const activityMeta = extractActivityMetadata(parsed.activity_headers, detectedFormation);
-    for (let i = 0; i < activityMeta.length; i += 50) {
-      const chunk = activityMeta.slice(i, i + 50).map(m => ({
-        ...m,
-        formation_type: detectedFormation,
-      }));
-      await supabase.from('activities').insert(chunk);
-    }
-    allActivities = await store.getActivities(detectedFormation, true);
-  }
-
+  const allActivities = await store.getActivities(detectedFormation, true);
   const activityByNormName = new Map<string, Activity>();
   for (const act of allActivities) {
     activityByNormName.set(normalizeActivityNameForMatch(act.name), act);
@@ -888,6 +865,7 @@ export async function processGradebookTextImport(
   await store.updateUpload(upload.id, {
     rows_processed: parsed.learners.length,
     status: 'processed',
+    completion_rate: stats.completion_rate,
   });
 
   const comparison: GradebookComparison = {
