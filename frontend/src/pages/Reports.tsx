@@ -16,15 +16,14 @@ import {
   Calendar,
   Users,
   Target,
-  TrendingUp,
-  Activity,
-  ChevronDown,
-  Download,
-  CheckCircle2,
+  TrendUp as TrendingUp,
+  CaretDown as ChevronDown,
+  DownloadSimple as Download,
+  CheckCircle as CheckCircle2,
   ArrowUpRight,
   ArrowDownRight,
-  AlertTriangle,
-} from 'lucide-react';
+  Warning as AlertTriangle,
+} from '@phosphor-icons/react';
 import { useFormation } from '@/context/FormationContext';
 
 function CustomSelect({

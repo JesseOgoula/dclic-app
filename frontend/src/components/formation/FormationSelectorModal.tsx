@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFormation } from '@/context/FormationContext';
-import { Layers, Briefcase, ChevronRight, Check } from 'lucide-react';
+import { Stack, Briefcase, CaretRight, Check } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import type { FormationType } from '@/lib/api';
 
@@ -51,7 +51,7 @@ export const FormationSelectorModal: React.FC<FormationSelectorModalProps> = ({
           >
             <div className="flex items-center justify-between w-full mb-3">
               <div className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-foreground group-hover:bg-neutral-200 transition-colors">
-                <Briefcase size={18} strokeWidth={2} />
+                <Briefcase size={18} />
               </div>
               {currentFormation === 'gp' && (
                 <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
@@ -80,7 +80,7 @@ export const FormationSelectorModal: React.FC<FormationSelectorModalProps> = ({
 
             <div className="mt-4 flex items-center text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
               Accéder au dashboard
-              <ChevronRight size={14} className="ml-1" />
+              <CaretRight size={14} className="ml-1" />
             </div>
           </button>
 
@@ -97,7 +97,7 @@ export const FormationSelectorModal: React.FC<FormationSelectorModalProps> = ({
           >
             <div className="flex items-center justify-between w-full mb-3">
               <div className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-foreground group-hover:bg-neutral-200 transition-colors">
-                <Layers size={18} strokeWidth={2} />
+                <Stack size={18} />
               </div>
               {currentFormation === 'mn' && (
                 <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
@@ -126,7 +126,7 @@ export const FormationSelectorModal: React.FC<FormationSelectorModalProps> = ({
 
             <div className="mt-4 flex items-center text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
               Accéder au dashboard
-              <ChevronRight size={14} className="ml-1" />
+              <CaretRight size={14} className="ml-1" />
             </div>
           </button>
         </div>

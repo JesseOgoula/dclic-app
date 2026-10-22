@@ -1,20 +1,20 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  Upload as UploadIcon,
-  FileSpreadsheet,
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
+  UploadSimple as UploadIcon,
+  FileCsv,
+  CheckCircle,
+  WarningCircle,
+  Warning,
   FileText,
-  Trash2,
-  RefreshCcw,
+  Trash,
+  ArrowClockwise,
   Users,
   ArrowRight,
-  Loader2,
-  Sparkles,
-  Clipboard,
-  Award,
-} from 'lucide-react';
+  Spinner,
+  Sparkle,
+  ClipboardText,
+  Trophy,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { api, type UploadResult } from '@/lib/api';
 import { useFormation } from '@/context/FormationContext';
@@ -282,7 +282,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
             className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E2E8F0] hover:bg-red-50 hover:text-red-700 hover:border-red-200 bg-white text-xs font-medium text-neutral-700 transition-colors shadow-none cursor-pointer"
             title={`Effacer uniquement les données de ${formationTitle}`}
           >
-            <Trash2 size={13} className="text-neutral-400" />
+            <Trash size={13} className="text-neutral-400" />
             <span>Réinitialiser ({formationTitle})</span>
           </button>
         </div>
@@ -314,7 +314,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
           )}
         >
-          <Award size={14} />
+          <Trophy size={14} />
           <span>Tableau des Notes Moodle (Copier-coller)</span>
           {gradebookLearnerCount > 0 && (
             <span
@@ -338,7 +338,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
           )}
         >
-          <Clipboard size={14} />
+          <ClipboardText size={14} />
           <span>Participants (Copier-coller)</span>
           {parsingCount > 0 && (
             <span
@@ -382,8 +382,8 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           {uploading ? (
             <div className="flex flex-col items-center gap-3.5 w-full max-w-sm mx-auto py-6">
               <div className="relative flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-neutral-900 animate-spin" />
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
+                <Spinner className="w-8 h-8 text-neutral-900 animate-spin" />
+                <Sparkle className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
               </div>
               <div className="text-center space-y-1">
                 <p className="text-xs font-semibold text-neutral-900 transition-all duration-300">
@@ -424,7 +424,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
-                <Award size={16} className="text-amber-600" />
+                <Trophy size={16} className="text-amber-600" />
                 Copier-coller du Tableau des Notes Moodle (« Rapport de l'évaluateur »)
               </h2>
               <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
@@ -440,7 +440,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                 </span>
                 {gradebookGradesCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
-                    <Award size={13} />
+                    <Trophy size={13} />
                     {gradebookGradesCount} cellules chiffrées
                   </span>
                 )}
@@ -501,12 +501,12 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               >
                 {uploading ? (
                   <>
-                    <Loader2 size={13} className="animate-spin" />
+                    <Spinner size={13} className="animate-spin" />
                     <span>Nettoyage & Synchronisation...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 size={13} />
+                    <CheckCircle size={13} />
                     <span>
                       Analyser & Importer les notes {gradebookLearnerCount > 0 ? `(${gradebookLearnerCount})` : ''}
                     </span>
@@ -521,7 +521,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
-                <Clipboard size={15} className="text-neutral-700" />
+                <ClipboardText size={15} className="text-neutral-700" />
                 Copier-coller de la liste des Participants Moodle
               </h2>
               <p className="text-xs text-neutral-500 mt-0.5">
@@ -590,12 +590,12 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               >
                 {uploading ? (
                   <>
-                    <Loader2 size={13} className="animate-spin" />
+                    <Spinner size={13} className="animate-spin" />
                     <span>Synchronisation...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 size={13} />
+                    <CheckCircle size={13} />
                     <span>Importer {parsingCount > 0 ? `(${parsingCount} apprenant${parsingCount > 1 ? 's' : ''})` : ''}</span>
                   </>
                 )}
@@ -611,7 +611,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F1F5F9]">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0">
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold text-sm text-neutral-900">
@@ -682,7 +682,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 flex items-center gap-1.5">
-                    <Award size={14} className="text-amber-600" />
+                    <Trophy size={14} className="text-amber-600" />
                     Comparaison de la liste des apprenants & Bilan des notes
                   </h4>
                   <p className="text-[11px] text-neutral-500 mt-0.5">
@@ -722,7 +722,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               {result.gradebook_comparison.incoherences_detected > 0 && (
                 <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <AlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
+                    <Warning size={16} className="text-red-600 shrink-0 mt-0.5" />
                     <div className="text-xs text-red-900">
                       <span className="font-bold">
                         {result.gradebook_comparison.incoherences_detected} devoir(s) sur {result.gradebook_comparison.affected_learners_count} apprenant(s)
@@ -817,7 +817,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
       {/* 4. Error Alert */}
       {error && (
         <div className="bg-red-50 border border-red-200/60 rounded-2xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <WarningCircle className="w-5 h-5 text-red-600 shrink-0" />
           <div>
             <p className="text-xs font-semibold text-red-900">Erreur lors de l'import</p>
             <p className="text-xs text-red-700/80 mt-0.5">{error}</p>
@@ -834,7 +834,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
 
         <div className="space-y-2 pt-1">
           <div className="flex items-start gap-3 p-3 rounded-xl border border-[#F1F5F9] bg-[#FAFAFA]/50">
-            <Award size={18} className="text-amber-600 shrink-0 mt-0.5" />
+            <Trophy size={18} className="text-amber-600 shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-semibold text-neutral-900">Copier-coller — Tableau des Notes Moodle (« Rapport de l'évaluateur »)</p>
               <p className="text-[11px] text-neutral-400 mt-0.5">
@@ -878,7 +878,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
               onClick={handleClearHistory}
               className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 bg-white text-xs font-medium text-neutral-600 transition-colors shadow-none cursor-pointer"
             >
-              <RefreshCcw size={12} className="text-neutral-400" />
+              <ArrowClockwise size={12} className="text-neutral-400" />
               <span>Vider</span>
             </button>
           </div>
@@ -893,7 +893,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                   {h.file_type === 'csv' ? (
                     <FileText className="w-4 h-4 text-blue-600 shrink-0" />
                   ) : (
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <FileCsv className="w-4 h-4 text-emerald-600 shrink-0" />
                   )}
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-neutral-900 truncate max-w-xs">{h.filename}</p>

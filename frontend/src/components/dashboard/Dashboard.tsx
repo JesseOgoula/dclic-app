@@ -1,23 +1,23 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   Users,
-  AlertTriangle,
-  TrendingUp,
+  Warning,
+  TrendUp,
   Calendar,
-  ExternalLink,
+  ArrowSquareOut,
   Check,
   Copy,
   SlidersHorizontal,
-  ChevronDown,
-  Filter,
+  CaretDown,
+  Funnel,
   ArrowUpRight,
   BookOpen,
-  UploadCloud,
+  CloudArrowUp,
   FileText,
-  UserX,
-  Layers,
-  Sparkles,
-} from 'lucide-react';
+  UserMinus,
+  Stack,
+  Sparkle,
+} from '@phosphor-icons/react';
 import {
   BarChart,
   Bar,
@@ -49,8 +49,6 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
   const [error, setError] = useState<string | null>(null);
   const [portalCopied, setPortalCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'sequences' | 'performers' | 'at_risk' | 'blocked' | 'incoherences'>('sequences');
-  const [incoherenceFilter, setIncoherenceFilter] = useState<'all' | 'passing' | 'failing'>('all');
-  const [showAllIncoherences, setShowAllIncoherences] = useState(false);
   const [chartView, setChartView] = useState<'sequences' | 'weekly'>('sequences');
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
@@ -137,7 +135,7 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
   if (error || !stats) {
     return (
       <div className="p-8 text-center bg-white border border-[#F1F5F9] rounded-2xl">
-        <AlertTriangle className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+        <Warning size={32} className="text-neutral-400 mx-auto mb-2" />
         <p className="text-sm font-semibold text-neutral-800">{error || 'Données indisponibles'}</p>
         <button
           onClick={loadDashboardData}
@@ -158,19 +156,9 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
   const filteredBlocked = filterList(stats.blocked_learners);
 
   const allIncoherenceLearners = stats.grade_incoherences || [];
-  const filteredIncoherenceLearners = allIncoherenceLearners
-    .filter((item) =>
-      `${item.first_name} ${item.last_name} ${item.email}`.toLowerCase().includes(searchLower)
-    )
-    .map((item) => {
-      const filteredItems = item.incoherences.filter((inc) => {
-        if (incoherenceFilter === 'passing') return inc.is_passing_grade;
-        if (incoherenceFilter === 'failing') return !inc.is_passing_grade;
-        return true;
-      });
-      return { ...item, incoherences: filteredItems };
-    })
-    .filter((item) => item.incoherences.length > 0);
+  const filteredIncoherenceLearners = allIncoherenceLearners.filter((item) =>
+    `${item.first_name} ${item.last_name} ${item.email}`.toLowerCase().includes(searchLower)
+  );
 
   return (
     <div className="space-y-6">
@@ -206,7 +194,7 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-medium text-neutral-700">
             <Calendar size={13} className="text-neutral-500" />
             <span>Cette session</span>
-            <ChevronDown size={12} className="text-neutral-400 ml-0.5" />
+            <CaretDown size={12} className="text-neutral-400 ml-0.5" />
           </div>
 
           {/* Filter button */}
@@ -215,7 +203,7 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
             className="w-8 h-8 rounded-lg border border-[#E2E8F0] bg-white flex items-center justify-center text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer"
             title="Filtres"
           >
-            <Filter size={13} />
+            <Funnel size={13} />
           </button>
         </div>
       </div>
@@ -290,163 +278,6 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
           </div>
         </div>
       </div>
-
-      {/* 2b. Section Incohérences Moodle (Notes obtenues mais marquées "Pas terminé") */}
-      {(stats.total_incoherences_count || 0) > 0 && (
-        <div className="bg-white border-2 border-red-200 rounded-2xl p-6 space-y-5 shadow-xs">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#F1F5F9]">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shrink-0 mt-0.5">
-                <AlertTriangle size={20} />
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-bold text-neutral-900">
-                    Incohérences Moodle — Devoirs déjà notés mais marqués « Pas terminé »
-                  </h3>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">
-                    {stats.total_incoherences_count} incohérences · {allIncoherenceLearners.length} apprenants
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
-                  Ces apprenants ont déjà obtenu une note sur un livrable dans le carnet de notes Moodle, mais l'autorisation d'une nouvelle tentative a remis leur statut d'achèvement à <span className="font-semibold text-red-700">« Pas terminé »</span>. Cliquez sur un apprenant pour consulter sa fiche détaillée et corriger Moodle.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5 bg-[#F8FAFC] border border-[#E2E8F0] p-1 rounded-xl self-start lg:self-auto shrink-0">
-              <button
-                type="button"
-                onClick={() => setIncoherenceFilter('all')}
-                className={cn(
-                  'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                  incoherenceFilter === 'all'
-                    ? 'bg-neutral-900 text-white font-semibold'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                )}
-              >
-                Toutes ({stats.total_incoherences_count})
-              </button>
-              <button
-                type="button"
-                onClick={() => setIncoherenceFilter('passing')}
-                className={cn(
-                  'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                  incoherenceFilter === 'passing'
-                    ? 'bg-emerald-700 text-white font-semibold'
-                    : 'text-emerald-700 hover:bg-emerald-50'
-                )}
-              >
-                Notes &ge; 10/20 ({stats.passing_incoherences_count || 0})
-              </button>
-              <button
-                type="button"
-                onClick={() => setIncoherenceFilter('failing')}
-                className={cn(
-                  'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                  incoherenceFilter === 'failing'
-                    ? 'bg-amber-700 text-white font-semibold'
-                    : 'text-amber-700 hover:bg-amber-50'
-                )}
-              >
-                Notes &lt; 10/20 ({stats.failing_incoherences_count || 0})
-              </button>
-            </div>
-          </div>
-
-          <div className="divide-y divide-[#F1F5F9]">
-            {(showAllIncoherences ? filteredIncoherenceLearners : filteredIncoherenceLearners.slice(0, 8)).map((item) => (
-              <div
-                key={item.learner_id}
-                onClick={() => onSelectLearner?.(item.learner_id)}
-                className="py-3.5 px-3 hover:bg-red-50/30 rounded-xl transition-colors cursor-pointer flex flex-col lg:flex-row lg:items-center justify-between gap-3"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-neutral-900">
-                      {item.first_name} {item.last_name}
-                    </span>
-                    <span className="text-[11px] text-neutral-400 font-mono truncate">
-                      {item.email}
-                    </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 font-mono font-semibold">
-                      {item.completion_rate}% complété
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    {item.incoherences.map((inc, idx) => (
-                      <div
-                        key={idx}
-                        className={cn(
-                          'inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border text-xs',
-                          inc.is_passing_grade
-                            ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
-                            : 'bg-amber-50/90 border-amber-300 text-amber-950'
-                        )}
-                      >
-                        <span className="font-semibold text-[11px] text-neutral-500">
-                          {inc.sequence.replace(/Séquence (\d+).*/i, 'S$1')} :
-                        </span>
-                        <span className="font-semibold truncate max-w-[260px]">{inc.name}</span>
-                        <span
-                          className={cn(
-                            'px-1.5 py-0.5 rounded font-mono font-bold text-[11px]',
-                            inc.is_passing_grade
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-amber-600 text-white'
-                          )}
-                        >
-                          {inc.grade} / {inc.max_grade}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
-                          Moodle : Pas terminé
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-end lg:self-center shrink-0">
-                  <span className="text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center gap-1">
-                    <span>Voir la fiche</span>
-                    <ArrowUpRight size={13} />
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-2 border-t border-[#F1F5F9] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-xs text-neutral-500">
-              Affichage de {showAllIncoherences ? filteredIncoherenceLearners.length : Math.min(8, filteredIncoherenceLearners.length)} sur {filteredIncoherenceLearners.length} apprenant(s) concerné(s)
-            </span>
-
-            <div className="flex items-center gap-2">
-              {filteredIncoherenceLearners.length > 8 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllIncoherences((prev) => !prev)}
-                  className="px-3.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 text-xs font-semibold text-neutral-800 transition-colors cursor-pointer"
-                >
-                  {showAllIncoherences
-                    ? 'Réduire la liste'
-                    : `Afficher les ${filteredIncoherenceLearners.length} apprenants avec incohérences`}
-                </button>
-              )}
-              {onViewAll && (
-                <button
-                  type="button"
-                  onClick={() => onViewAll('incoherence')}
-                  className="px-3.5 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  Filtrer dans la liste des apprenants
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Projet Professionnel Section (Formation Initiale) */}
       {stats.pp_stats && (
@@ -1177,7 +1008,7 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
             <div className="py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-600">
-                  <UploadCloud size={15} />
+                  <CloudArrowUp size={15} />
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-neutral-900">Import de progression</p>
@@ -1219,7 +1050,7 @@ export default function Dashboard({ onNavigate, onSelectLearner, globalSearch = 
             <div className="py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-600">
-                  <UserX size={15} />
+                  <UserMinus size={15} />
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-neutral-900">Suivi des décrochages</p>

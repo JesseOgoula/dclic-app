@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import {
   ArrowLeft,
-  Mail,
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
+  Envelope as Mail,
+  WarningCircle as AlertCircle,
+  Warning as AlertTriangle,
+  CheckCircle as CheckCircle2,
   Clock,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react';
+  CaretDown as ChevronDown,
+  CaretRight as ChevronRight,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer } from 'recharts';
 import { useFormation } from '@/context/FormationContext';

@@ -1,25 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import {
-  LayoutGrid,
+  SquaresFour,
   Users,
-  BarChart3,
-  UploadCloud,
+  ChartBar,
+  CloudArrowUp,
   Bell,
-  Search,
-  AlertTriangle,
-  UserX,
+  MagnifyingGlass,
   X,
-  ExternalLink,
+  ArrowSquareOut,
   Check,
   Copy,
-  LogOut,
-  ChevronDown,
-  Layers,
+  SignOut,
+  CaretDown,
+  Stack,
   Briefcase,
-  SlidersHorizontal,
   Command,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { api, type Alert, type FormationType } from '@/lib/api';
 import { useFormation } from '@/context/FormationContext';
 import { Badge } from '@/components/ui/badge';
@@ -134,9 +131,9 @@ export default function Layout({
   };
 
   const navTabs: { id: Page; label: string; icon: React.ElementType }[] = [
-    { id: 'dashboard', label: 'Overview', icon: LayoutGrid },
+    { id: 'dashboard', label: 'Overview', icon: SquaresFour },
     { id: 'learners', label: 'Apprenants', icon: Users },
-    { id: 'reports', label: 'Rapports', icon: BarChart3 },
+    { id: 'reports', label: 'Rapports', icon: ChartBar },
   ];
 
   return (
@@ -159,7 +156,7 @@ export default function Layout({
               <span className="text-[10px] text-neutral-400 font-normal hidden md:inline">
                 ({formationCategory})
               </span>
-              <ChevronDown size={13} className="text-neutral-400 ml-0.5" />
+              <CaretDown size={13} className="text-neutral-400 ml-0.5" />
             </button>
 
               {/* Dropdown Menu */}
@@ -208,7 +205,7 @@ export default function Layout({
                     )}
                   >
                     <div className="flex items-center gap-2">
-                      <Layers size={14} className="text-neutral-500" />
+                      <Stack size={14} className="text-neutral-500" />
                       <div>
                         <p className="leading-tight">Marketing numérique</p>
                         <p className="text-[10px] text-neutral-400">Formation initiale</p>
@@ -259,7 +256,7 @@ export default function Layout({
           <div className="flex items-center gap-3">
             {/* Search Input with shortcut */}
             <div className="hidden md:flex relative items-center">
-              <Search size={14} className="absolute left-3 text-neutral-400 pointer-events-none" />
+              <MagnifyingGlass size={14} className="absolute left-3 text-neutral-400 pointer-events-none" />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -294,7 +291,7 @@ export default function Layout({
                 className="h-8 px-2.5 text-xs font-medium border-[#E2E8F0] text-neutral-700 bg-white hover:bg-neutral-50 rounded-lg gap-1.5 shadow-none cursor-pointer"
                 title="Prévisualiser le portail apprenant"
               >
-                <ExternalLink size={13} />
+                <ArrowSquareOut size={13} />
                 <span className="hidden xl:inline">Portail</span>
               </Button>
             )}
@@ -305,7 +302,7 @@ export default function Layout({
               onClick={() => onNavigate('upload')}
               className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer transition-colors"
             >
-              <UploadCloud size={13} />
+              <CloudArrowUp size={13} />
               <span>Importer</span>
             </button>
 
@@ -367,7 +364,7 @@ export default function Layout({
                               className="text-neutral-400 hover:text-neutral-900 p-1 shrink-0 cursor-pointer"
                               title="Voir détails"
                             >
-                              <ExternalLink size={12} />
+                              <ArrowSquareOut size={12} />
                             </button>
                           )}
                         </div>
@@ -399,7 +396,7 @@ export default function Layout({
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-red-600 hover:bg-neutral-100 transition-colors cursor-pointer"
                 title="Déconnexion"
               >
-                <LogOut size={15} />
+                <SignOut size={15} />
               </button>
             )}
           </div>

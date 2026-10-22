@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Search,
-  CheckCircle2,
-  AlertTriangle,
+  MagnifyingGlass as Search,
+  CheckCircle as CheckCircle2,
+  Warning as AlertTriangle,
   Clock,
-  ChevronDown,
-  ChevronRight,
-  Mail,
-  LogOut,
+  CaretDown as ChevronDown,
+  CaretRight as ChevronRight,
+  Envelope as Mail,
+  SignOut as LogOut,
   UserCheck,
   X,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import confetti from 'canvas-confetti';
 import { api, type LearnerPortalData, type FormationType } from '@/lib/api';
 import { Button } from '@/components/ui/button';

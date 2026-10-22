@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  Search,
-  ChevronUp,
-  ChevronDown,
-  Download,
-  AlertTriangle,
-  ArrowUpDown,
-  Filter,
-} from 'lucide-react';
+  MagnifyingGlass,
+  CaretUp,
+  CaretDown,
+  DownloadSimple,
+  Warning,
+  ArrowsDownUp,
+  Funnel,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { api, type LearnerWithProgress } from '@/lib/api';
 import { useFormation } from '@/context/FormationContext';
@@ -91,8 +91,8 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
   }
 
   const SortIcon = ({ field }: { field: string }) => {
-    if (sortBy !== field) return <ArrowUpDown size={12} className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
-    return sortDir === 'asc' ? <ChevronUp size={13} className="text-neutral-900" /> : <ChevronDown size={13} className="text-neutral-900" />;
+    if (sortBy !== field) return <ArrowsDownUp size={12} className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    return sortDir === 'asc' ? <CaretUp size={13} className="text-neutral-900" /> : <CaretDown size={13} className="text-neutral-900" />;
   };
 
   const renderStatusBadge = (status: string, isBlocked?: boolean) => {
@@ -226,7 +226,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
             className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E2E8F0] hover:bg-neutral-50 bg-white text-xs font-medium text-neutral-700 transition-colors shadow-none cursor-pointer disabled:opacity-50"
             title="Exporter la liste des apprenants au format CSV"
           >
-            <Download size={13} className="text-neutral-500" />
+            <DownloadSimple size={13} className="text-neutral-500" />
             <span>Exporter CSV</span>
           </button>
         </div>
@@ -319,7 +319,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
 
         {/* Search input with shortcut badge */}
         <div className="relative flex items-center min-w-[240px]">
-          <Search size={14} className="absolute left-3 text-neutral-400 pointer-events-none" />
+          <MagnifyingGlass size={14} className="absolute left-3 text-neutral-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Filtrer par nom ou courriel..."
@@ -424,7 +424,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                                 )}
                                 title={`Incohérence Moodle : "${inc.name}" est marqué "Pas terminé" mais noté ${inc.grade}/${inc.max_grade}`}
                               >
-                                <AlertTriangle size={10} className="shrink-0" />
+                                <Warning size={10} className="shrink-0" />
                                 <span>
                                   Incohérence : {inc.name.split(':')[0].trim()} ({inc.grade}/{inc.max_grade})
                                 </span>
@@ -437,7 +437,7 @@ export default function LearnersList({ onSelectLearner, globalSearch = '', initi
                             className="text-[11px] text-red-600 flex items-center gap-1 mt-0.5 truncate max-w-md"
                             title={learner.unvalidated_assignments.map((u) => u.name).join(', ')}
                           >
-                            <AlertTriangle size={11} className="shrink-0" />
+                            <Warning size={11} className="shrink-0" />
                             <span>
                               À régulariser : {learner.unvalidated_assignments.map((u) => (u.name.toLowerCase().includes('lettre') ? 'Lettre' : u.name.split('.')[0].trim())).join(', ')}
                             </span>

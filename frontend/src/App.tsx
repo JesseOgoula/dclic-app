@@ -9,7 +9,7 @@ import LearnerPortal from './pages/LearnerPortal';
 import { api, authStorage } from './lib/api';
 import { FormationProvider, useFormation } from './context/FormationContext';
 import { FormationSelectorModal } from './components/formation/FormationSelectorModal';
-import { Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Lock, Eye, EyeSlash, Warning } from '@phosphor-icons/react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -193,7 +193,7 @@ function AppContent() {
         <Card className="w-full max-w-md border-border bg-card shadow-sm">
           <CardHeader className="text-center pb-3">
             <div className="mx-auto mb-2 text-primary">
-              <Lock className="h-7 w-7 mx-auto" strokeWidth={1.75} />
+              <Lock size={28} className="mx-auto" />
             </div>
             <CardTitle className="text-xl font-bold text-foreground">
               DCLIC Monitoring
@@ -221,7 +221,7 @@ function AppContent() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
                 </button>
               </div>
 
@@ -233,7 +233,7 @@ function AppContent() {
                 {loginLoading ? (
                   <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <Lock className="h-4 w-4" />
+                  <Lock size={16} />
                 )}
                 Accéder au Dashboard
               </Button>
@@ -241,7 +241,7 @@ function AppContent() {
 
             {loginError && (
               <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs flex items-center gap-2 border border-destructive/20">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <Warning size={16} className="shrink-0" />
                 <span>{loginError}</span>
               </div>
             )}
